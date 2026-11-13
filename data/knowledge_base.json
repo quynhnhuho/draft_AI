@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "truong": "<TÊN TRƯỜNG – cần điền>",
+    "khoa": "Khoa Công nghệ thông tin",
+    "phien_ban": "0.1",
+    "ghi_chu": "TẤT CẢ số liệu dưới đây là MẪU để chạy thử (da_kiem_chung=false). Thay bằng số liệu từ đề án tuyển sinh/thông báo chính thức, điền nguon + url + ngay_truy_cap, rồi đặt da_kiem_chung=true.",
+    "lien_he_tu_van": {
+      "email": "<email tư vấn tuyển sinh của Khoa>",
+      "dien_thoai": "<số điện thoại>",
+      "fanpage": "<link fanpage Khoa>"
+    }
+  },
+  "nganh": {
+    "cntt": {
+      "ten": "Công nghệ thông tin",
+      "ma_nganh": "7480201",
+      "aliases": ["công nghệ thông tin", "cntt", "it", "cong nghe thong tin", "ngành công nghệ", "kỹ sư phần mềm"],
+      "mo_ta": "Đào tạo cử nhân/kỹ sư làm việc trong doanh nghiệp phần mềm, hệ thống thông tin, mạng, dữ liệu.",
+      "khac_biet": "Tập trung kỹ thuật phần mềm, hệ thống, dữ liệu; không có khối học phần nghiệp vụ sư phạm."
+    },
+    "sp_tin": {
+      "ten": "Sư phạm Tin học",
+      "ma_nganh": "7140210",
+      "aliases": ["sư phạm tin học", "sư phạm tin", "sp tin", "su pham tin", "giáo viên tin", "sptin"],
+      "mo_ta": "Đào tạo giáo viên Tin học cho trường phổ thông; có khối học phần tâm lý – giáo dục học và thực tập sư phạm.",
+      "khac_biet": "Có khối kiến thức nghiệp vụ sư phạm và thực tập ở trường phổ thông; chính sách hỗ trợ học phí, sinh hoạt phí theo quy định hiện hành cho sinh viên sư phạm."
+    }
+  },
+  "facts": [
+    {
+      "id": "dc_cntt_2025_thpt", "loai": "diem_chuan", "nganh": "cntt", "nam": 2025,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin (phương thức điểm thi tốt nghiệp THPT): 23.00 điểm (MẪU).",
+      "gia_tri": 23.0, "phuong_thuc": "thpt",
+      "nguon": "MẪU – thay bằng Thông báo điểm trúng tuyển năm 2025", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cntt_2024_thpt", "loai": "diem_chuan", "nganh": "cntt", "nam": 2024,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin (phương thức điểm thi tốt nghiệp THPT): 22.50 điểm (MẪU).",
+      "gia_tri": 22.5, "phuong_thuc": "thpt",
+      "nguon": "MẪU – thay bằng Thông báo điểm trúng tuyển năm 2024", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_sptin_2025_thpt", "loai": "diem_chuan", "nganh": "sp_tin", "nam": 2025,
+      "noi_dung": "Điểm chuẩn ngành Sư phạm Tin học (phương thức điểm thi tốt nghiệp THPT): 24.00 điểm (MẪU).",
+      "gia_tri": 24.0, "phuong_thuc": "thpt",
+      "nguon": "MẪU – thay bằng Thông báo điểm trúng tuyển năm 2025", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_cntt_2025", "loai": "to_hop_xet_tuyen", "nganh": "cntt", "nam": 2025,
+      "noi_dung": "Ngành Công nghệ thông tin xét các tổ hợp: A00, A01, D01, D07 (MẪU).",
+      "to_hop": ["A00", "A01", "D01", "D07"],
+      "nguon": "MẪU – thay bằng Đề án tuyển sinh năm 2025, mục ...", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_sptin_2025", "loai": "to_hop_xet_tuyen", "nganh": "sp_tin", "nam": 2025,
+      "noi_dung": "Ngành Sư phạm Tin học xét các tổ hợp: A00, A01, D01 (MẪU).",
+      "to_hop": ["A00", "A01", "D01"],
+      "nguon": "MẪU – thay bằng Đề án tuyển sinh năm 2025, mục ...", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "hp_cntt_2025", "loai": "hoc_phi", "nganh": "cntt", "nam": 2025,
+      "noi_dung": "Học phí dự kiến ngành Công nghệ thông tin năm học 2025–2026: khoảng ... đồng/tín chỉ (MẪU – cần điền).",
+      "nguon": "MẪU – thay bằng Quyết định học phí năm học 2025–2026", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "hp_sptin_2025", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2025,
+      "noi_dung": "Sinh viên Sư phạm Tin học thuộc diện được hỗ trợ học phí và chi phí sinh hoạt theo Nghị định 116/2020/NĐ-CP (kiểm tra văn bản sửa đổi, bổ sung hiện hành) (MẪU).",
+      "nguon": "MẪU – Nghị định 116/2020/NĐ-CP; kiểm tra văn bản hiện hành", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "hb_2025", "loai": "hoc_bong", "nganh": null, "nam": 2025,
+      "noi_dung": "Học bổng khuyến khích học tập xét theo điểm trung bình học kỳ và điểm rèn luyện (MẪU – cần điền mức cụ thể).",
+      "nguon": "MẪU – thay bằng Quy định học bổng của Trường", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "ktx_2025", "loai": "ky_tuc_xa", "nganh": null, "nam": 2025,
+      "noi_dung": "Ký túc xá ưu tiên tân sinh viên ở xa; đăng ký trực tuyến khi làm thủ tục nhập học (MẪU – cần điền giá phòng).",
+      "nguon": "MẪU – thay bằng Thông báo của Trung tâm/Ban quản lý KTX", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "ctdt_cntt", "loai": "chuong_trinh_dao_tao", "nganh": "cntt", "nam": 2025,
+      "noi_dung": "Chương trình đào tạo ngành CNTT gồm khoảng ... tín chỉ, thời gian đào tạo ... năm (MẪU – cần điền).",
+      "nguon": "MẪU – thay bằng Chương trình đào tạo ngành CNTT khóa 2025", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "ctdt_sptin", "loai": "chuong_trinh_dao_tao", "nganh": "sp_tin", "nam": 2025,
+      "noi_dung": "Chương trình đào tạo ngành Sư phạm Tin học gồm khoảng ... tín chỉ, có học phần thực tập sư phạm (MẪU – cần điền).",
+      "nguon": "MẪU – thay bằng Chương trình đào tạo ngành SP Tin học khóa 2025", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "vl_cntt", "loai": "viec_lam", "nganh": "cntt", "nam": 2025,
+      "noi_dung": "Vị trí việc làm: lập trình viên, kiểm thử phần mềm, quản trị hệ thống/mạng, phân tích dữ liệu (MẪU – lấy từ chuẩn đầu ra CTĐT).",
+      "nguon": "MẪU – Chuẩn đầu ra CTĐT ngành CNTT", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "vl_sptin", "loai": "viec_lam", "nganh": "sp_tin", "nam": 2025,
+      "noi_dung": "Vị trí việc làm: giáo viên Tin học THCS/THPT, giảng dạy tại trung tâm tin học, cán bộ CNTT trong cơ sở giáo dục (MẪU).",
+      "nguon": "MẪU – Chuẩn đầu ra CTĐT ngành SP Tin học", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "nh_2025", "loai": "thu_tuc_nhap_hoc", "nganh": null, "nam": 2025,
+      "noi_dung": "Thủ tục nhập học: xác nhận nhập học trên hệ thống của Bộ, nộp hồ sơ (giấy báo trúng tuyển, học bạ, bằng/giấy chứng nhận tốt nghiệp…) theo hướng dẫn của Trường (MẪU).",
+      "nguon": "MẪU – thay bằng Hướng dẫn nhập học năm 2025", "url": "", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    }
+  ]
+}
