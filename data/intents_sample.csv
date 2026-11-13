@@ -1,0 +1,29 @@
+text,intent,nguon
+điểm chuẩn ngành công nghệ thông tin năm ngoái bao nhiêu ạ,diem_chuan,nhom_viet
+cntt 2024 lấy bao nhiêu điểm vậy ad,diem_chuan,bien_the
+diem chuan su pham tin hoc nam 2025,diem_chuan,bien_the
+ngành CNTT xét tổ hợp nào ạ,to_hop_xet_tuyen,nhom_viet
+khối D01 có vào được sư phạm tin không,to_hop_xet_tuyen,nhom_viet
+em thi khối A1 thì đăng ký ngành nào được,to_hop_xet_tuyen,bien_the
+học phí một năm khoảng bao nhiêu,hoc_phi,nhom_viet
+hp ngành cntt bn 1 tín chỉ ạ,hoc_phi,bien_the
+sư phạm tin có được miễn học phí không,hoc_phi,nhom_viet
+trường có học bổng cho tân sinh viên không,hoc_bong,nhom_viet
+điều kiện nhận học bổng khuyến khích là gì,hoc_bong,nhom_viet
+ktx còn chỗ không ạ,ky_tuc_xa,bien_the
+giá phòng ký túc xá một tháng bao nhiêu,ky_tuc_xa,nhom_viet
+ngành cntt học những môn gì,chuong_trinh_dao_tao,nhom_viet
+chương trình đào tạo bao nhiêu tín chỉ,chuong_trinh_dao_tao,nhom_viet
+cntt khác sư phạm tin chỗ nào,chuong_trinh_dao_tao,nhom_viet
+ra trường làm được những công việc gì,viec_lam,nhom_viet
+học sư phạm tin xong có dễ xin việc không,viec_lam,nhom_viet
+nhập học cần mang theo giấy tờ gì,thu_tuc_nhap_hoc,nhom_viet
+khi nào làm thủ tục nhập học vậy ạ,thu_tuc_nhap_hoc,nhom_viet
+xin chào,chao_hoi,nhom_viet
+cảm ơn ad nhiều,chao_hoi,nhom_viet
+em thích lập trình thì nên chọn ngành nào,tu_van_chon_nganh,nhom_viet
+em được 24 điểm khối A00 có đủ điều kiện vào cntt không,tu_van_chon_nganh,nhom_viet
+em muốn làm giáo viên thì học ngành gì,tu_van_chon_nganh,nhom_viet
+em rớt 2 môn thì nên đăng ký học phần nào,lo_trinh_hoc_tap,nhom_viet
+lộ trình học để ra trường đúng hạn,lo_trinh_hoc_tap,nhom_viet
+em muốn học vượt để ra trường sớm,lo_trinh_hoc_tap,nhom_viet
