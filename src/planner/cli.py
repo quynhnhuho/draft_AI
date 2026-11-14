@@ -116,7 +116,11 @@ def main(argv=None) -> None:
         while True:
             bt = nhap_thong_tin(ds)
             if args.thuat_toan == "tu_dong":
-                kq_dp = lap_lo_trinh(bt, doi_chieu=True)
+                try:
+                    kq_dp = lap_lo_trinh(bt, doi_chieu=True)
+                except NotImplementedError as e:
+                    print(f"\n  ! {e}")
+                    return
                 for dong in kq_dp.ghi_chu:
                     print(f"  * {dong}")
                 in_ket_qua(bt, kq_dp.ket_qua)
