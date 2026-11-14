@@ -13,8 +13,9 @@ from pathlib import Path
 from ..advisor.facts import build_facts, latest_cutoffs
 from ..advisor import inference
 from ..nlu.preprocess import normalize
-from ..planner import search
-from ..planner.model import PlanProblem, State, load_courses
+from ..planner import dieu_phoi
+from ..planner.model import (GIA_DINH, MAX_TC_BINH_THUONG, MAX_TC_HOC_VUOT, NAM_AP_DUNG, NGUON_CTDT,
+                             doc_du_lieu, hk1_co_dinh, kiem_tra_dau_vao, tao_bai_toan, ten_hoc_ky)
 from . import flows
 from .entities import Entities, SO_THICH, DINH_HUONG, extract
 from .kb import KnowledgeBase, cite, format_facts
@@ -46,10 +47,12 @@ class ChatEngine:
         self.classifier = classifier
         self.threshold = threshold
         self.log_dir = log_dir
+        self.debug = False            # bật từ giao diện: hiện thuật toán, số nút, đối chiếu BFS
         try:
-            self.courses, self.course_meta = load_courses()
-        except FileNotFoundError:
-            self.courses, self.course_meta = {}, {}
+            self.courses = doc_du_lieu()              # {mã: HocPhan} từ data/hoc_phan.csv
+            self.hk1 = hk1_co_dinh(self.courses)
+        except (FileNotFoundError, ValueError):
+            self.courses, self.hk1 = {}, frozenset()
         self.course_ids = set(self.courses)
 
     # ------------------------------------------------------------------ lượt hội thoại
@@ -64,7 +67,7 @@ class ChatEngine:
             reply.confidence = reply.confidence or 1.0   # đang trong luồng: không qua bộ phân loại
             return reply
 
-        e = extract(text, self.kb.majors, self.course_ids)
+        e = extract(text, self.kb.majors, self.courses)
         pred = self.classifier.predict(text)
         dbg = {"classifier": getattr(self.classifier, "name", "?"), "entities": e.as_dict(),
                "threshold": self.threshold}
@@ -212,40 +215,66 @@ class ChatEngine:
 
     # ------------------------------------------------------------------ C1: lộ trình học
     def make_plan_from_slots(self, slots: dict) -> BotReply:
-        th = slots.get("tinh_huong", "nam_nhat")
-        da_dat = set(slots.get("da_dat") or [])
-        bi_rot = set(slots.get("bi_rot") or [])
-        max_tc = self.course_meta.get("tin_chi_toi_da_hoc_vuot" if th == "hoc_vuot" else "tin_chi_toi_da_moi_ky", 20)
-        return self.make_plan(done=da_dat - bi_rot, ky=int(slots.get("ky") or 1), max_credits=max_tc,
-                              algorithm=slots.get("algorithm", "A*"), tinh_huong=th)
+        def mo_rong(ds):  # "@HK1" = toàn bộ học phần HK1 do Trường xếp
+            out = set()
+            for m in ds or []:
+                out |= set(self.hk1) if m == "@HK1" else {m}
+            return out
+        rot = mo_rong(slots.get("bi_rot"))
+        return self.make_plan(da_dat=mo_rong(slots.get("da_dat")) - rot, rot=rot,
+                              ky=int(slots.get("ky") or 1), hoc_vuot=bool(slots.get("hoc_vuot")))
 
-    def make_plan(self, done: set[str], ky: int = 1, max_credits: int = 20,
-                  algorithm: str = "A*", tinh_huong: str = "") -> BotReply:
+    def make_plan(self, da_dat: set[str], rot: set[str] = frozenset(), ky: int = 1,
+                  hoc_vuot: bool = False) -> BotReply:
+        """Lập lộ trình. Người dùng KHÔNG chọn thuật toán – bộ điều phối (C1) tự chọn."""
+        intent = "lo_trinh_hoc_tap"
         if not self.courses:
-            return BotReply("Chưa có dữ liệu học phần (`data/courses.json`).", intent="lo_trinh_hoc_tap")
-        targets = frozenset(self.courses)
-        problem = PlanProblem(self.courses, State(frozenset(done), ky), targets, max_credits,
-                              self.course_meta.get("hoc_ky_moi_nam", 3))
-        info = (f"Tình huống: **{tinh_huong or 'tùy chỉnh'}** · bắt đầu từ học kỳ {ky} · tối đa {max_credits} TC/kỳ · "
-                f"thuật toán **{algorithm}**  \nĐã đạt: {', '.join(sorted(done)) or '(chưa có)'} · "
-                f"còn {problem.remaining_credits(problem.start)} tín chỉ cần hoàn thành.")
+            return BotReply("Chưa có dữ liệu học phần (`data/hoc_phan.csv`).", intent=intent)
+        loi = kiem_tra_dau_vao(self.courses, set(da_dat), set(rot), ky)
+        if loi:
+            return BotReply("Thông tin em cung cấp chưa hợp lệ:\n" + "\n".join(f"- {x}" for x in loi) +
+                            "\n\nEm kiểm tra lại rồi gõ **\"lộ trình học\"** để nhập lại nhé.", intent=intent)
+        bt = tao_bai_toan(self.courses, set(da_dat), set(rot), ky, hoc_vuot)
+        max_tc = MAX_TC_HOC_VUOT if hoc_vuot else MAX_TC_BINH_THUONG
+        info = (f"Bắt đầu từ **{ten_hoc_ky(ky)}** · tối đa **{max_tc} TC/kỳ**"
+                f"{' (học vượt)' if hoc_vuot else ''} · đã đạt {len(da_dat)} học phần"
+                f"{f' · rớt {len(rot)} học phần' if rot else ''} · còn **{bt.tin_chi_con_lai(bt.trang_thai_dau())} TC**.")
         try:
-            result = search.plan(problem, algorithm)
+            kq_dp = dieu_phoi.lap_lo_trinh(bt, doi_chieu=self.debug)
         except NotImplementedError:
-            return BotReply(f"{info}\n\n" + NOT_READY.format(name=f"lập lộ trình học ({algorithm})",
-                                                           where="`src/planner/search.py` – Chức năng 1"),
-                            intent="lo_trinh_hoc_tap")
-        rows = ["| Học kỳ | Học phần | Tín chỉ |", "|---|---|---|"]
-        for i, sem in enumerate(result.semesters):
-            names = ", ".join(f"{m} – {self.courses[m].ten}" for m in sem) or "(nghỉ / không có môn mở)"
-            rows.append(f"| {ky + i} | {names} | {sum(self.courses[m].tin_chi for m in sem)} |")
-        sim = any(c.mo_phong for c in self.courses.values())
-        note = "\n\n⚠️ Một số học phần là dữ liệu mô phỏng." if sim else ""
-        src = self.course_meta.get("nguon", "")
-        return BotReply(f"{info}\n\n**Lộ trình {result.so_ky} học kỳ:**\n\n" + "\n".join(rows) +
-                        f"\n\nSố nút mở rộng: {result.expanded} · thời gian: {result.time_ms:.1f} ms"
-                        f"\n\n📌 Nguồn: {src} – năm áp dụng {self.course_meta.get('nam', '?')}{note}",
-                        intent="lo_trinh_hoc_tap")
+            return BotReply(f"{info}\n\n" + NOT_READY.format(
+                name="lập lộ trình học", where="`src/planner/` (bfs.py, a_sao.py, nhanh_can.py) – Chức năng 1"),
+                intent=intent)
+        kq = kq_dp.ket_qua
+        if kq is None or kq.lo_trinh is None:
+            return BotReply(f"{info}\n\nMình chưa tìm được lộ trình phù hợp. Em nên gặp cố vấn học tập để được hỗ trợ.",
+                            intent=intent)
+        if not kq.lo_trinh:
+            return BotReply(f"{info}\n\n🎉 Em đã hoàn thành toàn bộ học phần mục tiêu!", intent=intent)
+
+        rows = ["| Học kỳ | Học phần | TC |", "|---|---|---|"]
+        for hk, tap in kq.lo_trinh:
+            mon = "; ".join(f"{m} – {self.courses[m].ten}" + (" *(học lại)*" if m in bt.hoc_phan_rot else "")
+                              for m in sorted(tap, key=lambda x: self.courses[x].stt)) or "*(chờ kỳ sau)*"
+            nhan = " 🏫 Trường xếp" if hk in bt.truong_xep else ""
+            rows.append(f"| {ten_hoc_ky(hk)}{nhan} | {mon} | {sum(self.courses[m].tin_chi for m in tap)} |")
+        ket_luan = ("✅ Đây là lộ trình **ít học kỳ nhất** để hoàn thành chương trình." if kq.toi_uu else
+                    "⚠️ Bài toán lớn nên hệ thống trả về lộ trình tốt nhất tìm được trong thời gian cho phép; "
+                    "có thể chưa phải ít học kỳ nhất. Em nên trao đổi thêm với cố vấn học tập.")
+        text = (f"{info}\n\n**Lộ trình đề xuất: {kq.so_ky} học kỳ** "
+                f"(đến hết {ten_hoc_ky(kq.lo_trinh[-1][0])})\n\n" + "\n".join(rows) + f"\n\n{ket_luan}"
+                f"\n\n📌 Nguồn: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}"
+                "\n\n**Giả định:**\n" + "\n".join(f"- {g}" for g in GIA_DINH))
+        if self.debug:
+            dong = [f"Bộ giải: **{kq.thuat_toan}** · {kq.so_nut_mo_rong} nút mở rộng · {kq.so_nut_sinh} nút sinh · "
+                    f"{kq.thoi_gian_ms:.1f} ms"]
+            dong += kq_dp.ghi_chu
+            if kq_dp.doi_chieu is not None:
+                dc = kq_dp.doi_chieu
+                dong.append(f"Đối chiếu BFS: {dc.so_ky} kỳ, {dc.so_nut_mo_rong} nút, {dc.thoi_gian_ms:.1f} ms – "
+                            + ("✔ khớp" if kq_dp.khop_doi_chieu else "✘ KHÔNG khớp"))
+            text += "\n\n🔎 " + "  \n".join(dong)
+        return BotReply(text, intent=intent, debug={"thuat_toan": kq.thuat_toan, "so_ky": kq.so_ky})
 
 
 def module_status() -> dict[str, bool]:
@@ -259,14 +288,7 @@ def module_status() -> dict[str, bool]:
         except Exception:
             return True  # đã cài nhưng lỗi với đầu vào thử – coi là đã có
 
-    status = {}
-    try:
-        courses, _ = load_courses()
-        first = next(iter(courses))  # bài toán rất nhỏ: chỉ để biết hàm đã được cài hay chưa
-        prob = PlanProblem({first: courses[first]}, State(frozenset(), 1), frozenset({first}))
-        status["C1 – Lộ trình học (BFS/A*/nhánh cận)"] = all(ok(lambda f=f: f(prob)) for f in search.ALGORITHMS.values())
-    except FileNotFoundError:
-        status["C1 – Lộ trình học (BFS/A*/nhánh cận)"] = False
+    status = {f"C1 – {ten}": co for ten, co in dieu_phoi.thuat_toan_san_co().items()}
     status["C2 – Suy diễn tiến"] = ok(lambda: inference.forward_chaining(set()))
     status["C2 – Suy diễn lùi"] = ok(lambda: inference.backward_chaining("du_dk_cntt", set()))
     return status

@@ -18,18 +18,21 @@ pytest -q
 
 | Chức năng | Thư mục | Trạng thái |
 |---|---|---|
-| C1 – Lộ trình học (BFS, A*, nhánh cận) | `src/planner/` | 🧱 Khung: mô hình dữ liệu + hợp đồng hàm; thuật toán `TODO` |
+| C1 – Lộ trình học (BFS, A*, nhánh cận) | `src/planner/` | ✅ Hoàn thành – [`docs/C1_LO_TRINH.md`](docs/C1_LO_TRINH.md) |
 | C2 – Tư vấn ngành (luật, suy diễn tiến/lùi, ID3) | `src/advisor/` | 🧱 Khung: 4 luật mẫu, `facts.py` xong; suy diễn + ID3 `TODO` |
 | C3 – Phân loại ý định (NB, Keras) | `src/nlu/` | 🧱 Tiền xử lý + script huấn luyện mẫu; cần bộ dữ liệu ≥600 câu |
-| C4 – Ứng dụng chatbot | `app.py`, `src/chatbot/` | ✅ Chạy được: phân loại **từ khóa tạm thời**, báo "mô-đun chưa cài đặt" cho C1/C2 |
+| C4 – Ứng dụng chatbot | `app.py`, `src/chatbot/` | ✅ Chạy được: phân loại **từ khóa tạm thời**, gọi C1 (tự chọn thuật toán), báo "mô-đun chưa cài đặt" cho C2 |
 
 C4 tự động dùng mô hình tốt nhất có trong `models/`: `intent_model.keras` (C3) → `nb_pipeline.pkl` →
-bộ phân loại từ khóa tạm thời. Khi C1/C2 được cài đặt, chatbot tự gọi được mà không cần sửa mã C4.
+bộ phân loại từ khóa tạm thời. Khi C2 được cài đặt, chatbot tự gọi được mà không cần sửa mã C4.
+
+App có 2 trang (chọn ở sidebar): **💬 Chatbot** cho thí sinh/sinh viên và **📊 So sánh thuật toán (C1)**
+cho giảng viên/hội đồng. Lộ trình học chạy ở dòng lệnh: `python -m src.planner.cli`.
 
 ## Việc cần làm tiếp
 
 - [ ] Điền `data/knowledge_base.json` bằng số liệu thật (nguồn, url, năm) – hiện **toàn bộ là MẪU**
-- [ ] `data/courses.json` ≥25 học phần từ CTĐT công khai (hiện 8 học phần mẫu)
+- [ ] Xác nhận cột `hoc_ky_mo` trong `data/hoc_phan.csv` lấy từ CTĐT hay mô phỏng; điền tên thành viên vào 3 file thuật toán C1
 - [ ] `data/intents.csv` ≥600 câu (mẫu: `data/intents_sample.csv`), `data/out_of_scope.csv`, `data/survey.csv`
-- [ ] Cài đặt các hàm `TODO` trong `src/planner/`, `src/advisor/`
+- [ ] Cài đặt các hàm `TODO` trong `src/advisor/`
 - [ ] Huấn luyện `python -m src.nlu.train_keras --data data/intents.csv`, chọn ngưỡng τ

@@ -24,7 +24,8 @@ DINH_HUONG = {
 _TO_HOP = re.compile(r"\b([abcdx])\s?0?(\d{1,2})\b")
 _YEAR = re.compile(r"\b(20[12]\d)\b")
 _SCORE = re.compile(r"(?<![\d.])(\d{1,2}(?:[.,]\d{1,2})?)(?![\d.])")
-_COURSE = re.compile(r"\b[A-Za-z]{2,4}\d{3}\b")
+_COURSE = re.compile(r"\b[A-Za-z]{2,5}\s?\d{3,4}\b")   # COMP1010, comp 1010
+_HK1 = re.compile(r"\b(?:hk|học kỳ|kỳ)\s?1\b|\bhk1\b")
 
 
 @dataclass
@@ -33,7 +34,8 @@ class Entities:
     to_hop: list[str] = field(default_factory=list)  # "A00", "D01"
     nam: int | None = None
     diem: float | None = None
-    ma_hp: list[str] = field(default_factory=list)
+    ma_hp: list[str] = field(default_factory=list)   # mã học phần (nhận cả mã lẫn tên học phần)
+    nhac_hk1: bool = False                           # có nhắc "học kỳ 1" / "hk1"
     so_thich: list[str] = field(default_factory=list)
     dinh_huong: str | None = None
 
@@ -66,7 +68,8 @@ def parse_score(text: str) -> float | None:
     return None
 
 
-def extract(text: str, majors: dict, course_ids: set[str] | None = None) -> Entities:
+def extract(text: str, majors: dict, courses: dict | None = None) -> Entities:
+    """courses: {mã: HocPhan} (hoặc tập mã). Nhận học phần theo mã hoặc theo tên đầy đủ."""
     t = normalize(text)
     e = Entities(nganh=_find_majors(t, majors))
 
@@ -81,8 +84,13 @@ def extract(text: str, majors: dict, course_ids: set[str] | None = None) -> Enti
     if any(_has(t, w) for w in ("điểm", "được", "đạt", "thi")):
         e.diem = parse_score(text)
 
-    if course_ids:
-        e.ma_hp = sorted({m.upper() for m in _COURSE.findall(text) if m.upper() in course_ids})
+    if courses:
+        ma = {m.upper().replace(" ", "") for m in _COURSE.findall(text)}
+        if isinstance(courses, dict):
+            ma |= {code for code, hp in courses.items()
+                   if getattr(hp, "ten", None) and _has(t, normalize(hp.ten))}
+        e.ma_hp = sorted(m for m in ma if m in courses)
+    e.nhac_hk1 = bool(_HK1.search(t))
 
     e.so_thich = [k for k, kws in SO_THICH.items() if any(_has(t, normalize(w)) for w in kws)]
     e.dinh_huong = next((k for k, kws in DINH_HUONG.items() if any(_has(t, normalize(w)) for w in kws)), None)

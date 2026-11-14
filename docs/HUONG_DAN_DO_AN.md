@@ -51,14 +51,19 @@ draft_AI/
 ├── requirements.txt
 ├── data/
 │   ├── knowledge_base.json        # C4 – cơ sở tri thức (mỗi số liệu có nguồn + năm)
-│   ├── courses.json               # C1 – ≥25 học phần (đánh dấu học phần mô phỏng)
+│   ├── hoc_phan.csv               # C1 – 28 học phần (QĐ 2619/QĐ-ĐHSP, 2024)
 │   ├── survey.csv                 # C2 – ≥14 mẫu khảo sát, ≥4 thuộc tính
 │   ├── intents.csv                # C3 – ≥600 câu, ≥8 ý định (file mẫu: intents_sample.csv)
 │   └── out_of_scope.csv           # C3 – câu ngoài phạm vi để chọn ngưỡng τ
 ├── src/
 │   ├── planner/                   # C1
-│   │   ├── model.py               #   Course, PlanProblem, State, các hàm hỗ trợ
-│   │   └── search.py              #   bfs(), astar(), branch_and_bound()  ← TỰ CÀI ĐẶT
+│   │   ├── model.py               #   mô hình dùng chung: HocPhan, BaiToan, KetQua, h, h2
+│   │   ├── bfs.py                 #   BFS            (thành viên 1)
+│   │   ├── a_sao.py               #   A*             (thành viên 2)
+│   │   ├── nhanh_can.py           #   nhánh cận      (thành viên 3)
+│   │   ├── dieu_phoi.py           #   kết hợp 3 thuật toán – chatbot chỉ gọi file này
+│   │   ├── kich_ban.py            #   tình huống + bảng so sánh cho báo cáo
+│   │   └── cli.py                 #   chạy dòng lệnh
 │   ├── advisor/                   # C2
 │   │   ├── rules.py               #   Rule + tập ≥15 luật
 │   │   ├── facts.py               #   chuyển input số (điểm) → sự kiện ký hiệu
@@ -99,59 +104,22 @@ draft_AI/
 
 ---
 
-## 4. Chức năng 1 – Lập lộ trình học tối ưu (Phần 2: 2.1, 2.2)
+## 4. Chức năng 1 – Lập lộ trình học tối ưu (Phần 2: 2.1, 2.2) ✅
 
-### 4.1 Dữ liệu `data/courses.json`
+**Đã hoàn thành** – chi tiết thiết kế, giả định, kết quả: [`docs/C1_LO_TRINH.md`](C1_LO_TRINH.md);
+hướng dẫn từng thành viên commit thuật toán của mình: [`docs/HUONG_DAN_COMMIT_C1.md`](HUONG_DAN_COMMIT_C1.md).
 
-```json
-{ "meta": { "nguon": "CTĐT ngành CNTT khóa 20xx – <url>", "nam": 2025,
-            "tin_chi_toi_da_moi_ky": 20, "tin_chi_toi_thieu_moi_ky": 14 },
-  "courses": [
-    { "ma": "IT001", "ten": "Nhập môn lập trình", "tin_chi": 3,
-      "hoc_truoc": [], "tien_quyet": [], "hoc_ky_mo": [1, 2], "mo_phong": false }
-  ] }
-```
-- `hoc_ky_mo`: 1 = HK1, 2 = HK2, 3 = HK hè. Nếu CTĐT không ghi → mô phỏng và đặt `mo_phong: true`.
-- Phân biệt **tiên quyết** (phải *đạt*) và **học trước** (chỉ cần *đã học*, có thể rớt). Nếu đơn giản
-  hóa thành một loại, ghi rõ giả định trong báo cáo.
-- ≥25 học phần, nên có chuỗi tiên quyết dài 4–5 tầng để bài toán có ý nghĩa.
-
-### 4.2 Mô hình hóa
-
-- **Trạng thái** `(done: frozenset[str], ky: int)`; `ky` tăng dần, loại học kỳ = `ky % 3`
-  (hoặc `ky % 2` nếu bỏ HK hè).
-- **Trạng thái đầu:** tập học phần đã đạt + học kỳ hiện tại.
-- **Trạng thái đích:** `targets ⊆ done`.
-- **Toán tử:** chọn tập `S` ⊆ học phần *đủ điều kiện* trong kỳ (mở trong kỳ, đã đạt tiên quyết,
-  chưa học), `Σ tín chỉ(S) ≤ max`. Chi phí mỗi bước = 1 học kỳ.
-- **Giảm không gian trạng thái (nên viết vào báo cáo):**
-  - Chỉ xét học phần *liên quan* = targets ∪ tổ tiên tiên quyết của chúng.
-  - **Trội (dominance):** cùng `ky`, trạng thái có `done` lớn hơn không bao giờ tệ hơn → chỉ cần
-    sinh các tập **tối đại** (không thêm được môn nào nữa mà vẫn ≤ max). Giữ tính tối ưu, giảm rất
-    mạnh số nút. Có thể so sánh "sinh mọi tập con" vs "chỉ tập tối đại" như một thí nghiệm.
-  - Cho phép `S = ∅` (nghỉ/không có môn mở) để không bị kẹt khi môn chỉ mở HK khác.
-  - Tập `visited` lưu `(done, ky % số_loại_kỳ)` hoặc biểu diễn `done` bằng bitmask (int) cho nhanh.
-
-### 4.3 Thuật toán
-
-| Thuật toán | Ghi chú cài đặt |
-|---|---|
-| BFS | Hàng đợi FIFO, mỗi tầng = 1 học kỳ → lời giải đầu tiên tìm thấy là ít học kỳ nhất. |
-| A* | `f = g + h`, `h = ⌈tín chỉ còn lại của targets / max⌉`. Chứng minh **chấp nhận được**: mỗi kỳ học tối đa `max` tín chỉ. Dùng `heapq`, tie-break theo `h` nhỏ. |
-| Nhánh cận | DFS + cận trên `best` (khởi tạo bằng lời giải tham lam). Cắt nhánh khi `g + h ≥ best`. Sắp xếp con theo `h` tăng dần để sớm tìm được lời giải tốt. |
-| (mở rộng) | `h2 = max(h, độ dài chuỗi tiên quyết dài nhất còn lại)` – vẫn chấp nhận được, mạnh hơn → so sánh số nút. |
-
-Mỗi hàm trả về cùng một cấu trúc: `PlanResult(semesters: list[list[str]], so_ky, nut_mo_rong, nut_sinh_ra, thoi_gian_ms)`.
-
-### 4.4 Ba tình huống bắt buộc (cố định đầu vào, ghi trong báo cáo)
-
-1. **Năm nhất:** `done = ∅`, `ky = 1`, max = 20 TC, targets = toàn bộ học phần cơ sở ngành.
-2. **Rớt 2 học phần:** sinh viên năm 2 đã hoàn thành HK1–HK3 nhưng rớt 2 môn tiên quyết của nhiều
-   môn khác (ví dụ CTDL&GT, Cơ sở dữ liệu) → thấy rõ hiệu ứng dây chuyền.
-3. **Học vượt:** max = 24–25 TC (theo quy chế học vụ của Trường) và/hoặc có học kỳ hè.
-
-**Bảng kết quả:** tình huống × thuật toán → số học kỳ, số nút mở rộng, thời gian, lời giải có trùng
-nhau không. Kỳ vọng: cả 3 cho cùng số học kỳ tối ưu; A* và nhánh cận mở ít nút hơn BFS.
+Tóm tắt:
+- Dữ liệu `data/hoc_phan.csv`: 28 học phần, 75 TC – nguồn: CTĐT ban hành kèm Quyết định số 2619/QĐ-ĐHSP
+  ngày 04/09/2024 của Hiệu trưởng Trường ĐHSP TP.HCM.
+- Giả định: 18 TC/kỳ (22 khi học vượt), không có học kỳ hè, HK1 do Trường xếp (7 học phần đầu, 18 TC),
+  học trước chỉ cần đã học (kể cả rớt).
+- `model.py` dùng chung; mỗi thuật toán một file (`bfs.py`, `a_sao.py`, `nhanh_can.py`) để mỗi thành viên
+  tự commit; `dieu_phoi.py` kết hợp 3 thuật toán cho chatbot.
+- Chatbot **không cho người dùng chọn thuật toán**: A* là bộ giải chính, nhánh cận (khởi tạo bằng lời
+  giải tham lam, dừng lúc nào cũng có lời giải) là dự phòng, BFS là chuẩn đối chiếu.
+- 4 tình huống (năm nhất, rớt 2 học phần, học vượt từ năm nhất, học vượt để bù môn rớt): mọi thuật toán
+  cho cùng số học kỳ; có thêm heuristic mở rộng h2 để so sánh.
 
 ---
 
@@ -286,7 +254,7 @@ text ─► [đang trong luồng nhiều lượt?] ──có──► flows.cont
 | chuong_trinh_dao_tao, viec_lam | `answer_from_kb` (+ mô tả ngành) | `knowledge_base.json` |
 | chao_hoi | `greet` | câu mẫu |
 | tu_van_chon_nganh | nếu câu có ngành cụ thể + "đủ điều kiện/đậu/vào được" → **suy diễn lùi**; ngược lại → **suy diễn tiến**. Thiếu thông tin → mở luồng hỏi tiếp | C2 |
-| lo_trinh_hoc_tap | mở luồng hỏi: tình huống → môn đã đạt/rớt → số TC tối đa → gọi planner | C1 |
+| lo_trinh_hoc_tap | mở luồng hỏi: học kỳ sắp đăng ký → môn đã đạt → môn rớt → có học vượt không → `dieu_phoi.lap_lo_trinh()` (tự chọn thuật toán) | C1 |
 
 ### 7.3 Cơ sở tri thức (`data/knowledge_base.json`)
 
@@ -314,7 +282,7 @@ Mỗi "fact" là một bản ghi có nguồn:
   `aliases` trong cơ sở tri thức.
 - **Tổ hợp:** regex `\b[A-DX]\d{2}\b` (A00, D01…).
 - **Năm:** `\b20[12]\d\b`. **Điểm:** số thực 0–30 đứng sau "điểm/được/đạt".
-- **Mã học phần:** theo mẫu mã trong `courses.json`.
+- **Học phần:** mã (COMP1010) hoặc tên đầy đủ trong `hoc_phan.csv`; "hk1" = toàn bộ học kỳ 1 do Trường xếp.
 
 ### 7.5 Quản lý hội thoại (`DialogueState`)
 
@@ -330,7 +298,9 @@ Mỗi "fact" là một bản ghi có nguồn:
    hiện trong chat. Form giúp demo nhanh và chắc chắn, chat thể hiện "hiểu ngôn ngữ".
 
 Kết quả C2 hiển thị **vết suy diễn** (R3 → R7 → R12…) để chứng minh hệ luật; kết quả C1 hiển thị
-bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, số nút mở rộng của thuật toán đã chọn.
+bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, nguồn CTĐT và giả định. Người dùng **không chọn thuật toán**;
+ở chế độ debug mới hiện thuật toán đã dùng, số nút và đối chiếu BFS. Trang **📊 So sánh thuật toán**
+trong app chạy cả 3 thuật toán cho hội đồng.
 
 ### 7.7 Ngưỡng & chuyển cán bộ
 
@@ -383,7 +353,7 @@ bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, số nút mở 
 | Tuần | Việc chính |
 |---|---|
 | 1 | Chốt trường/khoa, thu thập đề án tuyển sinh + CTĐT + học phí (ghi nguồn, năm). Dựng khung C4 (đã có). Viết định nghĩa ý định + quy trình gán nhãn. |
-| 2 | `courses.json` ≥25 HP; `knowledge_base.json` đầy đủ; bắt đầu thu câu hỏi (mục tiêu 300). |
+| 2 | `hoc_phan.csv` ≥25 HP (đã xong); `knowledge_base.json` đầy đủ; bắt đầu thu câu hỏi (mục tiêu 300). |
 | 3 | C1: model + BFS + A*. C2: luật + suy diễn tiến. C3: đủ 600 câu, gán nhãn đôi, kappa. |
 | 4 | C1: nhánh cận + 3 tình huống. C2: suy diễn lùi + khảo sát + ID3 tính tay. C3: tiền xử lý + NB. |
 | 5 | C3: Keras + đánh giá + ngưỡng. C2: sklearn + rút luật. Tích hợp C1, C2 vào chatbot. |
