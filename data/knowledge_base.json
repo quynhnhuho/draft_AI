@@ -1,6 +1,6 @@
 {
   "meta": {
-    "truong": "<TÊN TRƯỜNG – cần điền>",
+    "truong": "Trường Đại học Sư phạm Thành phố Hồ Chí Minh",
     "khoa": "Khoa Công nghệ thông tin",
     "phien_ban": "0.1",
     "ghi_chu": "TẤT CẢ số liệu dưới đây là MẪU để chạy thử (da_kiem_chung=false). Thay bằng số liệu từ đề án tuyển sinh/thông báo chính thức, điền nguon + url + ngay_truy_cap, rồi đặt da_kiem_chung=true.",

@@ -5,6 +5,7 @@ thì hỏi lần lượt. Gõ "hủy" / "thoát" để dừng luồng.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -53,26 +54,41 @@ def _p_dinh_huong(text, e):
     return e.dinh_huong
 
 
-def _p_tinh_huong(text, e):
-    t = normalize(text)
-    if "năm nhất" in t or "tân sinh viên" in t or t.strip() == "1":
-        return "nam_nhat"
-    if "rớt" in t or "trượt" in t or "nợ môn" in t or t.strip() == "2":
-        return "rot_mon"
-    if "vượt" in t or "sớm" in t or t.strip() == "3":
-        return "hoc_vuot"
-    return None
-
-
-def _p_list_hp(text, e):
-    if any(w in normalize(text) for w in ("chưa", "không có", "không")) and not e.ma_hp:
-        return []
-    return e.ma_hp or None
+_NAM_HK = re.compile(r"năm\s?(\d)\s*(?:học kỳ|hk|kỳ)\s?(\d)")
+_HK = re.compile(r"(?:học kỳ|hk|kỳ)\s?(\d{1,2})")
 
 
 def _p_ky(text, e):
-    digits = [int(w) for w in normalize(text).split() if w.isdigit()]
-    return digits[0] if digits and 1 <= digits[0] <= 15 else None
+    """Học kỳ sắp đăng ký: "3", "học kỳ 3", "năm 2 học kỳ 1" (= 3), "năm nhất" (= 1)."""
+    t = normalize(text)
+    if "năm nhất" in t or "tân sinh viên" in t or "mới nhập học" in t:
+        return 1
+    if (m := _NAM_HK.search(t)):
+        return (int(m.group(1)) - 1) * 2 + int(m.group(2))
+    if (m := _HK.search(t)):
+        return int(m.group(1))
+    digits = [int(w) for w in t.split() if w.isdigit()]
+    return digits[0] if len(digits) == 1 and 1 <= digits[0] <= 16 else None
+
+
+def _p_list_hp(text, e):
+    """Danh sách học phần (mã hoặc tên). "hk1"/"học kỳ 1" = toàn bộ HK1 do Trường xếp."""
+    hp = list(e.ma_hp) + (["@HK1"] if e.nhac_hk1 else [])
+    if hp:
+        return hp
+    t = f" {normalize(text)} "
+    if any(f" {w} " in t for w in ("chưa", "không", "không có", "chưa có", "không rớt", "không môn nào")):
+        return []
+    return None
+
+
+def _p_co_khong(text, e):
+    t = f" {normalize(text)} "
+    if any(f" {w} " in t for w in ("không", "thôi", "bình thường", "không muốn")):
+        return False
+    if any(f" {w} " in t for w in ("có", "muốn", "ừ", "ok", "đồng ý", "học vượt", "yes", "vâng", "dạ có")):
+        return True
+    return None
 
 
 SLOT_TO_HOP = Slot("to_hop", "Em xét tuyển bằng **tổ hợp** nào? (ví dụ: A00, A01, D01)", _p_to_hop)
@@ -92,14 +108,15 @@ FLOWS: dict[str, list[Slot]] = {
     "kiem_tra_dieu_kien": [SLOT_TO_HOP, SLOT_DIEM],
     # C1 – lập lộ trình học
     "lo_trinh": [
-        Slot("tinh_huong", "Em thuộc trường hợp nào?\n1. Sinh viên **năm nhất**\n2. Bị **rớt** học phần\n"
-                           "3. Muốn **học vượt**", _p_tinh_huong),
-        Slot("ky", "Học kỳ sắp tới là **học kỳ thứ mấy** của em (tính từ khi nhập học)?", _p_ky,
-             when=lambda s: s.get("tinh_huong") != "nam_nhat"),
-        Slot("da_dat", "Liệt kê **mã các học phần đã đạt** (ví dụ: IT001, MA001), hoặc gõ \"chưa\".", _p_list_hp,
-             when=lambda s: s.get("tinh_huong") != "nam_nhat"),
-        Slot("bi_rot", "Liệt kê **mã các học phần bị rớt** (ví dụ: IT003, IT004).", _p_list_hp,
-             when=lambda s: s.get("tinh_huong") == "rot_mon"),
+        Slot("ky", "Học kỳ **sắp đăng ký** là học kỳ thứ mấy của em? (ví dụ: \"3\" hoặc \"năm 2 học kỳ 1\"; "
+                   "tân sinh viên gõ \"năm nhất\")", _p_ky),
+        Slot("da_dat", "Em liệt kê các học phần **đã đạt** (mã hoặc tên, ví dụ: COMP1010, Toán rời rạc và ứng dụng). "
+                       "Gõ \"hk1\" nếu đã đạt toàn bộ học kỳ 1, có thể kết hợp: \"hk1, COMP1017\".", _p_list_hp,
+             when=lambda s: s.get("ky", 1) > 1),
+        Slot("bi_rot", "Em có học phần nào **bị rớt** (chưa học lại đạt) không? Liệt kê mã/tên, hoặc gõ \"không\".",
+             _p_list_hp, when=lambda s: s.get("ky", 1) > 1),
+        Slot("hoc_vuot", "Em có muốn **học vượt** (đăng ký tối đa 22 TC/kỳ thay vì 18 TC) không? (có/không)",
+             _p_co_khong),
     ],
 }
 
@@ -110,6 +127,13 @@ def _next_slot(flow: str, slots: dict) -> Slot | None:
 
 def _prefill(flow: str, slots: dict, e: Entities, text: str) -> None:
     """Điền sẵn slot từ câu kích hoạt (chỉ các slot có thực thể rõ ràng)."""
+    if flow == "lo_trinh":
+        t = normalize(text)
+        if "năm nhất" in t or "tân sinh viên" in t:
+            slots.setdefault("ky", 1)
+        if "học vượt" in t:
+            slots.setdefault("hoc_vuot", True)
+        return
     if e.to_hop:
         slots.setdefault("to_hop", e.to_hop[0])
     if e.diem is not None:
@@ -118,8 +142,6 @@ def _prefill(flow: str, slots: dict, e: Entities, text: str) -> None:
         slots.setdefault("so_thich", e.so_thich)
     if e.dinh_huong:
         slots.setdefault("dinh_huong", e.dinh_huong)
-    if flow == "lo_trinh" and (th := _p_tinh_huong(text, e)):
-        slots.setdefault("tinh_huong", th)
 
 
 def start_flow(flow: str, text: str, e: Entities, state: DialogueState, engine: "ChatEngine",
@@ -137,7 +159,7 @@ def continue_flow(text: str, state: DialogueState, engine: "ChatEngine") -> BotR
         return BotReply("Đã dừng. Em cứ hỏi tiếp câu khác nhé!", intent="huy_luong", confidence=1.0)
 
     slot = _next_slot(state.active_flow, state.slots)
-    e = extract(text, engine.kb.majors, engine.course_ids)
+    e = extract(text, engine.kb.majors, engine.courses)
     value = slot.parse(text, e) if slot else None
     if slot and value is None:
         return BotReply(f"Mình chưa hiểu câu trả lời 😅. {slot.question}\n\n_(gõ \"hủy\" để dừng)_",
