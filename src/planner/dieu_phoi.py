@@ -1,15 +1,4 @@
 """Chức năng 1 – BỘ ĐIỀU PHỐI: kết hợp 3 thuật toán, là điểm vào DUY NHẤT mà chatbot gọi.
-
-Người dùng KHÔNG chọn thuật toán (họ không biết thuật toán nào phù hợp). Bộ điều phối tự quyết:
-
-    1. A*        – bộ giải chính, có giới hạn thời gian. Xong -> lộ trình tối ưu.
-    2. Nhánh cận – chạy khi A* hết giờ (hoặc chưa có A*). Luôn có lời giải tham lam làm cận trên
-                   nên dừng lúc nào cũng có kết quả; hết giờ thì báo "có thể chưa tối ưu".
-    3. BFS       – chuẩn đối chiếu: chỉ chạy khi bật chế độ debug / so sánh, kiểm tra số học kỳ
-                   có khớp với bộ giải chính không. Chỉ dùng trả lời khi không có 2 thuật toán kia.
-
-Mỗi thuật toán nằm trong một file riêng (bfs.py, a_sao.py, nhanh_can.py) để từng thành viên tự
-commit. File nào chưa có, bộ điều phối tự bỏ qua; chatbot báo "mô-đun chưa cài đặt" nếu thiếu hết.
 """
 from __future__ import annotations
 
@@ -93,7 +82,7 @@ def lap_lo_trinh(bt: BaiToan, gioi_han_ms: float = GIOI_HAN_MS, doi_chieu: bool 
 
 
 def so_sanh(bt: BaiToan, gioi_han_ms: float = 30000, them_h2: bool = True) -> list[KetQua]:
-    """Chạy MỌI thuật toán sẵn có trên cùng bài toán (tab so sánh / báo cáo mục 2.2)."""
+    """Chạy MỌI thuật toán sẵn có trên cùng bài toán."""
     ket_qua = []
     for khoa in ("bfs", "a_sao", "nhanh_can"):
         ham = nap_thuat_toan(khoa)
