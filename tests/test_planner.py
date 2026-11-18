@@ -56,9 +56,10 @@ def test_hanh_dong_la_tap_toi_dai():
 
 # ----------------------------------------------------------------------------- thuật toán
 KICH_BAN = list(kich_ban.cac_kich_ban(DS))
+ID_KB = [f"tinh_huong_{ten.split('.')[0]}" for ten in KICH_BAN]   # tên test dễ đọc
 
 
-@pytest.mark.parametrize("ten", KICH_BAN)
+@pytest.mark.parametrize("ten", KICH_BAN, ids=ID_KB)
 def test_cac_thuat_toan_cung_so_ky_va_hop_le(ten):
     bt = kich_ban.tao(ten, DS)
     kqs = dieu_phoi.so_sanh(bt)
@@ -71,7 +72,7 @@ def test_cac_thuat_toan_cung_so_ky_va_hop_le(ten):
 
 
 @can("a_sao")
-@pytest.mark.parametrize("ten", KICH_BAN)
+@pytest.mark.parametrize("ten", KICH_BAN, ids=ID_KB)
 def test_heuristic_chap_nhan_duoc(ten):
     bt = kich_ban.tao(ten, DS)
     toi_uu = CO_THUAT_TOAN["a_sao"](bt).so_ky

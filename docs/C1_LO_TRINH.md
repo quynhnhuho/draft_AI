@@ -146,3 +146,58 @@ học kỳ** và mọi lộ trình được `kiem_tra_lo_trinh` xác nhận hợ
 - **Nhánh cận + tham lam**: ở 2, 3a, 3b lời giải tham lam đã tối ưu nên nhánh cận chủ yếu *chứng minh*
   không có lời giải tốt hơn (cắt theo cận); ở 1, tham lam cho 6 kỳ và nhánh cận hạ xuống 5.
 - **Thứ tự sinh con** ảnh hưởng mạnh số nút của A*/nhánh cận (sắp theo `stt`: tình huống 1 còn 5 nút).
+
+## 6. Kiểm thử và minh chứng vai trò của 3 thuật toán
+
+Mục tiêu: chứng minh **bằng số liệu** vì sao chatbot dùng A* làm bộ giải chính, nhánh cận làm dự
+phòng khi A* chậm, BFS làm chuẩn đối chiếu. Đánh giá theo 4 tiêu chí, mỗi tình huống có 3 bảng:
+
+| Tiêu chí | Đo bằng | Kết luận rút ra |
+|---|---|---|
+| 1. Đúng | Số kỳ so với BFS (chuẩn), `kiem_tra_lo_trinh` | Cả 3 đúng ⇒ được phép dùng A*/nhánh cận thay BFS |
+| 2. Hiệu quả | Nút mở rộng/sinh, thời gian TB, bộ nhớ đỉnh (Bảng 1) | A* tốt nhất ⇒ **bộ giải chính** |
+| 3. Khi bị giới hạn thời gian | Có lời giải hay không ở 0 → 20 ms (Bảng 2) | Chỉ nhánh cận luôn có lời giải ⇒ **dự phòng** |
+| 4. Ổn định | 300 sinh viên ngẫu nhiên (Bảng 4) | Kết luận không chỉ đúng với vài tình huống chọn sẵn |
+
+Bảng 3 kiểm tra bộ điều phối thật sự chọn đúng: bình thường → A*; A* hết giờ → nhánh cận; debug →
+đối chiếu BFS khớp.
+
+### Cách tạo minh chứng
+
+```bash
+python -m pytest tests/test_planner.py tests/test_danh_gia.py -v
+python -m src.planner.danh_gia --out bao_cao_danh_gia.md
+```
+
+- Lệnh 1: chụp màn hình danh sách `PASSED` (hoặc thêm `--html=bao_cao_test.html --self-contained-html`
+  sau khi cài `pytest-html`). Test trong `tests/test_danh_gia.py` chỉ kiểm tra các kết luận **không phụ
+  thuộc tốc độ máy**: A*, nhánh cận luôn khớp BFS trên 100 sinh viên ngẫu nhiên; A* mở ít nút hơn hoặc
+  bằng BFS; hết giờ (0 ms) thì chỉ nhánh cận còn lộ trình hợp lệ; bộ điều phối chọn đúng vai trò.
+- Lệnh 2: sinh đủ 4 loại bảng (Markdown) để dán vào báo cáo; đầu file ghi thời điểm, phiên bản
+  Python, hệ điều hành. Thời gian/bộ nhớ đổi theo máy – ghi rõ máy chạy trong báo cáo.
+
+### Kết quả tham khảo (máy Linux x86_64, Python 3.13; 20 lần lặp; 300 sinh viên, seed 42)
+
+| Tình huống | Số kỳ | Nút mở rộng BFS / A* / NC | Thời gian TB (ms) BFS / A* / NC | Bộ nhớ (KB) BFS / A* / NC | Giới hạn 1 ms: ai còn trả lời |
+|---|---|---|---|---|---|
+| 1. Năm nhất | 5 | 1075 / 5 / 5 | 14.1 / 1.3 / 2.8 | 2276 / 424 / 607 | chỉ nhánh cận (6 kỳ ⚠) |
+| 2. Rớt 2 học phần | 4 | 247 / 247 / 246 | 2.7 / 3.7 / 4.6 | 676 / 612 / 467 | chỉ nhánh cận (4 kỳ ⚠) |
+| 3a. Học vượt từ năm nhất | 5 | 327 / 303 / 302 | 4.2 / 5.9 / 6.7 | 791 / 685 / 582 | chỉ nhánh cận (5 kỳ ⚠) |
+| 3b. Học vượt để bù môn rớt | 3 | 3 / 3 / 2 | 0.02 / 0.03 / 0.07 | 9 / 9 / 12 | chỉ nhánh cận (3 kỳ ⚠) |
+
+300 sinh viên ngẫu nhiên: cùng số kỳ **300/300**, hợp lệ **300/300**, A* ít nút hơn hoặc bằng BFS
+**300/300**, A* nhanh hơn hoặc bằng nhánh cận **253/300 (84%)**. Thời gian TB: BFS 12.2 ms, A* 1.8 ms,
+nhánh cận 2.4 ms; lớn nhất: BFS 396 ms, A* 71 ms, nhánh cận 77 ms; số nút lớn nhất: BFS 23 872, A* 3 592.
+
+### Lập luận đưa vào báo cáo
+
+- **A* là bộ giải chính**: luôn tối ưu như BFS; trung bình nhanh hơn BFS ~6,7 lần, trường hợp xấu nhất
+  71 ms so với 396 ms; nhanh hơn nhánh cận ở 84% trường hợp. *Trung thực*: ở tình huống 2 và 3a, h
+  (chỉ dựa trên tín chỉ) không giúp được – A* mở gần bằng BFS và chậm hơn ~1 ms do chi phí hàng đợi ưu
+  tiên; chênh lệch này không đáng kể với người dùng, còn ở các ca khó A* hơn hẳn. Heuristic mở rộng h2
+  khắc phục được (xem mục 5).
+- **Nhánh cận là dự phòng**: có lời giải tham lam ngay từ đầu nên khi bị giới hạn thời gian vẫn trả
+  lời được (BFS, A* thì chưa); lời giải có thể chưa tối ưu (năm nhất: 6 kỳ thay vì 5) nên chatbot gắn
+  cảnh báo ⚠. Không dùng làm bộ giải chính vì chậm hơn A* ở phần lớn trường hợp.
+- **BFS là chuẩn đối chiếu**: chắc chắn tối ưu, cài đặt đơn giản nên đáng tin để so, nhưng tốn nút và bộ
+  nhớ nhất (gấp ~5 lần A* ở tình huống năm nhất) nên không dùng trả lời người dùng.
