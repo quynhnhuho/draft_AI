@@ -24,6 +24,13 @@
       "aliases": ["sư phạm tin học", "sư phạm tin", "sp tin", "su pham tin", "giáo viên tin", "sptin"],
       "mo_ta": "Đào tạo giáo viên Tin học cho trường phổ thông; có khối học phần tâm lý – giáo dục học và thực tập sư phạm.",
       "khac_biet": "Có khối kiến thức nghiệp vụ sư phạm và thực tập ở trường phổ thông; chính sách hỗ trợ học phí, sinh hoạt phí theo quy định hiện hành cho sinh viên sư phạm."
+    },
+    "cngd": {
+      "ten": "Công nghệ giáo dục",
+      "ma_nganh": "7140103",
+      "aliases": ["công nghệ giáo dục", "cngd", "cong nghe giao duc"],
+      "mo_ta": "Đào tạo chuyên viên ứng dụng công nghệ trong giáo dục: thiết kế học liệu số, khóa học trực tuyến, hệ thống quản lý học tập.",
+      "khac_biet": "Kết hợp công nghệ thông tin với khoa học giáo dục; định hướng chuyên viên EdTech, không đào tạo giáo viên đứng lớp như Sư phạm Tin học."
     }
   },
   "facts": [

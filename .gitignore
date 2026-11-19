@@ -6,4 +6,6 @@ logs/*
 models/*
 !models/.gitkeep
 .venv/
+venv/
+env/
 .ipynb_checkpoints/

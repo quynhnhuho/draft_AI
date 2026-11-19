@@ -3,23 +3,43 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+import unicodedata
 from dataclasses import dataclass, field
 
 from ..nlu.preprocess import normalize
 
+# Khóa trùng tên dữ kiện đầu vào của hệ luật C2 (src/advisor/rules.py, R19–R28)
 SO_THICH = {
-    "lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web"],
-    "day_hoc": ["dạy học", "đi dạy", "giảng dạy", "dạy"],
-    "du_lieu": ["dữ liệu", "data", "ai", "trí tuệ nhân tạo", "học máy"],
-    "mang_bao_mat": ["mạng", "bảo mật", "an ninh mạng", "hệ thống"],
-    "thiet_ke_game": ["thiết kế", "đồ hoạ", "đồ họa", "game"],
+    "thich_lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web"],
+    "thich_du_lieu": ["dữ liệu", "data", "trí tuệ nhân tạo", "học máy", "phân tích dữ liệu"],
+    "thich_thiet_ke_hoc_lieu": ["thiết kế học liệu", "học liệu", "bài giảng điện tử", "thiết kế bài giảng",
+                                "e learning", "elearning"],
+    "thich_day_hoc": ["dạy học", "đi dạy", "giảng dạy", "dạy"],
 }
 DINH_HUONG = {
-    "giao_vien": ["giáo viên", "nhà giáo", "đi dạy"],
-    "doanh_nghiep": ["công ty", "doanh nghiệp", "lập trình viên", "kỹ sư", "đi làm"],
-    "nghien_cuu": ["nghiên cứu", "thạc sĩ", "học lên", "tiến sĩ"],
-    "khoi_nghiep": ["khởi nghiệp", "startup"],
+    "lap_trinh_vien": ["lập trình viên", "kỹ sư phần mềm", "developer"],
+    "phan_tich_du_lieu": ["phân tích dữ liệu", "data analyst", "chuyên viên dữ liệu", "khoa học dữ liệu"],
+    "giao_vien": ["giáo viên", "nhà giáo", "thầy giáo", "cô giáo"],
+    "chuyen_vien_edtech": ["edtech", "chuyên viên công nghệ giáo dục", "chuyên viên edtech"],
 }
+TEN_SO_THICH = {"thich_lap_trinh": "lập trình", "thich_du_lieu": "dữ liệu",
+                "thich_thiet_ke_hoc_lieu": "thiết kế học liệu", "thich_day_hoc": "dạy học"}
+TEN_DINH_HUONG = {"lap_trinh_vien": "lập trình viên", "phan_tich_du_lieu": "phân tích dữ liệu",
+                  "giao_vien": "giáo viên", "chuyen_vien_edtech": "chuyên viên EdTech"}
+
+# Tên môn (có dấu / không dấu) → tên môn trong luật. Dài trước ngắn để "tiếng anh" khớp trước "anh".
+_MON_ALIAS = {
+    "tiếng anh": "Anh", "anh văn": "Anh", "ngoại ngữ": "Anh", "tieng anh": "Anh", "anh": "Anh",
+    "toán": "Toan", "toan": "Toan",
+    "vật lý": "Ly", "vật lí": "Ly", "vat ly": "Ly", "lý": "Ly", "lí": "Ly", "ly": "Ly", "li": "Ly",
+    "hóa học": "Hoa", "hoá học": "Hoa", "hoa hoc": "Hoa", "hóa": "Hoa", "hoá": "Hoa", "hoa": "Hoa",
+    "sinh học": "Sinh", "sinh hoc": "Sinh", "sinh": "Sinh",
+    "tin học": "Tin", "tin hoc": "Tin", "tin": "Tin",
+}
+_DIEM_MON = re.compile(
+    r"(?<!\w)(" + "|".join(sorted(map(re.escape, _MON_ALIAS), key=len, reverse=True)) + r")(?!\w)"
+    r"\s*(?:[:=\-]|là|được|đạt)?\s*(\d{1,2}(?:[.,]\d{1,3})?)(?![\d.,]*\d)")
+_KHU_VUC = re.compile(r"\b(?:kv|khu vực)\s?([123])(?:\s?(nt|nông thôn))?\b")
 
 _TO_HOP = re.compile(r"\b([abcdx])\s?0?(\d{1,2})\b")
 _YEAR = re.compile(r"\b(20[12]\d)\b")
@@ -37,7 +57,10 @@ class Entities:
     ma_hp: list[str] = field(default_factory=list)   # mã học phần (nhận cả mã lẫn tên học phần)
     nhac_hk1: bool = False                           # có nhắc "học kỳ 1" / "hk1"
     so_thich: list[str] = field(default_factory=list)
-    dinh_huong: str | None = None
+    dinh_huong: list[str] = field(default_factory=list)
+    phuong_thuc: str | None = None                   # "THPT" | "DGNL"
+    khu_vuc: str | None = None                       # "KV1" | "KV2-NT" | "KV2" | "KV3"
+    diem_mon: dict[str, float] = field(default_factory=dict)   # {"Toan": 8.2, "Anh": 7.5, ...}
 
     def as_dict(self) -> dict:
         return {k: v for k, v in self.__dict__.items() if v}
@@ -68,6 +91,30 @@ def parse_score(text: str) -> float | None:
     return None
 
 
+def parse_diem_mon(text: str) -> dict[str, float]:
+    """"Toán 8.2, Anh 7,5, Lý: 6" → {"Toan": 8.2, "Anh": 7.5, "Ly": 6.0}. Không dùng normalize() (giữ dấu chấm)."""
+    t = unicodedata.normalize("NFC", text).lower()
+    return {_MON_ALIAS[m.group(1)]: float(m.group(2).replace(",", ".")) for m in _DIEM_MON.finditer(t)}
+
+
+def parse_phuong_thuc(text: str) -> str | None:
+    t = normalize(text)
+    if any(_has(t, w) for w in ("đgnl", "dgnl", "đánh giá năng lực", "năng lực", "học bạ", "hoc ba")):
+        return "DGNL"
+    if any(_has(t, w) for w in ("trung học phổ thông", "thi tốt nghiệp", "tốt nghiệp", "thi thpt")):
+        return "THPT"
+    return None
+
+
+def parse_khu_vuc(text: str) -> str | None:
+    t = normalize(text)
+    if (m := _KHU_VUC.search(t)):
+        return "KV2-NT" if m.group(1) == "2" and m.group(2) else f"KV{m.group(1)}"
+    if _has(t, "nông thôn"):
+        return "KV2-NT"
+    return None
+
+
 def extract(text: str, majors: dict, courses: dict | None = None) -> Entities:
     """courses: {mã: HocPhan} (hoặc tập mã). Nhận học phần theo mã hoặc theo tên đầy đủ."""
     t = normalize(text)
@@ -93,5 +140,8 @@ def extract(text: str, majors: dict, courses: dict | None = None) -> Entities:
     e.nhac_hk1 = bool(_HK1.search(t))
 
     e.so_thich = [k for k, kws in SO_THICH.items() if any(_has(t, normalize(w)) for w in kws)]
-    e.dinh_huong = next((k for k, kws in DINH_HUONG.items() if any(_has(t, normalize(w)) for w in kws)), None)
+    e.dinh_huong = [k for k, kws in DINH_HUONG.items() if any(_has(t, normalize(w)) for w in kws)]
+    e.phuong_thuc = parse_phuong_thuc(text)
+    e.khu_vuc = parse_khu_vuc(text)
+    e.diem_mon = parse_diem_mon(text)
     return e
