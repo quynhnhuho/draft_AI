@@ -10,15 +10,16 @@ import datetime as dt
 import json
 from pathlib import Path
 
-from ..advisor.facts import build_facts, latest_cutoffs
 from ..advisor import inference
+from ..advisor import tu_van as c2
+from ..advisor.tham_so import TEN_MON, nguon_trich_dan, ten_nganh, tu_ma_kb
 from ..nlu.preprocess import normalize
 from ..planner import dieu_phoi
 from ..planner.model import (GIA_DINH, MAX_TC_BINH_THUONG, MAX_TC_HOC_VUOT, NAM_AP_DUNG, NGUON_CTDT,
                              doc_du_lieu, hk1_co_dinh, kiem_tra_dau_vao, tao_bai_toan, ten_hoc_ky)
 from . import flows
-from .entities import Entities, SO_THICH, DINH_HUONG, extract
-from .kb import KnowledgeBase, cite, format_facts
+from .entities import DINH_HUONG, SO_THICH, TEN_DINH_HUONG, TEN_SO_THICH, Entities, extract
+from .kb import KnowledgeBase, format_facts
 from .schema import BotReply, DialogueState
 
 LOG_DIR = Path(__file__).resolve().parents[2] / "logs"
@@ -89,7 +90,7 @@ class ChatEngine:
             return self.greet(text)
         if intent == "tu_van_chon_nganh":
             t = normalize(text)
-            if e.nganh and any(c in t for c in ELIGIBILITY_CUES):
+            if e.nganh and tu_ma_kb(e.nganh[0]) and any(c in t for c in ELIGIBILITY_CUES):
                 return flows.start_flow("kiem_tra_dieu_kien", text, e, state, self, extra={"nganh": e.nganh[0]})
             return flows.start_flow("tu_van_nganh", text, e, state, self)
         if intent == "lo_trinh_hoc_tap":
@@ -109,7 +110,8 @@ class ChatEngine:
             f"Chào em 👋 Mình là trợ lý tư vấn tuyển sinh của {self.kb.meta.get('khoa', 'Khoa CNTT')}. Mình có thể:\n"
             "- Trả lời về **điểm chuẩn, tổ hợp xét tuyển, học phí, học bổng, ký túc xá, chương trình đào tạo, "
             "việc làm, thủ tục nhập học**\n"
-            "- **Tư vấn chọn ngành** (CNTT hay Sư phạm Tin học) và kiểm tra em có **đủ điều kiện xét tuyển** không\n"
+            "- **Tư vấn chọn ngành** (CNTT, Sư phạm Tin học, Công nghệ giáo dục) và kiểm tra em có "
+            "**đủ điều kiện xét tuyển** không\n"
             "- Gợi ý **lộ trình đăng ký học phần** để ra trường đúng hạn")
 
     def answer_from_kb(self, intent: str, text: str, e: Entities, state: DialogueState) -> BotReply:
@@ -154,64 +156,48 @@ class ChatEngine:
                         intent="chuyen_can_bo", handoff=True)
 
     # ------------------------------------------------------------------ C2: tư vấn chọn ngành
-    def _user_summary(self, user: dict) -> str:
+    @staticmethod
+    def _user_summary(user: dict) -> str:
         bits = []
-        if user.get("to_hop"):
-            bits.append(f"tổ hợp **{user['to_hop']}**")
-        if user.get("diem") is not None:
-            bits.append(f"điểm **{user['diem']}**")
-        if user.get("so_thich"):
-            bits.append("sở thích **" + ", ".join(user["so_thich"]) + "**")
-        if user.get("dinh_huong"):
-            bits.append(f"định hướng **{user['dinh_huong']}**")
-        return ", ".join(bits) or "(chưa có thông tin)"
+        if user.get("phuong_thuc"):
+            bits.append(f"phương thức **{user['phuong_thuc']}**")
+        if user.get("khu_vuc"):
+            bits.append(f"khu vực **{user['khu_vuc']}**")
+        mon = [f"{TEN_MON[m]} {user[f'diem_{m}']:g}" for m in TEN_MON if user.get(f"diem_{m}") is not None]
+        if mon:
+            bits.append("điểm thi " + ", ".join(mon))
+        if user.get("diem_dgnl") is not None:
+            bits.append(f"ĐGNL {user['diem_dgnl']:g}, học bạ Tiếng Anh {user.get('HB_mon1')}, "
+                        f"{TEN_MON.get(user.get('mon_hb2'), '?')} {user.get('HB_mon2')}")
+        st = [TEN_SO_THICH[k] for k in SO_THICH if user.get(k)]
+        dh = [TEN_DINH_HUONG[k] for k in DINH_HUONG if user.get(k)]
+        if st:
+            bits.append("thích **" + ", ".join(st) + "**")
+        if dh:
+            bits.append("muốn làm **" + ", ".join(dh) + "**")
+        return "; ".join(bits) or "(chưa có thông tin)"
 
     def advise(self, user: dict) -> BotReply:
-        """Suy diễn TIẾN → danh sách ngành gợi ý + vết suy diễn."""
-        facts = build_facts(user, {"facts": self.kb.facts})
-        info = f"Thông tin của em: {self._user_summary(user)}.\n\nSự kiện đầu vào: `{sorted(facts)}`"
-        try:
-            result = inference.forward_chaining(facts)
-        except NotImplementedError:
-            return BotReply(f"{info}\n\n" + NOT_READY.format(name="tư vấn chọn ngành (suy diễn tiến)",
-                                                           where="`src/advisor/inference.py` – Chức năng 2"),
-                            intent="tu_van_chon_nganh", debug={"facts": sorted(facts)})
-        if not result.recommendations:
-            body = "Với thông tin hiện tại, hệ luật chưa đưa ra được ngành gợi ý phù hợp."
-        else:
-            body = "**Ngành gợi ý:** " + ", ".join(self.kb.major_name(m) for m in result.recommendations)
-        trace = "\n".join(f"- {r.id}: {' ∧ '.join(r.if_all)} → {r.then}  _{r.giai_thich}_" for r in result.fired)
-        return BotReply(f"{info}\n\n{body}\n\n**Vết suy diễn:**\n{trace or '- (không luật nào được kích hoạt)'}"
-                        f"\n\n{self._cutoff_note()}", intent="tu_van_chon_nganh", sources=self._cutoff_facts())
+        """Suy diễn TIẾN (C2) → danh sách ngành gợi ý đã xếp hạng + giải thích."""
+        kq = c2.tu_van(user)
+        text = f"Thông tin của em: {self._user_summary(user)}.\n\n" + c2.markdown_tu_van(kq, vet=self.debug)
+        return BotReply(text, intent="tu_van_chon_nganh", sources=[nguon_trich_dan()],
+                        debug={"goi_y": [(g.nganh, g.muc, g.diem_phu_hop) for g in kq.goi_y],
+                               "so_luat_kich_hoat": len(kq.forward.fired) if kq.forward else 0})
 
-    def check_eligibility(self, nganh: str, user: dict) -> BotReply:
-        """Suy diễn LÙI cho mục tiêu du_dk_<ngành>."""
-        facts = build_facts(user, {"facts": self.kb.facts})
-        goal = f"du_dk_{nganh}"
-        info = (f"Câu hỏi: em có đủ điều kiện xét tuyển ngành **{self.kb.major_name(nganh)}** không?  \n"
-                f"Thông tin: {self._user_summary(user)}. Mục tiêu: `{goal}`")
-        try:
-            result = inference.backward_chaining(goal, facts)
-        except NotImplementedError:
-            return BotReply(f"{info}\n\n" + NOT_READY.format(name="kiểm tra điều kiện xét tuyển (suy diễn lùi)",
-                                                           where="`src/advisor/inference.py` – Chức năng 2"),
-                            intent="tu_van_chon_nganh", debug={"facts": sorted(facts)})
-        verdict = "✅ **Có**, em đủ điều kiện xét tuyển" if result.proven else "❌ **Chưa** đủ điều kiện xét tuyển"
-        missing = f"\n\nCòn thiếu thông tin: {', '.join(sorted(result.missing))}" if result.missing else ""
-        trace = "\n".join(f"- {s}" for s in result.trace)
-        return BotReply(f"{info}\n\n{verdict} ngành {self.kb.major_name(nganh)}.{missing}\n\n"
-                        f"**Các bước chứng minh:**\n{trace}\n\n{self._cutoff_note(nganh)}",
-                        intent="tu_van_chon_nganh", sources=self._cutoff_facts(nganh))
+    def check_eligibility(self, nganh_kb: str, user: dict) -> BotReply:
+        """Suy diễn LÙI (C2) cho mục tiêu du_dk(X). nganh_kb: mã ngành trong cơ sở tri thức ("cntt", ...)."""
+        x = tu_ma_kb(nganh_kb) or nganh_kb
+        kq = c2.kiem_tra_dieu_kien(user, x)
+        text = (f"Câu hỏi: em có đủ điều kiện xét tuyển ngành **{ten_nganh(x)}** không?  \n"
+                f"Thông tin: {self._user_summary(user)}.\n\n" + c2.markdown_kiem_tra(kq, vet=self.debug))
+        return BotReply(text, intent="tu_van_chon_nganh", sources=[nguon_trich_dan()],
+                        debug={"ket_luan": kq.ket_luan, "can_hoi": kq.can_hoi})
 
-    def _cutoff_facts(self, nganh: str | None = None) -> list[dict]:
-        return self.kb.query("diem_chuan", nganh).facts
-
-    def _cutoff_note(self, nganh: str | None = None) -> str:
-        facts = self._cutoff_facts(nganh)
-        if not facts:
-            return ""
-        lines = [f"- {self.kb.major_name(f['nganh'])}: {f.get('gia_tri')} điểm\n  {cite(f)}" for f in facts]
-        return "_So sánh với điểm chuẩn năm gần nhất:_\n" + "\n".join(lines)
+    @staticmethod
+    def du_kien_con_thieu(nganh_kb: str, user: dict) -> list[str]:
+        """Luồng hỏi đáp nhiều lượt: chạy suy diễn lùi trên thông tin hiện có, trả về dữ kiện còn thiếu."""
+        return c2.kiem_tra_dieu_kien(user, tu_ma_kb(nganh_kb) or nganh_kb).can_hoi
 
     # ------------------------------------------------------------------ C1: lộ trình học
     def make_plan_from_slots(self, slots: dict) -> BotReply:
@@ -290,8 +276,8 @@ def module_status() -> dict[str, bool]:
 
     status = {f"C1 – {ten}": co for ten, co in dieu_phoi.thuat_toan_san_co().items()}
     status["C2 – Suy diễn tiến"] = ok(lambda: inference.forward_chaining(set()))
-    status["C2 – Suy diễn lùi"] = ok(lambda: inference.backward_chaining("du_dk_cntt", set()))
+    status["C2 – Suy diễn lùi"] = ok(lambda: inference.backward_chaining("du_dk(CNTT)", set()))
     return status
 
 
-__all__ = ["ChatEngine", "module_status", "SO_THICH", "DINH_HUONG", "latest_cutoffs"]
+__all__ = ["ChatEngine", "module_status", "SO_THICH", "DINH_HUONG"]
