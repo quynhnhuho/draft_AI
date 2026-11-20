@@ -24,8 +24,8 @@ Kết nối với chatbot (file của Chức năng 4, phần dành cho Chức n�
 | `app.py` | Form "🗓️ Lộ trình học (Chức năng 1)" ở thanh bên |
 
 Ba file thuật toán **chỉ import từ `model.py`**, không phụ thuộc nhau, nên mỗi thành viên commit file
-của mình độc lập. Bộ điều phối chỉ gọi A\* và nhánh cận; chưa có cả hai thì chatbot báo
-"mô-đun chưa cài đặt".
+của mình độc lập. Bộ điều phối import thẳng A\* và nhánh cận, nên hai file này phải có trước khi
+commit `dieu_phoi.py`.
 
 ## 2. Dữ liệu và giả định
 
