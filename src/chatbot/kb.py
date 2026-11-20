@@ -57,11 +57,11 @@ class KnowledgeBase:
 
 def cite(fact: dict) -> str:
     """Dòng trích nguồn BẮT BUỘC cho mọi câu trả lời số liệu."""
-    line = f"📌 Nguồn: {fact.get('nguon') or 'chưa ghi nguồn'} – năm áp dụng {fact.get('nam', '?')}"
+    line = f"Nguồn: {fact.get('nguon') or 'chưa ghi nguồn'} – năm áp dụng {fact.get('nam', '?')}"
     if fact.get("url"):
         line += f" ([link]({fact['url']}))"
     if not fact.get("da_kiem_chung", False):
-        line += "  \n⚠️ Số liệu mẫu/mô phỏng, chưa đối chiếu với nguồn chính thức."
+        line += "  \nLưu ý: số liệu mẫu/mô phỏng, chưa đối chiếu với nguồn chính thức."
     return line
 
 

@@ -43,6 +43,36 @@ def test_out_of_scope_handoff(engine, tmp_path):
     assert r.handoff and (tmp_path / "handoff.csv").exists()
 
 
-def test_eligibility_flow_reports_missing_module(engine):
-    r = engine.respond("Em được 24 điểm khối A00 có đủ điều kiện vào CNTT không?", DialogueState())
-    assert "chưa được cài đặt" in r.text or "điều kiện" in r.text
+def test_eligibility_flow_hoi_theo_suy_dien_lui(engine):
+    """Câu hỏi tiếp theo do suy diễn lùi quyết định: phương thức → điểm các môn → khu vực → kết luận."""
+    s = DialogueState()
+    r = engine.respond("Em có đủ điều kiện vào sư phạm tin không?", s)
+    assert s.active_flow == "kiem_tra_dieu_kien" and "phương thức" in r.text
+    r = engine.respond("thpt", s)
+    assert "điểm thi THPT" in r.text
+    r = engine.respond("Toán 7, Anh 6.2, Lý 6", s)
+    assert "khu vực" in r.text
+    r = engine.respond("KV1", s)
+    assert s.active_flow is None and "Không" in r.text and "0.05" in r.text and "Nguồn" in r.text
+
+
+def test_eligibility_dien_san_tu_cau_hoi(engine):
+    r = engine.respond("Em thi THPT được Toán 8, Anh 7, Lý 7, KV3, có đủ điều kiện vào CNTT không?", DialogueState())
+    assert "**Có.**" in r.text and "R11" in r.text
+
+
+def test_tu_van_nganh_suy_dien_tien(engine):
+    s = DialogueState()
+    engine.respond("em nên chọn ngành nào", s)
+    for q in ["học bạ + đgnl", "8", "Anh 8.5, Tin 9", "kv2", "lập trình, thiết kế học liệu", "edtech"]:
+        r = engine.respond(q, s)
+    assert s.active_flow is None
+    assert "Công nghệ giáo dục" in r.text and "Rất phù hợp" in r.text
+
+
+def test_dau_vao_ngoai_khoang_hoi_lai(engine):
+    s = DialogueState()
+    engine.respond("Em có đủ điều kiện vào CNTT không?", s)
+    engine.respond("THPT", s)
+    r = engine.respond("Toán 12, Anh 7, Lý 6", s)
+    assert "chưa hiểu" in r.text and s.pending_slot == "diem_thpt"

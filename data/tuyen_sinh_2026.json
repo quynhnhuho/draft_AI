@@ -1,0 +1,49 @@
+{
+  "nam": 2026,
+  "truong": "Trường Đại học Sư phạm Thành phố Hồ Chí Minh",
+  "nguon": "Thông tin tuyển sinh năm 2026 (chỉ tiêu, tổ hợp, điểm chuẩn) do nhóm tổng hợp – tài liệu 'Thông tin tuyển sinh'; ngưỡng đảm bảo chất lượng đầu vào theo 'Tập luật C2 (v2)'",
+  "url": [
+    "https://www.facebook.com/share/p/1CpetNXPH7/",
+    "https://www.facebook.com/share/p/1AM1YdF3u9/",
+    "https://www.facebook.com/share/p/1VBox4XmDZ/",
+    "https://www.facebook.com/share/p/1FMX7d2NkS/"
+  ],
+  "ngay_truy_cap": "",
+  "da_kiem_chung": false,
+  "ghi_chu": "Cần đối chiếu và thay link bằng Đề án tuyển sinh 2026 / Thông báo điểm trúng tuyển 2026 trên website chính thức của Trường, sau đó đặt da_kiem_chung = true. Ngưỡng CNTT đang trùng điểm chuẩn ở cả hai phương thức – cần kiểm tra lại.",
+
+  "to_hop": {
+    "A01": ["Toan", "Anh", "Ly"],
+    "B08": ["Toan", "Anh", "Sinh"],
+    "D07": ["Toan", "Anh", "Hoa"],
+    "X26": ["Toan", "Anh", "Tin"]
+  },
+  "muc_uu_tien": {"KV1": "0.75", "KV2-NT": "0.5", "KV2": "0.25", "KV3": "0"},
+  "cong_thuc": {
+    "dgnl_he_so": {"NL": "0.5", "HB1": "0.35", "HB2": "0.15"},
+    "dgnl_nhan": "3",
+    "nguong_giam_uu_tien": "22.5",
+    "diem_liet": "1.0"
+  },
+
+  "nganh": {
+    "CNTT": {
+      "ten": "Công nghệ thông tin", "ma_nganh": "7480201", "ma_kb": "cntt", "chi_tieu": 150,
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguong": {"THPT": "18.00", "DGNL": "17.00"},
+      "diem_chuan": {"THPT": "18.00", "DGNL": "17.00"}
+    },
+    "SPTH": {
+      "ten": "Sư phạm Tin học", "ma_nganh": "7140210", "ma_kb": "sp_tin", "chi_tieu": 100,
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguong": {"THPT": "20.00", "DGNL": "18.00"},
+      "diem_chuan": {"THPT": "25.30", "DGNL": "23.80"}
+    },
+    "CNGD": {
+      "ten": "Công nghệ giáo dục", "ma_nganh": "7140103", "ma_kb": "cngd", "chi_tieu": 50,
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguong": {"THPT": "18.00", "DGNL": "17.00"},
+      "diem_chuan": {"THPT": "20.25", "DGNL": "18.75"}
+    }
+  }
+}

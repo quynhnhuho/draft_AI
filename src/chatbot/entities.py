@@ -1,43 +1,67 @@
-"""Trích xuất thực thể bằng luật + từ điển: ngành, tổ hợp, năm, điểm, mã học phần, sở thích, định hướng."""
+"""Chức năng 4 - Trích xuất thực thể bằng luật và từ điển.
+
+Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
+"""
 from __future__ import annotations
 
 import datetime as dt
 import re
+import unicodedata
 from dataclasses import dataclass, field
 
 from ..nlu.preprocess import normalize
 
 SO_THICH = {
-    "lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web"],
-    "day_hoc": ["dạy học", "đi dạy", "giảng dạy", "dạy"],
-    "du_lieu": ["dữ liệu", "data", "ai", "trí tuệ nhân tạo", "học máy"],
-    "mang_bao_mat": ["mạng", "bảo mật", "an ninh mạng", "hệ thống"],
-    "thiet_ke_game": ["thiết kế", "đồ hoạ", "đồ họa", "game"],
+    "thich_lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web"],
+    "thich_du_lieu": ["dữ liệu", "data", "trí tuệ nhân tạo", "học máy", "phân tích dữ liệu"],
+    "thich_thiet_ke_hoc_lieu": ["thiết kế học liệu", "học liệu", "bài giảng điện tử", "thiết kế bài giảng",
+                                "e learning", "elearning"],
+    "thich_day_hoc": ["dạy học", "đi dạy", "giảng dạy", "dạy"],
 }
 DINH_HUONG = {
-    "giao_vien": ["giáo viên", "nhà giáo", "đi dạy"],
-    "doanh_nghiep": ["công ty", "doanh nghiệp", "lập trình viên", "kỹ sư", "đi làm"],
-    "nghien_cuu": ["nghiên cứu", "thạc sĩ", "học lên", "tiến sĩ"],
-    "khoi_nghiep": ["khởi nghiệp", "startup"],
+    "lap_trinh_vien": ["lập trình viên", "kỹ sư phần mềm", "developer"],
+    "phan_tich_du_lieu": ["phân tích dữ liệu", "data analyst", "chuyên viên dữ liệu", "khoa học dữ liệu"],
+    "giao_vien": ["giáo viên", "nhà giáo", "thầy giáo", "cô giáo"],
+    "chuyen_vien_edtech": ["edtech", "chuyên viên công nghệ giáo dục", "chuyên viên edtech"],
 }
+TEN_SO_THICH = {"thich_lap_trinh": "lập trình", "thich_du_lieu": "dữ liệu",
+                "thich_thiet_ke_hoc_lieu": "thiết kế học liệu", "thich_day_hoc": "dạy học"}
+TEN_DINH_HUONG = {"lap_trinh_vien": "lập trình viên", "phan_tich_du_lieu": "phân tích dữ liệu",
+                  "giao_vien": "giáo viên", "chuyen_vien_edtech": "chuyên viên EdTech"}
+
+_MON_ALIAS = {
+    "tiếng anh": "Anh", "anh văn": "Anh", "ngoại ngữ": "Anh", "tieng anh": "Anh", "anh": "Anh",
+    "toán": "Toan", "toan": "Toan",
+    "vật lý": "Ly", "vật lí": "Ly", "vat ly": "Ly", "lý": "Ly", "lí": "Ly", "ly": "Ly", "li": "Ly",
+    "hóa học": "Hoa", "hoá học": "Hoa", "hoa hoc": "Hoa", "hóa": "Hoa", "hoá": "Hoa", "hoa": "Hoa",
+    "sinh học": "Sinh", "sinh hoc": "Sinh", "sinh": "Sinh",
+    "tin học": "Tin", "tin hoc": "Tin", "tin": "Tin",
+}
+_DIEM_MON = re.compile(
+    r"(?<!\w)(" + "|".join(sorted(map(re.escape, _MON_ALIAS), key=len, reverse=True)) + r")(?!\w)"
+    r"\s*(?:[:=\-]|là|được|đạt)?\s*(\d{1,2}(?:[.,]\d{1,3})?)(?![\d.,]*\d)")
+_KHU_VUC = re.compile(r"\b(?:kv|khu vực)\s?([123])(?:\s?(nt|nông thôn))?\b")
 
 _TO_HOP = re.compile(r"\b([abcdx])\s?0?(\d{1,2})\b")
 _YEAR = re.compile(r"\b(20[12]\d)\b")
 _SCORE = re.compile(r"(?<![\d.])(\d{1,2}(?:[.,]\d{1,2})?)(?![\d.])")
-_COURSE = re.compile(r"\b[A-Za-z]{2,5}\s?\d{3,4}\b")   # COMP1010, comp 1010
+_COURSE = re.compile(r"\b[A-Za-z]{2,5}\s?\d{3,4}\b")
 _HK1 = re.compile(r"\b(?:hk|học kỳ|kỳ)\s?1\b|\bhk1\b")
 
 
 @dataclass
 class Entities:
-    nganh: list[str] = field(default_factory=list)   # mã ngành trong KB: "cntt", "sp_tin"
-    to_hop: list[str] = field(default_factory=list)  # "A00", "D01"
+    nganh: list[str] = field(default_factory=list)
+    to_hop: list[str] = field(default_factory=list)
     nam: int | None = None
     diem: float | None = None
-    ma_hp: list[str] = field(default_factory=list)   # mã học phần (nhận cả mã lẫn tên học phần)
-    nhac_hk1: bool = False                           # có nhắc "học kỳ 1" / "hk1"
+    ma_hp: list[str] = field(default_factory=list)
+    nhac_hk1: bool = False
     so_thich: list[str] = field(default_factory=list)
-    dinh_huong: str | None = None
+    dinh_huong: list[str] = field(default_factory=list)
+    phuong_thuc: str | None = None
+    khu_vuc: str | None = None
+    diem_mon: dict[str, float] = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         return {k: v for k, v in self.__dict__.items() if v}
@@ -58,8 +82,7 @@ def _find_majors(t: str, majors: dict) -> list[str]:
 
 
 def parse_score(text: str) -> float | None:
-    """Điểm xét tuyển (thang 30). Bỏ qua số trông như năm hoặc mã tổ hợp."""
-    t = _YEAR.sub(" ", text.lower())  # không dùng normalize(): nó xóa dấu "." trong "24.5"
+    t = _YEAR.sub(" ", text.lower())
     t = _TO_HOP.sub(" ", t)
     for m in _SCORE.finditer(t):
         v = float(m.group(1).replace(",", "."))
@@ -68,8 +91,30 @@ def parse_score(text: str) -> float | None:
     return None
 
 
+def parse_diem_mon(text: str) -> dict[str, float]:
+    t = unicodedata.normalize("NFC", text).lower()
+    return {_MON_ALIAS[m.group(1)]: float(m.group(2).replace(",", ".")) for m in _DIEM_MON.finditer(t)}
+
+
+def parse_phuong_thuc(text: str) -> str | None:
+    t = normalize(text)
+    if any(_has(t, w) for w in ("đgnl", "dgnl", "đánh giá năng lực", "năng lực", "học bạ", "hoc ba")):
+        return "DGNL"
+    if any(_has(t, w) for w in ("trung học phổ thông", "thi tốt nghiệp", "tốt nghiệp", "thi thpt")):
+        return "THPT"
+    return None
+
+
+def parse_khu_vuc(text: str) -> str | None:
+    t = normalize(text)
+    if (m := _KHU_VUC.search(t)):
+        return "KV2-NT" if m.group(1) == "2" and m.group(2) else f"KV{m.group(1)}"
+    if _has(t, "nông thôn"):
+        return "KV2-NT"
+    return None
+
+
 def extract(text: str, majors: dict, courses: dict | None = None) -> Entities:
-    """courses: {mã: HocPhan} (hoặc tập mã). Nhận học phần theo mã hoặc theo tên đầy đủ."""
     t = normalize(text)
     e = Entities(nganh=_find_majors(t, majors))
 
@@ -93,5 +138,8 @@ def extract(text: str, majors: dict, courses: dict | None = None) -> Entities:
     e.nhac_hk1 = bool(_HK1.search(t))
 
     e.so_thich = [k for k, kws in SO_THICH.items() if any(_has(t, normalize(w)) for w in kws)]
-    e.dinh_huong = next((k for k, kws in DINH_HUONG.items() if any(_has(t, normalize(w)) for w in kws)), None)
+    e.dinh_huong = [k for k, kws in DINH_HUONG.items() if any(_has(t, normalize(w)) for w in kws)]
+    e.phuong_thuc = parse_phuong_thuc(text)
+    e.khu_vuc = parse_khu_vuc(text)
+    e.diem_mon = parse_diem_mon(text)
     return e

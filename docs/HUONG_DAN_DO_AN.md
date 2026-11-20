@@ -122,6 +122,8 @@ Tóm tắt:
 
 ## 5. Chức năng 2 – Tư vấn chọn ngành (Phần 3: 3.3, 3.4; Phần 4: 4.1)
 
+> ✅ **Hệ luật (33 luật) + suy diễn tiến/lùi đã cài đặt** – thiết kế và cách chạy: [`docs/C2_TU_VAN_NGANH.md`](C2_TU_VAN_NGANH.md). Phần gợi ý bên dưới là định hướng ban đầu; tên sự kiện thực tế theo tập luật v2 (vd. `du_dk(CNTT)`). ID3 (5.4) chưa làm.
+
 ### 5.1 Biểu diễn tri thức
 
 - **Sự kiện** dạng ký hiệu: `to_hop=A00`, `so_thich=lap_trinh`, `dinh_huong=giao_vien`,
