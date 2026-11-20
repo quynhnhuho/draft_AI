@@ -5,12 +5,10 @@ Vai trò trong chatbot: BỘ GIẢI CHÍNH. Chatbot luôn chạy A* trước (c�
                        A* là lộ trình ít học kỳ nhất vì h chấp nhận được.
 
 Ý tưởng: hàng đợi ưu tiên theo f = g + h, g = số học kỳ đã dùng.
-    h(n)  = ceil(tín chỉ còn phải học / MAX_TC)  – heuristic theo đề (mặc định)
-    h2(n) = max(h theo kỳ lẻ/chẵn, chuỗi học trước) – heuristic mở rộng để so sánh
-Cả hai đều chấp nhận được và nhất quán (mỗi bước giảm tối đa 1) => kiểm tra đích khi lấy nút ra
+    h(n) = ceil(tín chỉ còn phải học / MAX_TC)  – heuristic theo đề
+h chấp nhận được và nhất quán (mỗi bước giảm tối đa 1) => kiểm tra đích khi lấy nút ra
 khỏi hàng đợi cho lời giải tối ưu. Hòa f thì ưu tiên g lớn (gần đích hơn).
 
-Chạy riêng:  python -m src.planner.a_sao
 Ghi chú hỗ trợ AI: Claude (Anthropic) hỗ trợ rà soát và tái cấu trúc; nhóm đã kiểm tra lại.
 """
 from __future__ import annotations
@@ -22,9 +20,9 @@ from itertools import count
 from .model import BaiToan, DongHo, KetQua, TrangThai, dung_lai_lo_trinh
 
 
-def a_sao(bt: BaiToan, heuristic: str = "h", gioi_han_ms: float | None = None) -> KetQua:
-    ten = "A*" if heuristic == "h" else f"A* ({heuristic})"
-    ham_h = bt.ham_heuristic(heuristic)
+def a_sao(bt: BaiToan, gioi_han_ms: float | None = None) -> KetQua:
+    ten = "A*"
+    ham_h = bt.h
     dong_ho = DongHo(gioi_han_ms)
     s0 = bt.trang_thai_dau()
     thu_tu = count()                                       # phá hòa ổn định
@@ -41,7 +39,7 @@ def a_sao(bt: BaiToan, heuristic: str = "h", gioi_han_ms: float | None = None) -
             continue
         if bt.la_dich(s):                                  # kiểm tra đích khi lấy ra
             return KetQua(ten, dung_lai_lo_trinh(cha, s), mo_rong, sinh, dong_ho.ms(),
-                          chi_tiet={"heuristic": heuristic, "h_ban_dau": ham_h(s0)})
+                          chi_tiet={"h_ban_dau": ham_h(s0)})
         mo_rong += 1
         for a in bt.hanh_dong(s):
             s_moi = bt.ke_tiep(s, a)
@@ -54,8 +52,3 @@ def a_sao(bt: BaiToan, heuristic: str = "h", gioi_han_ms: float | None = None) -
                                (g_moi + ham_h(s_moi), -g_moi, next(thu_tu), g_moi, s_moi))
 
     return KetQua(ten, None, mo_rong, sinh, dong_ho.ms())
-
-
-if __name__ == "__main__":
-    from .cli import main
-    main(["--thuat-toan", "a_sao"])

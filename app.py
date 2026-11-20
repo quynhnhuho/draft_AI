@@ -2,16 +2,13 @@
 
     streamlit run app.py
 
-Hai trang (chọn ở sidebar):
-  - Chatbot             : dành cho thí sinh / sinh viên. Không có lựa chọn thuật toán.
-  - So sánh thuật toán  : dành cho giảng viên / hội đồng – chạy BFS, A*, nhánh cận trên cùng bài toán.
+Người dùng không chọn thuật toán lập lộ trình: chatbot gọi bộ điều phối của Chức năng 1.
 """
 from __future__ import annotations
 
 import datetime as dt
 import json
 
-import pandas as pd
 import streamlit as st
 
 from src.chatbot.engine import LOG_DIR, ChatEngine, module_status
@@ -20,9 +17,6 @@ from src.chatbot.entities import DINH_HUONG, SO_THICH, TEN_DINH_HUONG, TEN_SO_TH
 from src.chatbot.kb import KnowledgeBase
 from src.chatbot.schema import BotReply, DialogueState
 from src.nlu.classifier import KeywordClassifier, load_classifier, load_threshold
-from src.planner import dieu_phoi, kich_ban
-from src.planner.model import (GIA_DINH, NAM_AP_DUNG, NGUON_CTDT, kiem_tra_lo_trinh, tao_bai_toan,
-                               ten_hoc_ky)
 
 st.set_page_config(page_title="Tư vấn tuyển sinh – Khoa CNTT", layout="wide")
 
@@ -60,7 +54,6 @@ def hp_label(m: str) -> str:
 
 # ================================================================== sidebar
 with st.sidebar:
-    trang = st.radio("Trang", ["Chatbot", "So sánh thuật toán (C1)"], label_visibility="collapsed")
     st.header("Cấu hình")
     st.caption(f"Bộ phân loại ý định: **{classifier.name}**")
     if isinstance(classifier, KeywordClassifier):
@@ -76,47 +69,46 @@ with st.sidebar:
     with st.expander("Trạng thái mô-đun"):
         st.write({"C3 – Mô hình Keras": classifier.name == "keras", **module_status()})
 
-    if trang == "Chatbot":
-        with st.expander("Tư vấn chọn ngành (Chức năng 2)"):
-            with st.form("advisor"):
-                pt = st.radio("Phương thức xét tuyển", ["THPT", "DGNL"], horizontal=True)
-                kv = st.selectbox("Khu vực ưu tiên", ["KV1", "KV2-NT", "KV2", "KV3"], index=3)
-                st.caption("**THPT** – điểm thi các môn (để trống nếu không thi)")
-                diem = {m: st.number_input(ten, 0.0, 10.0, value=None, step=0.05, key=f"d_{m}")
-                        for m, ten in TEN_MON.items()}
-                st.caption("**ĐGNL** – điểm ĐGNL môn Toán và học bạ lớp 12")
-                dgnl = st.number_input("Điểm ĐGNL môn Toán (thang 10)", 0.0, 10.0, value=None, step=0.05)
-                hb1 = st.number_input("Học bạ Tiếng Anh", 0.0, 10.0, value=None, step=0.05)
-                mon_hb2 = st.selectbox("Môn học bạ thứ hai", list(MON_HB2), format_func=TEN_MON.get)
-                hb2 = st.number_input("Học bạ môn thứ hai", 0.0, 10.0, value=None, step=0.05)
-                so_thich = st.multiselect("Sở thích", list(SO_THICH), format_func=TEN_SO_THICH.get)
-                dinh_huong = st.multiselect("Định hướng nghề nghiệp", list(DINH_HUONG), format_func=TEN_DINH_HUONG.get)
-                check = st.selectbox("Kiểm tra đủ điều kiện ngành (suy diễn lùi)", ["(không)"] + list(kb.majors),
-                                     format_func=lambda c: kb.major_name(c) if c in kb.majors else c)
-                if st.form_submit_button("Tư vấn"):
-                    user = {"phuong_thuc": pt, "khu_vuc": kv,
-                            **{k: k in so_thich for k in SO_THICH}, **{k: k in dinh_huong for k in DINH_HUONG}}
-                    if pt == "THPT":
-                        user |= {f"diem_{m}": v for m, v in diem.items()}
-                    else:
-                        user |= {"diem_dgnl": dgnl, "HB_mon1": hb1, "HB_mon2": hb2, "mon_hb2": mon_hb2}
-                    st.session_state.pending_form = ("advisor", user, check)
+    with st.expander("Tư vấn chọn ngành (Chức năng 2)"):
+        with st.form("advisor"):
+            pt = st.radio("Phương thức xét tuyển", ["THPT", "DGNL"], horizontal=True)
+            kv = st.selectbox("Khu vực ưu tiên", ["KV1", "KV2-NT", "KV2", "KV3"], index=3)
+            st.caption("**THPT** – điểm thi các môn (để trống nếu không thi)")
+            diem = {m: st.number_input(ten, 0.0, 10.0, value=None, step=0.05, key=f"d_{m}")
+                    for m, ten in TEN_MON.items()}
+            st.caption("**ĐGNL** – điểm ĐGNL môn Toán và học bạ lớp 12")
+            dgnl = st.number_input("Điểm ĐGNL môn Toán (thang 10)", 0.0, 10.0, value=None, step=0.05)
+            hb1 = st.number_input("Học bạ Tiếng Anh", 0.0, 10.0, value=None, step=0.05)
+            mon_hb2 = st.selectbox("Môn học bạ thứ hai", list(MON_HB2), format_func=TEN_MON.get)
+            hb2 = st.number_input("Học bạ môn thứ hai", 0.0, 10.0, value=None, step=0.05)
+            so_thich = st.multiselect("Sở thích", list(SO_THICH), format_func=TEN_SO_THICH.get)
+            dinh_huong = st.multiselect("Định hướng nghề nghiệp", list(DINH_HUONG), format_func=TEN_DINH_HUONG.get)
+            check = st.selectbox("Kiểm tra đủ điều kiện ngành (suy diễn lùi)", ["(không)"] + list(kb.majors),
+                                 format_func=lambda c: kb.major_name(c) if c in kb.majors else c)
+            if st.form_submit_button("Tư vấn"):
+                user = {"phuong_thuc": pt, "khu_vuc": kv,
+                        **{k: k in so_thich for k in SO_THICH}, **{k: k in dinh_huong for k in DINH_HUONG}}
+                if pt == "THPT":
+                    user |= {f"diem_{m}": v for m, v in diem.items()}
+                else:
+                    user |= {"diem_dgnl": dgnl, "HB_mon1": hb1, "HB_mon2": hb2, "mon_hb2": mon_hb2}
+                st.session_state.pending_form = ("advisor", user, check)
 
-        with st.expander("Lộ trình học (Chức năng 1)"):
-            with st.form("planner"):
-                ids = sorted(engine.course_ids, key=lambda m: engine.courses[m].stt)
-                ky = st.number_input("Học kỳ sắp đăng ký (1 = năm nhất)", 1, 16, 1)
-                done = st.multiselect("Học phần đã đạt", ids, format_func=hp_label)
-                rot = st.multiselect("Học phần bị rớt (chưa học lại đạt)", ids, format_func=hp_label)
-                hoc_vuot = st.checkbox("Em muốn học vượt (tối đa 22 TC/kỳ)")
-                if st.form_submit_button("Lập lộ trình"):
-                    st.session_state.pending_form = ("planner", {"da_dat": set(done), "rot": set(rot),
-                                                                 "ky": int(ky), "hoc_vuot": hoc_vuot}, None)
+    with st.expander("Lộ trình học (Chức năng 1)"):
+        with st.form("planner"):
+            ids = sorted(engine.course_ids, key=lambda m: engine.courses[m].stt)
+            ky = st.number_input("Học kỳ sắp đăng ký (1 = năm nhất)", 1, 16, 1)
+            done = st.multiselect("Học phần đã đạt", ids, format_func=hp_label)
+            rot = st.multiselect("Học phần bị rớt (chưa học lại đạt)", ids, format_func=hp_label)
+            hoc_vuot = st.checkbox("Em muốn học vượt (tối đa 22 TC/kỳ)")
+            if st.form_submit_button("Lập lộ trình"):
+                st.session_state.pending_form = ("planner", {"da_dat": set(done), "rot": set(rot),
+                                                             "ky": int(ky), "hoc_vuot": hoc_vuot}, None)
 
-        if st.button("Xóa hội thoại"):
-            st.session_state.messages = []
-            st.session_state.dialog = DialogueState()
-            st.rerun()
+    if st.button("Xóa hội thoại"):
+        st.session_state.messages = []
+        st.session_state.dialog = DialogueState()
+        st.rerun()
 
 
 # ================================================================== trang chatbot
@@ -165,73 +157,4 @@ def trang_chatbot():
                     st.caption(f"thực thể: `{meta['debug']['entities']}`")
 
 
-# ================================================================== trang so sánh thuật toán
-def trang_so_sanh():
-    st.title("So sánh thuật toán lập lộ trình (Chức năng 1)")
-    st.markdown(
-        "Trong chatbot, người dùng **không chọn thuật toán**. Bộ điều phối (`src/planner/dieu_phoi.py`) tự quyết:\n"
-        "- **A\\*** – bộ giải chính (h = ⌈tín chỉ còn lại / MAX_TC⌉), cho lộ trình ít học kỳ nhất.\n"
-        "- **Nhánh cận** – bộ giải dự phòng khi A\\* vượt giới hạn thời gian; khởi tạo bằng lời giải tham lam "
-        "nên dừng lúc nào cũng có lộ trình.\n"
-        "- **BFS** – chuẩn đối chiếu (chế độ debug, trang này, test tự động).\n\n"
-        "Trang này chạy **tất cả** thuật toán trên cùng bài toán để kiểm chứng và lấy số liệu cho báo cáo. "
-        "Các dòng *(h2)* dùng heuristic mở rộng h2 = max(h theo kỳ lẻ/chẵn, chuỗi học trước).")
-    st.caption(f"Nguồn dữ liệu: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}")
-    with st.expander("Giả định của mô hình"):
-        st.markdown("\n".join(f"- {g}" for g in GIA_DINH))
-
-    cac_kb = kich_ban.cac_kich_ban(engine.courses)
-    chon = st.selectbox("Tình huống", list(cac_kb) + ["Tùy chỉnh"])
-    if chon == "Tùy chỉnh":
-        ids = sorted(engine.course_ids, key=lambda m: engine.courses[m].stt)
-        c1, c2 = st.columns(2)
-        hk = c1.number_input("Học kỳ sắp đăng ký", 1, 16, 1)
-        hoc_vuot = c2.checkbox("Học vượt (22 TC)")
-        da_dat = set(st.multiselect("Đã đạt", ids, format_func=hp_label))
-        rot = set(st.multiselect("Bị rớt", ids, format_func=hp_label))
-    else:
-        kb_ = cac_kb[chon]
-        st.info(kb_["mo_ta"])
-        hk, hoc_vuot, da_dat, rot = kb_["hoc_ky"], kb_["hoc_vuot"], kb_["da_dat"], kb_["rot"]
-    them_h2 = st.checkbox("Thêm biến thể heuristic h2", value=True)
-
-    if st.button("Chạy so sánh", type="primary"):
-        try:
-            bt = tao_bai_toan(engine.courses, da_dat, rot, int(hk), hoc_vuot)
-        except ValueError as e:
-            st.error(str(e))
-            return
-        kqs = dieu_phoi.so_sanh(bt, them_h2=them_h2)
-        if not kqs:
-            st.warning("Chưa có thuật toán nào trong `src/planner/` (bfs.py, a_sao.py, nhanh_can.py).")
-            return
-        rows = []
-        for kq in kqs:
-            ct = kq.chi_tiet
-            rows.append({"Thuật toán": kq.thuat_toan, "Số kỳ": kq.so_ky, "Nút mở rộng": kq.so_nut_mo_rong,
-                         "Nút sinh": kq.so_nut_sinh, "Thời gian (ms)": round(kq.thoi_gian_ms, 2),
-                         "Tối ưu": "Có" if kq.toi_uu else "chưa chắc",
-                         "Hợp lệ": "Có" if kq.lo_trinh is not None and not kiem_tra_lo_trinh(bt, kq.lo_trinh) else "Không",
-                         "Cận trên tham lam": ct.get("can_tren_ban_dau"),
-                         "Cắt theo cận": ct.get("cat_theo_can"), "Cắt trùng lặp": ct.get("cat_trung_lap")})
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
-        so_ky = {kq.so_ky for kq in kqs if kq.lo_trinh is not None}
-        if len(so_ky) == 1:
-            st.success(f"Mọi thuật toán cho cùng số học kỳ tối ưu: **{so_ky.pop()}** kỳ.")
-        else:
-            st.error(f"Các thuật toán cho số học kỳ khác nhau: {so_ky}")
-        tot = kqs[0]
-        if tot.lo_trinh:
-            st.subheader(f"Lộ trình ({tot.thuat_toan})")
-            st.dataframe(pd.DataFrame([{
-                "Học kỳ": ten_hoc_ky(ky) + (" (Trường xếp)" if ky in bt.truong_xep else ""),
-                "Học phần": "; ".join(m + (" (học lại)" if m in bt.hoc_phan_rot else "")
-                                      for m in sorted(tap, key=lambda x: bt.hoc_phan[x].stt)),
-                "TC": sum(bt.hoc_phan[m].tin_chi for m in tap)} for ky, tap in tot.lo_trinh]),
-                hide_index=True, use_container_width=True)
-
-
-if trang == "Chatbot":
-    trang_chatbot()
-else:
-    trang_so_sanh()
+trang_chatbot()

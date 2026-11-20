@@ -57,13 +57,11 @@ draft_AI/
 │   └── out_of_scope.csv           # C3 – câu ngoài phạm vi để chọn ngưỡng τ
 ├── src/
 │   ├── planner/                   # C1
-│   │   ├── model.py               #   mô hình dùng chung: HocPhan, BaiToan, KetQua, h, h2
+│   │   ├── model.py               #   mô hình dùng chung: HocPhan, BaiToan, KetQua, h
 │   │   ├── bfs.py                 #   BFS            (thành viên 1)
 │   │   ├── a_sao.py               #   A*             (thành viên 2)
 │   │   ├── nhanh_can.py           #   nhánh cận      (thành viên 3)
-│   │   ├── dieu_phoi.py           #   kết hợp 3 thuật toán – chatbot chỉ gọi file này
-│   │   ├── kich_ban.py            #   tình huống + bảng so sánh cho báo cáo
-│   │   └── cli.py                 #   chạy dòng lệnh
+│   │   └── dieu_phoi.py           #   kết hợp 3 thuật toán – chatbot chỉ gọi file này
 │   ├── advisor/                   # C2
 │   │   ├── rules.py               #   Rule + tập ≥15 luật
 │   │   ├── facts.py               #   chuyển input số (điểm) → sự kiện ký hiệu
@@ -118,8 +116,7 @@ Tóm tắt:
   tự commit; `dieu_phoi.py` kết hợp 3 thuật toán cho chatbot.
 - Chatbot **không cho người dùng chọn thuật toán**: A* là bộ giải chính, nhánh cận (khởi tạo bằng lời
   giải tham lam, dừng lúc nào cũng có lời giải) là dự phòng, BFS là chuẩn đối chiếu.
-- 4 tình huống (năm nhất, rớt 2 học phần, học vượt từ năm nhất, học vượt để bù môn rớt): mọi thuật toán
-  cho cùng số học kỳ; có thêm heuristic mở rộng h2 để so sánh.
+- Phạm vi hiện tại: chỉ thuật toán, file kết nối (`dieu_phoi.py`) và phần nối với chatbot.
 
 ---
 
@@ -301,8 +298,7 @@ Mỗi "fact" là một bản ghi có nguồn:
 
 Kết quả C2 hiển thị **vết suy diễn** (R3 → R7 → R12…) để chứng minh hệ luật; kết quả C1 hiển thị
 bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, nguồn CTĐT và giả định. Người dùng **không chọn thuật toán**;
-ở chế độ debug mới hiện thuật toán đã dùng, số nút và đối chiếu BFS. Trang **📊 So sánh thuật toán**
-trong app chạy cả 3 thuật toán cho hội đồng.
+ở chế độ debug mới hiện thuật toán đã dùng, số nút và đối chiếu BFS.
 
 ### 7.7 Ngưỡng & chuyển cán bộ
 
