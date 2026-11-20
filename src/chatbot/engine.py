@@ -37,8 +37,6 @@ KB_INTENTS = {
 ELIGIBILITY_CUES = ("đủ điều kiện", "đủ đk", "có đậu", "đậu không", "đỗ không", "có đỗ",
                     "vào được", "trúng tuyển", "có vào", "đủ điểm")
 
-NOT_READY = "**Mô-đun {name} chưa được cài đặt** – sẽ hoàn thiện ở {where}."
-
 
 class ChatEngine:
     def __init__(self, kb: KnowledgeBase, classifier, threshold: float = 0.6, log_dir: Path = LOG_DIR):
@@ -213,14 +211,9 @@ class ChatEngine:
         info = (f"Bắt đầu từ **{ten_hoc_ky(ky)}** · tối đa **{max_tc} TC/kỳ**"
                 f"{' (học vượt)' if hoc_vuot else ''} · đã đạt {len(da_dat)} học phần"
                 f"{f' · rớt {len(rot)} học phần' if rot else ''} · còn **{bt.tin_chi_con_lai(bt.trang_thai_dau())} TC**.")
-        try:
-            kq_dp = dieu_phoi.lap_lo_trinh(bt)
-        except NotImplementedError:
-            return BotReply(f"{info}\n\n" + NOT_READY.format(
-                name="lập lộ trình học", where="`src/planner/` (a_sao.py, nhanh_can.py) – Chức năng 1"),
-                intent=intent)
+        kq_dp = dieu_phoi.lap_lo_trinh(bt)
         kq = kq_dp.ket_qua
-        if kq is None or kq.lo_trinh is None:
+        if kq.lo_trinh is None:
             return BotReply(f"{info}\n\nMình chưa tìm được lộ trình phù hợp. Em nên gặp cố vấn học tập để được hỗ trợ.",
                             intent=intent)
         if not kq.lo_trinh:
@@ -257,7 +250,7 @@ def module_status() -> dict[str, bool]:
         except Exception:
             return True
 
-    status = {f"C1 – {ten}": co for ten, co in dieu_phoi.thuat_toan_san_co().items()}
+    status = {}
     status["C2 – Suy diễn tiến"] = ok(lambda: inference.forward_chaining(set()))
     status["C2 – Suy diễn lùi"] = ok(lambda: inference.backward_chaining("du_dk(CNTT)", set()))
     return status

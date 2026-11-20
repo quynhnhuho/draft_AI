@@ -13,7 +13,8 @@ của mình** (lịch sử git là minh chứng ai làm phần nào).
 | 4 | Nhóm trưởng | `dieu_phoi.py` – kết nối A\* và nhánh cận | `src/planner/` |
 | 5 | Nhóm trưởng *(khi repo đã có chatbot)* | `src/chatbot/engine.py`, `flows.py`, `entities.py`, `app.py` | như cũ |
 
-Phụ thuộc: `hoc_phan.csv` ← `model.py` ← 3 thuật toán; `dieu_phoi.py` (chỉ dùng A\* và nhánh cận) ← chatbot.
+Phụ thuộc: `hoc_phan.csv` ← `model.py` ← 3 thuật toán; `dieu_phoi.py` (import thẳng `a_sao.py`, `nhanh_can.py`) ← chatbot.
+`dieu_phoi.py` chỉ commit **sau khi** đã có `a_sao.py` và `nhanh_can.py`, nếu không chatbot sẽ lỗi import.
 Bước 3: ba bạn làm **song song, thứ tự nào cũng được** – các file không phụ thuộc nhau.
 
 ## 2. Nguyên tắc
