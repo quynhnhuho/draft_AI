@@ -79,16 +79,3 @@ def lap_lo_trinh(bt: BaiToan, gioi_han_ms: float = GIOI_HAN_MS, doi_chieu: bool 
     if doi_chieu and bfs and kq_dp.ket_qua is not None and kq_dp.ket_qua.thuat_toan != "BFS":
         kq_dp.doi_chieu = bfs(bt, gioi_han_ms=gioi_han_ms)
     return kq_dp
-
-
-def so_sanh(bt: BaiToan, gioi_han_ms: float = 30000, them_h2: bool = True) -> list[KetQua]:
-    """Chạy MỌI thuật toán sẵn có trên cùng bài toán."""
-    ket_qua = []
-    for khoa in ("bfs", "a_sao", "nhanh_can"):
-        ham = nap_thuat_toan(khoa)
-        if ham is None:
-            continue
-        ket_qua.append(ham(bt, gioi_han_ms=gioi_han_ms))
-        if them_h2 and khoa != "bfs":
-            ket_qua.append(ham(bt, heuristic="h2", gioi_han_ms=gioi_han_ms))
-    return ket_qua

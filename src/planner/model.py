@@ -12,8 +12,7 @@ Mô hình hóa:
                     - học kỳ 1: chỉ được học đúng các học phần do Trường xếp
     Chi phí     = 1 cho mỗi học kỳ
     Đích        = đạt toàn bộ học phần mục tiêu
-    Heuristic   = h(n)  = ceil(số tín chỉ còn phải học / MAX_TC)      (theo đề, chấp nhận được)
-                  h2(n) = max(h theo kỳ lẻ/chẵn, chuỗi học trước dài nhất) (mở rộng, chấp nhận được)
+    Heuristic   = h(n) = ceil(số tín chỉ còn phải học / MAX_TC)   (theo đề, chấp nhận được)
 
 Ghi chú hỗ trợ AI: mô hình được nhóm viết, Claude (Anthropic) hỗ trợ rà soát, sửa lỗi và tái cấu trúc;
 nhóm đã kiểm tra lại toàn bộ.
@@ -203,37 +202,6 @@ class BaiToan:
         Chấp nhận được: mỗi học kỳ học tối đa MAX_TC tín chỉ."""
         return math.ceil(self.tin_chi_con_lai(s) / self.max_tc)
 
-    def h2(self, s: TrangThai) -> int:
-        """h2(n) = max(h_le_chan, h_chuoi) – heuristic mở rộng, vẫn chấp nhận được.
-        - h_le_chan: TC môn kỳ lẻ cần ít nhất a kỳ lẻ, TC môn kỳ chẵn cần ít nhất b kỳ chẵn.
-        - h_chuoi : chuỗi học trước dài nhất còn lại, có tính chờ tới kỳ mở môn.
-        """
-        da_dat, ky = s
-        con = self.can_hoc - da_dat
-        if not con:
-            return 0
-        le = sum(self.hoc_phan[m].tin_chi for m in con if self.hoc_phan[m].ky_mo == "Lẻ")
-        chan = sum(self.hoc_phan[m].tin_chi for m in con if self.hoc_phan[m].ky_mo == "Chẵn")
-        a, b = math.ceil(le / self.max_tc), math.ceil(chan / self.max_tc)
-        h_le_chan = max(2 * a - 1, 2 * b, 0) if ky % 2 == 1 else max(2 * b - 1, 2 * a, 0)
-
-        som_nhat: dict[str, int] = {}               # độ lệch học kỳ sớm nhất có thể học môn m
-
-        def tinh(m: str) -> int:
-            if m not in som_nhat:
-                t = max((tinh(p) + 1 for p in self.hoc_phan[m].hoc_truoc
-                         if p in con and p not in self.hoc_phan_rot), default=0)
-                if not self.hoc_phan[m].mo_trong_ky(ky + t):
-                    t += 1
-                som_nhat[m] = t
-            return som_nhat[m]
-
-        h_chuoi = max(tinh(m) + 1 for m in con)
-        return max(h_le_chan, h_chuoi)
-
-    def ham_heuristic(self, ten: str):
-        return {"h": self.h, "h2": self.h2}[ten]
-
 
 # =====================================================================================
 # 3. KẾT QUẢ VÀ TIỆN ÍCH DÙNG CHUNG CHO CÁC THUẬT TOÁN
@@ -313,30 +281,3 @@ def tao_bai_toan(ds: dict[str, HocPhan], da_dat: set[str], rot: set[str], hoc_ky
     return BaiToan(ds, frozenset(muc_tieu or ds), frozenset(da_dat), hoc_ky,
                    MAX_TC_HOC_VUOT if hoc_vuot else MAX_TC_BINH_THUONG, frozenset(rot),
                    truong_xep={1: hk1_co_dinh(ds)})
-
-
-def kiem_tra_lo_trinh(bt: BaiToan, lo_trinh: LoTrinh) -> list[str]:
-    """Kiểm tra độc lập một lộ trình có hợp lệ không (dùng trong test và để đối chiếu)."""
-    loi, da_dat, ky_mong_doi = [], set(bt.da_hoan_thanh), bt.hoc_ky_bat_dau
-    for ky, tap in lo_trinh:
-        if ky != ky_mong_doi:
-            loi.append(f"Học kỳ không liên tiếp: {ky}")
-        ky_mong_doi = ky + 1
-        tong = sum(bt.hoc_phan[m].tin_chi for m in tap)
-        if tong > bt.max_tc:
-            loi.append(f"HK{ky}: {tong} TC > {bt.max_tc}")
-        if ky in bt.truong_xep and set(tap) != set(bt.truong_xep[ky]) - set(bt.da_hoan_thanh):
-            loi.append(f"HK{ky}: không đúng các học phần Trường xếp")
-        da_hoc = da_dat | set(bt.hoc_phan_rot)
-        for m in tap:
-            hp = bt.hoc_phan[m]
-            if not hp.mo_trong_ky(ky):
-                loi.append(f"HK{ky}: {m} không mở")
-            if not hp.hoc_truoc <= da_hoc:
-                loi.append(f"HK{ky}: {m} chưa học {', '.join(sorted(hp.hoc_truoc - da_hoc))}")
-            if m in da_dat:
-                loi.append(f"HK{ky}: {m} đã đạt rồi")
-        da_dat |= tap
-    if not bt.muc_tieu <= da_dat:
-        loi.append(f"Chưa đạt: {', '.join(sorted(bt.muc_tieu - da_dat))}")
-    return loi

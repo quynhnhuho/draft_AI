@@ -12,7 +12,6 @@ Vai trò trong chatbot: BỘ GIẢI DỰ PHÒNG. Khi A* vượt giới hạn th�
     3. Gặp lại trạng thái đã xét với g nhỏ hơn hoặc bằng -> CẮT (trùng lặp).
     4. Duyệt con có h nhỏ trước để sớm tìm lời giải tốt, cận trên giảm nhanh.
 
-Chạy riêng:  python -m src.planner.nhanh_can
 Ghi chú hỗ trợ AI: Claude (Anthropic) hỗ trợ rà soát và tái cấu trúc; nhóm đã kiểm tra lại.
 """
 from __future__ import annotations
@@ -37,9 +36,9 @@ def loi_giai_tham_lam(bt: BaiToan) -> LoTrinh | None:
     return lo_trinh
 
 
-def nhanh_can(bt: BaiToan, heuristic: str = "h", gioi_han_ms: float | None = None) -> KetQua:
-    ten = "Nhánh cận" if heuristic == "h" else f"Nhánh cận ({heuristic})"
-    ham_h = bt.ham_heuristic(heuristic)
+def nhanh_can(bt: BaiToan, gioi_han_ms: float | None = None) -> KetQua:
+    ten = "Nhánh cận"
+    ham_h = bt.h
     dong_ho = DongHo(gioi_han_ms)
 
     tham_lam = loi_giai_tham_lam(bt)
@@ -81,10 +80,5 @@ def nhanh_can(bt: BaiToan, heuristic: str = "h", gioi_han_ms: float | None = Non
     # Hết giờ nhưng lời giải đã bằng cận dưới h(s0) thì vẫn chắc chắn tối ưu.
     toi_uu = not het_gio or (lo_trinh_tot is not None and tot_nhat == ham_h(bt.trang_thai_dau()))
     return KetQua(ten, lo_trinh_tot, mo_rong, sinh, dong_ho.ms(), toi_uu=toi_uu, het_gioi_han=het_gio,
-                  chi_tiet={"heuristic": heuristic, "can_tren_ban_dau": can_tren_ban_dau,
+                  chi_tiet={"can_tren_ban_dau": can_tren_ban_dau,
                             "cat_theo_can": cat_theo_can, "cat_trung_lap": cat_trung_lap})
-
-
-if __name__ == "__main__":
-    from .cli import main
-    main(["--thuat-toan", "nhanh_can"])

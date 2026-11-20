@@ -26,8 +26,8 @@ pytest -q
 C4 tự động dùng mô hình tốt nhất có trong `models/`: `intent_model.keras` (C3) → `nb_pipeline.pkl` →
 bộ phân loại từ khóa tạm thời. Khi C2 được cài đặt, chatbot tự gọi được mà không cần sửa mã C4.
 
-App có 2 trang (chọn ở sidebar): **💬 Chatbot** cho thí sinh/sinh viên và **📊 So sánh thuật toán (C1)**
-cho giảng viên/hội đồng. Lộ trình học chạy ở dòng lệnh: `python -m src.planner.cli`.
+Lộ trình học (Chức năng 1): hỏi chatbot hoặc dùng form "Lộ trình học" ở thanh bên; chatbot tự chọn
+thuật toán (A* chính, nhánh cận dự phòng, BFS đối chiếu khi bật debug).
 
 ## Việc cần làm tiếp
 

@@ -3,12 +3,11 @@
 Thành viên phụ trách : <Họ tên – MSSV>
 Vai trò trong chatbot: CHUẨN ĐỐI CHIẾU. BFS không dùng để trả lời người dùng (tốn bộ nhớ khi bài
                        toán lớn) mà dùng để kiểm chứng A*/nhánh cận cho đúng số học kỳ tối ưu
-                       (chế độ debug, tab "So sánh thuật toán", test tự động).
+                       (chế độ debug của chatbot).
 
 Ý tưởng: hàng đợi FIFO, mỗi tầng của cây tìm kiếm = 1 học kỳ, chi phí mỗi bước bằng nhau
 => lời giải đầu tiên tìm thấy là lộ trình ít học kỳ nhất. Kiểm tra đích ngay khi sinh nút.
 
-Chạy riêng:  python -m src.planner.bfs
 Ghi chú hỗ trợ AI: Claude (Anthropic) hỗ trợ rà soát và tái cấu trúc; nhóm đã kiểm tra lại.
 """
 from __future__ import annotations
@@ -48,8 +47,3 @@ def bfs(bt: BaiToan, gioi_han_ms: float | None = None) -> KetQua:
             hang_doi.append(s_moi)
 
     return KetQua(TEN, None, mo_rong, sinh, dong_ho.ms())
-
-
-if __name__ == "__main__":
-    from .cli import main
-    main(["--thuat-toan", "bfs"])
