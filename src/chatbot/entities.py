@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 
 from ..nlu.preprocess import normalize
 
-# Khóa trùng tên dữ kiện đầu vào của hệ luật C2 (src/advisor/rules.py, R19–R28)
 SO_THICH = {
     "thich_lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web"],
     "thich_du_lieu": ["dữ liệu", "data", "trí tuệ nhân tạo", "học máy", "phân tích dữ liệu"],
@@ -27,7 +26,6 @@ TEN_SO_THICH = {"thich_lap_trinh": "lập trình", "thich_du_lieu": "dữ liệu
 TEN_DINH_HUONG = {"lap_trinh_vien": "lập trình viên", "phan_tich_du_lieu": "phân tích dữ liệu",
                   "giao_vien": "giáo viên", "chuyen_vien_edtech": "chuyên viên EdTech"}
 
-# Tên môn (có dấu / không dấu) → tên môn trong luật. Dài trước ngắn để "tiếng anh" khớp trước "anh".
 _MON_ALIAS = {
     "tiếng anh": "Anh", "anh văn": "Anh", "ngoại ngữ": "Anh", "tieng anh": "Anh", "anh": "Anh",
     "toán": "Toan", "toan": "Toan",
@@ -58,9 +56,9 @@ class Entities:
     nhac_hk1: bool = False                           # có nhắc "học kỳ 1" / "hk1"
     so_thich: list[str] = field(default_factory=list)
     dinh_huong: list[str] = field(default_factory=list)
-    phuong_thuc: str | None = None                   # "THPT" | "DGNL"
-    khu_vuc: str | None = None                       # "KV1" | "KV2-NT" | "KV2" | "KV3"
-    diem_mon: dict[str, float] = field(default_factory=dict)   # {"Toan": 8.2, "Anh": 7.5, ...}
+    phuong_thuc: str | None = None
+    khu_vuc: str | None = None
+    diem_mon: dict[str, float] = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         return {k: v for k, v in self.__dict__.items() if v}
@@ -92,7 +90,6 @@ def parse_score(text: str) -> float | None:
 
 
 def parse_diem_mon(text: str) -> dict[str, float]:
-    """"Toán 8.2, Anh 7,5, Lý: 6" → {"Toan": 8.2, "Anh": 7.5, "Ly": 6.0}. Không dùng normalize() (giữ dấu chấm)."""
     t = unicodedata.normalize("NFC", text).lower()
     return {_MON_ALIAS[m.group(1)]: float(m.group(2).replace(",", ".")) for m in _DIEM_MON.finditer(t)}
 

@@ -155,7 +155,6 @@ class ChatEngine:
                         f"Em có thể liên hệ trực tiếp:\n{self.kb.contact_text()}",
                         intent="chuyen_can_bo", handoff=True)
 
-    # ------------------------------------------------------------------ C2: tư vấn chọn ngành
     @staticmethod
     def _user_summary(user: dict) -> str:
         bits = []
@@ -178,7 +177,6 @@ class ChatEngine:
         return "; ".join(bits) or "(chưa có thông tin)"
 
     def advise(self, user: dict) -> BotReply:
-        """Suy diễn TIẾN (C2) → danh sách ngành gợi ý đã xếp hạng + giải thích."""
         kq = c2.tu_van(user)
         text = f"Thông tin của em: {self._user_summary(user)}.\n\n" + c2.markdown_tu_van(kq, vet=self.debug)
         return BotReply(text, intent="tu_van_chon_nganh", sources=[nguon_trich_dan()],
@@ -186,7 +184,6 @@ class ChatEngine:
                                "so_luat_kich_hoat": len(kq.forward.fired) if kq.forward else 0})
 
     def check_eligibility(self, nganh_kb: str, user: dict) -> BotReply:
-        """Suy diễn LÙI (C2) cho mục tiêu du_dk(X). nganh_kb: mã ngành trong cơ sở tri thức ("cntt", ...)."""
         x = tu_ma_kb(nganh_kb) or nganh_kb
         kq = c2.kiem_tra_dieu_kien(user, x)
         text = (f"Câu hỏi: em có đủ điều kiện xét tuyển ngành **{ten_nganh(x)}** không?  \n"
@@ -196,7 +193,6 @@ class ChatEngine:
 
     @staticmethod
     def du_kien_con_thieu(nganh_kb: str, user: dict) -> list[str]:
-        """Luồng hỏi đáp nhiều lượt: chạy suy diễn lùi trên thông tin hiện có, trả về dữ kiện còn thiếu."""
         return c2.kiem_tra_dieu_kien(user, tu_ma_kb(nganh_kb) or nganh_kb).can_hoi
 
     # ------------------------------------------------------------------ C1: lộ trình học

@@ -41,7 +41,6 @@ def _skippable(parser: Parser, empty: Any) -> Parser:
     return wrapped
 
 
-# ---------------------------------------------------------------- bộ đọc câu trả lời cho C2
 def _p_phuong_thuc(text, e):
     return e.phuong_thuc
 
@@ -58,7 +57,6 @@ def _hop_le(d: dict) -> bool:
 
 
 def _p_diem_thpt(text, e):
-    """Điểm thi các môn; môn không nhắc tới = không thi (None, theo quy ước của tập luật)."""
     d = e.diem_mon or parse_diem_mon(text)
     if not _hop_le(d):
         return None
@@ -72,7 +70,6 @@ def _p_so_10(text, e):
 
 
 def _p_hoc_ba(text, e):
-    """"Anh 8.5, Tin 9" → HB_mon1 = 8.5 (Tiếng Anh), mon_hb2 = Tin, HB_mon2 = 9."""
     d = e.diem_mon or parse_diem_mon(text)
     mon2 = [m for m in d if m in MON_HB2]
     if not _hop_le(d) or "Anh" not in d or len(mon2) != 1:
@@ -84,7 +81,7 @@ def _p_so_thich(text, e):
     return e.so_thich or None
 
 
-_DINH_HUONG_LONG = {   # khi đang hỏi đúng câu định hướng thì chấp nhận cách nói ngắn
+_DINH_HUONG_LONG = {
     "lap_trinh_vien": ("lập trình",), "phan_tich_du_lieu": ("dữ liệu", "phân tích"),
     "giao_vien": ("dạy", "giáo viên"), "chuyen_vien_edtech": ("edtech", "công nghệ giáo dục", "học liệu"),
 }
@@ -133,35 +130,36 @@ def _p_co_khong(text, e):
     return None
 
 
-_LA_THPT = lambda s: s.get("phuong_thuc") == "THPT"   # noqa: E731
-_LA_DGNL = lambda s: s.get("phuong_thuc") == "DGNL"   # noqa: E731
+def _la_thpt(slots: dict) -> bool:
+    return slots.get("phuong_thuc") == "THPT"
+
+
+def _la_dgnl(slots: dict) -> bool:
+    return slots.get("phuong_thuc") == "DGNL"
+
 
 SLOT_PT = Slot("phuong_thuc", "Em xét tuyển theo **phương thức** nào: **THPT** (điểm thi tốt nghiệp) hay "
                               "**ĐGNL** (học bạ + thi đánh giá năng lực chuyên biệt)?", _p_phuong_thuc)
 SLOT_KV = Slot("khu_vuc", "Em thuộc **khu vực ưu tiên** nào: KV1, KV2-NT, KV2 hay KV3?", _p_khu_vuc)
 SLOT_DIEM_THPT = Slot("diem_thpt", "Em nhập **điểm thi THPT** các môn đã thi (thang 10), ví dụ: "
                                    "`Toán 8.2, Anh 7.5, Lý 6.75, Tin 8`. Môn không thi thì không cần ghi.",
-                      _p_diem_thpt, when=_LA_THPT)
+                      _p_diem_thpt, when=_la_thpt)
 SLOT_DGNL = Slot("diem_dgnl", "Điểm **ĐGNL môn Toán** của em (đã quy về thang 10) là bao nhiêu?", _p_so_10,
-                 when=_LA_DGNL)
+                 when=_la_dgnl)
 SLOT_HB = Slot("hoc_ba", "Điểm **học bạ lớp 12** môn Tiếng Anh và môn thứ hai của tổ hợp (Lý, Hóa, Sinh hoặc Tin), "
-                         "ví dụ: `Anh 8.5, Tin 9`.", _p_hoc_ba, when=_LA_DGNL)
+                         "ví dụ: `Anh 8.5, Tin 9`.", _p_hoc_ba, when=_la_dgnl)
 SLOT_SO_THICH = Slot("so_thich", "Em **thích** những gì? (chọn nhiều được): lập trình, dữ liệu, thiết kế học liệu, "
                                  "dạy học. Gõ \"bỏ qua\" nếu chưa rõ.", _skippable(_p_so_thich, []))
 SLOT_DINH_HUONG = Slot("dinh_huong", "Sau khi ra trường em muốn làm gì? (chọn nhiều được): **lập trình viên**, "
                                      "**phân tích dữ liệu**, **giáo viên**, **chuyên viên công nghệ giáo dục (EdTech)**. "
                                      "Gõ \"bỏ qua\" nếu chưa rõ.", _skippable(_p_dinh_huong, []))
 
-# Dữ kiện còn thiếu (do suy diễn lùi trả về) → câu hỏi tương ứng
 KHOA_SLOT = {"phuong_thuc": SLOT_PT, "khu_vuc": SLOT_KV, "diem_dgnl": SLOT_DGNL,
              "HB_mon1": SLOT_HB, "HB_mon2": SLOT_HB, "mon_hb2": SLOT_HB,
              **{f"diem_{m}": SLOT_DIEM_THPT for m in MON}}
 
 FLOWS: dict[str, list[Slot]] = {
-    # C2 – suy diễn tiến: gợi ý danh sách ngành (hỏi đủ thông tin rồi chạy)
     "tu_van_nganh": [SLOT_PT, SLOT_DIEM_THPT, SLOT_DGNL, SLOT_HB, SLOT_KV, SLOT_SO_THICH, SLOT_DINH_HUONG],
-    # C2 – suy diễn lùi: "Em có đủ điều kiện xét tuyển ngành X không?" – câu hỏi tiếp theo do
-    # backward chaining quyết định (dữ kiện lá còn thiếu), xem _next_slot(). Danh sách dưới chỉ là sổ đăng ký.
     "kiem_tra_dieu_kien": [SLOT_PT, SLOT_DIEM_THPT, SLOT_DGNL, SLOT_HB, SLOT_KV],
     # C1 – lập lộ trình học
     "lo_trinh": [
@@ -179,7 +177,6 @@ FLOWS: dict[str, list[Slot]] = {
 
 
 def slots_to_user(slots: dict) -> dict:
-    """Slot hội thoại → dict dữ kiện đầu vào của hệ luật C2 (src/advisor/facts.py)."""
     user = {k: slots[k] for k in ("phuong_thuc", "khu_vuc", "diem_dgnl") if k in slots}
     user.update(slots.get("diem_thpt") or {})
     user.update(slots.get("hoc_ba") or {})
@@ -192,7 +189,6 @@ def slots_to_user(slots: dict) -> dict:
 
 def _next_slot(flow: str, slots: dict, engine: "ChatEngine | None" = None) -> Slot | None:
     if flow == "kiem_tra_dieu_kien" and engine is not None:
-        # Suy diễn lùi chạy trên thông tin hiện có; dữ kiện lá còn thiếu quyết định câu hỏi tiếp theo.
         for khoa in engine.du_kien_con_thieu(slots["nganh"], slots_to_user(slots)):
             slot = KHOA_SLOT.get(khoa)
             if slot and slot.name not in slots:
@@ -242,7 +238,7 @@ def continue_flow(text: str, state: DialogueState, engine: "ChatEngine") -> BotR
     e = extract(text, engine.kb.majors, engine.courses)
     value = slot.parse(text, e) if slot else None
     if slot and value is None:
-        return BotReply(f"Mình chưa hiểu câu trả lời 😅. {slot.question}\n\n_(gõ \"hủy\" để dừng)_",
+        return BotReply(f"Mình chưa hiểu câu trả lời. {slot.question}\n\n_(gõ \"hủy\" để dừng)_",
                         intent=state.active_flow, confidence=1.0)
     if slot:
         state.slots[slot.name] = value

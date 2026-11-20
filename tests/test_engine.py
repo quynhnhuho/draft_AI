@@ -58,7 +58,7 @@ def test_eligibility_flow_hoi_theo_suy_dien_lui(engine):
 
 def test_eligibility_dien_san_tu_cau_hoi(engine):
     r = engine.respond("Em thi THPT được Toán 8, Anh 7, Lý 7, KV3, có đủ điều kiện vào CNTT không?", DialogueState())
-    assert "✅ **Có.**" in r.text and "R11" in r.text
+    assert "**Có.**" in r.text and "R11" in r.text
 
 
 def test_tu_van_nganh_suy_dien_tien(engine):

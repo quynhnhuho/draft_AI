@@ -1,4 +1,7 @@
-"""Kiểm thử Chức năng 2 – hệ luật, suy diễn tiến, suy diễn lùi.  Chạy: pytest tests/test_advisor.py -q"""
+"""Chức năng 2 - Kiểm thử hệ luật, suy diễn tiến và suy diễn lùi.
+
+Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
+"""
 import random
 from decimal import Decimal
 
@@ -12,20 +15,19 @@ from src.advisor.rules import RULES, A, Not, R, kiem_tra_luat, phan_tang
 from src.advisor.tham_so import DINH_HUONG, MA_NGANH, MON, MON_HB2, SO_THICH, TO_HOP
 from src.advisor.tu_van import kiem_tra_dieu_kien, tu_van
 
-KB = {ten.split(" – ")[0]: (user, nganh) for ten, user, nganh in KICH_BAN}
+KB = {ma: (user, nganh) for ma, _, user, nganh in KICH_BAN}
 
 
 def chay_tien(user):
     return forward_chaining(build_facts(user), DuLieu(user))
 
 
-# ------------------------------------------------------------------ hệ luật
 def test_33_luat_va_phan_tang():
     assert [r.id for r in RULES] == [f"R{i}" for i in range(1, 34)]
     t = phan_tang(RULES)
     assert t["tohop_hople"] == t["diem_liet"] == 0
-    assert t["tohop_xet"] > t["diem_liet"]                 # R10 dùng ¬diem_liet
-    assert t["kha_nang_tb"] > t["kha_nang_cao"]            # R18 dùng ¬kha_nang_cao
+    assert t["tohop_xet"] > t["diem_liet"]
+    assert t["kha_nang_tb"] > t["kha_nang_cao"]
     assert t["du_dk_chua_khop"] > t["goi_y"] and t["chua_du_dk"] > t["du_dk"]
 
 
@@ -36,19 +38,18 @@ def test_phat_hien_vong_phu_dinh_va_luat_khong_an_toan():
         kiem_tra_luat([R("X2", "a", ["q"], "p(?X)", "")])
 
 
-# ------------------------------------------------------------------ công thức điểm
 def test_diem_uu_tien_hai_nhanh():
-    assert diem_uu_tien(Decimal("19.2"), "KV1") == Decimal("0.75")       # tổng < 22.5: cộng đủ
-    assert diem_uu_tien(Decimal("24"), "KV1") == Decimal("0.6")          # (30-24)/7.5*0.75
-    assert diem_uu_tien(Decimal("22.5"), "KV2") == Decimal("0.25")       # biên 22.5 thuộc nhánh giảm dần
-    assert diem_xet_tuyen(Decimal("19.2"), "KV1") == Decimal("19.95")    # công thức cũ (không ngưỡng) cho 20.28
+    assert diem_uu_tien(Decimal("19.2"), "KV1") == Decimal("0.75")
+    assert diem_uu_tien(Decimal("24"), "KV1") == Decimal("0.6")
+    assert diem_uu_tien(Decimal("22.5"), "KV2") == Decimal("0.25")
+    assert diem_xet_tuyen(Decimal("19.2"), "KV1") == Decimal("19.95")
 
 
 def test_dgnl_va_lam_tron():
     tong = tong_dgnl(7.5, 8, 8.5)
     assert tong == Decimal("23.475")
     assert diem_xet_tuyen(tong, "KV2") == Decimal("23.69")
-    assert lam_tron(Decimal("20.125")) == Decimal("20.13")               # làm tròn nửa lên, không phải banker's
+    assert lam_tron(Decimal("20.125")) == Decimal("20.13")
 
 
 def test_kiem_tra_dau_vao():
@@ -57,7 +58,6 @@ def test_kiem_tra_dau_vao():
     assert kiem_tra_dau_vao({"phuong_thuc": "THPT", "khu_vuc": "KV2", "diem_Toan": 0, "diem_Ly": None}) == []
 
 
-# ------------------------------------------------------------------ suy diễn tiến
 def test_kb1_suy_dien_tien():
     r = chay_tien(KB["KB1"][0])
     assert r.recommendations == [("CNTT", "phu_hop")]
@@ -99,14 +99,13 @@ def test_kb5_r32_va_kb6_r33_thieu_to_hop():
 def test_kb7_tham_khao():
     kq = tu_van(KB["KB7"][0])
     assert ("CNTT", "tham_khao") in kq.forward.recommendations
-    assert kq.goi_y[0].nganh == "CNTT"                          # 2·nghề + 1·Cao = 3 > SPTH (1)
+    assert kq.goi_y[0].nganh == "CNTT"
 
 
 def test_thieu_khu_vuc_bao_loi():
     assert tu_van({"phuong_thuc": "THPT"}).loi
 
 
-# ------------------------------------------------------------------ suy diễn lùi
 def test_lui_khong_va_so_diem_thieu():
     kq = kiem_tra_dieu_kien(KB["KB1"][0], "SPTH")
     assert kq.ket_luan == "Không" and kq.lui.thieu_diem == Decimal("0.05")
@@ -116,7 +115,7 @@ def test_lui_co_va_chuoi_luat():
     kq = kiem_tra_dieu_kien(KB["KB1"][0], "CNTT")
     assert kq.ket_luan == "Có"
     assert [b.rule.id for b in kq.lui.proof] == ["R1", "R10", "R11"]
-    assert kq.kha_nang.proven                                   # 19.95 ≥ 18.00
+    assert kq.kha_nang.proven
 
 
 def test_lui_diem_liet_giai_thich():
@@ -135,7 +134,10 @@ def test_lui_hoi_lan_luot_du_kien_thieu():
 def _nguoi_dung_ngau_nhien(rng: random.Random) -> dict:
     pt = rng.choice(["THPT", "DGNL"])
     u = {"phuong_thuc": pt, "khu_vuc": rng.choice(["KV1", "KV2-NT", "KV2", "KV3"])}
-    diem = lambda: round(rng.choice([rng.uniform(0, 1.2), rng.uniform(4, 10)]), 2)  # noqa: E731
+
+    def diem():
+        return round(rng.choice([rng.uniform(0, 1.2), rng.uniform(4, 10)]), 2)
+
     if pt == "THPT":
         u |= {f"diem_{m}": (diem() if rng.random() < 0.7 else None) for m in MON}
     else:
@@ -145,7 +147,6 @@ def _nguoi_dung_ngau_nhien(rng: random.Random) -> dict:
 
 
 def test_tien_va_lui_cho_cung_ket_qua():
-    """Với mọi mục tiêu, suy diễn lùi chứng minh được ⇔ suy diễn tiến suy ra được (300 hồ sơ ngẫu nhiên)."""
     rng = random.Random(2026)
     muc_tieu = ([("du_dk", x) for x in MA_NGANH] + [("kha_nang_cao", x) for x in MA_NGANH] +
                 [("kha_nang_tb", x) for x in MA_NGANH] + [("tohop_xet", t) for t in TO_HOP] +
@@ -162,8 +163,6 @@ def test_tien_va_lui_cho_cung_ket_qua():
 
 
 def test_lui_nhanh_anh_em_khong_bi_bo_qua():
-    """Hồi quy: du_dk(CNTT) đã chứng minh (generator đang chờ quay lui) không được chặn việc chứng minh lại
-    du_dk(CNTT) bên trong ¬kha_nang_cao(CNTT) của R18."""
     u = {"phuong_thuc": "DGNL", "khu_vuc": "KV3", "diem_dgnl": 9, "HB_mon1": 6, "HB_mon2": 6, "mon_hb2": "Tin"}
     f, ctx = build_facts(u), DuLieu(u)
     assert backward_chaining("kha_nang_cao(CNTT)", f, ctx).proven
