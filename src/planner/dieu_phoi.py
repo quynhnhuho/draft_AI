@@ -1,4 +1,8 @@
-"""Chức năng 1 – BỘ ĐIỀU PHỐI: kết hợp 3 thuật toán, là điểm vào DUY NHẤT mà chatbot gọi.
+# AI-assisted: Claude (Anthropic) – hỗ trợ thiết kế và viết bộ điều phối (A* chính, nhánh cận dự phòng); nhóm đã kiểm tra lại.
+"""Chức năng 1 – BỘ ĐIỀU PHỐI: kết hợp A* và nhánh cận, là điểm vào DUY NHẤT mà chatbot gọi.
+
+BFS (bfs.py) được cài đặt theo yêu cầu đề nhưng không dùng trong chatbot: BFS mở nhiều nút nhất,
+trong khi A* đã cho lộ trình ít học kỳ nhất và nhánh cận luôn có lời giải khi A* chậm.
 """
 from __future__ import annotations
 
@@ -12,7 +16,6 @@ from .model import BaiToan, KetQua
 DANH_SACH_THUAT_TOAN = {
     "a_sao": ("a_sao", "a_sao", "A*"),
     "nhanh_can": ("nhanh_can", "nhanh_can", "Nhánh cận"),
-    "bfs": ("bfs", "bfs", "BFS"),
 }
 
 GIOI_HAN_MS = 3000          # tổng thời gian tối đa cho một lần trả lời chatbot
@@ -36,21 +39,14 @@ def thuat_toan_san_co() -> dict[str, bool]:
 class KetQuaDieuPhoi:
     ket_qua: KetQua | None                                   # kết quả dùng để trả lời
     cac_lan_chay: list[KetQua] = field(default_factory=list)  # mọi lần chạy (để debug/báo cáo)
-    doi_chieu: KetQua | None = None                          # kết quả BFS đối chiếu (nếu có)
     ghi_chu: list[str] = field(default_factory=list)
 
-    @property
-    def khop_doi_chieu(self) -> bool | None:
-        if self.doi_chieu is None or self.doi_chieu.so_ky is None or self.ket_qua is None:
-            return None
-        return self.doi_chieu.so_ky == self.ket_qua.so_ky
 
-
-def lap_lo_trinh(bt: BaiToan, gioi_han_ms: float = GIOI_HAN_MS, doi_chieu: bool = False) -> KetQuaDieuPhoi:
-    """Điểm vào cho chatbot. Raise NotImplementedError nếu chưa có thuật toán nào trong repo."""
-    a_sao, nhanh_can, bfs = (nap_thuat_toan(k) for k in ("a_sao", "nhanh_can", "bfs"))
-    if not (a_sao or nhanh_can or bfs):
-        raise NotImplementedError("Chưa có thuật toán lập lộ trình nào (bfs.py, a_sao.py, nhanh_can.py)")
+def lap_lo_trinh(bt: BaiToan, gioi_han_ms: float = GIOI_HAN_MS) -> KetQuaDieuPhoi:
+    """Điểm vào cho chatbot. Raise NotImplementedError nếu chưa có A* và nhánh cận trong repo."""
+    a_sao, nhanh_can = nap_thuat_toan("a_sao"), nap_thuat_toan("nhanh_can")
+    if not (a_sao or nhanh_can):
+        raise NotImplementedError("Chưa có thuật toán lập lộ trình (a_sao.py, nhanh_can.py)")
 
     kq_dp = KetQuaDieuPhoi(None)
     con_lai = gioi_han_ms
@@ -70,12 +66,4 @@ def lap_lo_trinh(bt: BaiToan, gioi_han_ms: float = GIOI_HAN_MS, doi_chieu: bool 
         kq_dp.ket_qua = kq
         if not kq.toi_uu:
             kq_dp.ghi_chu.append("Nhánh cận hết giới hạn: trả về lộ trình tốt nhất đã tìm, có thể chưa tối ưu.")
-
-    if kq_dp.ket_qua is None and bfs:                         # chỉ còn BFS
-        kq = bfs(bt, gioi_han_ms=gioi_han_ms)
-        kq_dp.cac_lan_chay.append(kq)
-        kq_dp.ket_qua = kq
-
-    if doi_chieu and bfs and kq_dp.ket_qua is not None and kq_dp.ket_qua.thuat_toan != "BFS":
-        kq_dp.doi_chieu = bfs(bt, gioi_han_ms=gioi_han_ms)
     return kq_dp

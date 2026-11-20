@@ -62,8 +62,8 @@ with st.sidebar:
     engine.threshold = st.slider("Ngưỡng tin cậy τ", 0.0, 1.0, float(default_tau), 0.05,
                                  help="Độ tin cậy < τ → chuyển cán bộ tư vấn thay vì trả lời bừa")
     debug = st.toggle("Chế độ debug (ý định, thực thể, thuật toán)", value=False,
-                      help="Hiện ý định, độ tin cậy, thực thể; với lộ trình học: thuật toán đã dùng, "
-                           "số nút và đối chiếu BFS")
+                      help="Hiện ý định, độ tin cậy, thực thể; với lộ trình học: thuật toán đã dùng "
+                           "và số nút")
     engine.debug = debug
 
     with st.expander("Trạng thái mô-đun"):

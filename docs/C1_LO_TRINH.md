@@ -12,7 +12,7 @@
 | `src/planner/bfs.py` | Thuật toán **BFS** | `<thành viên 1>` |
 | `src/planner/a_sao.py` | Thuật toán **A\*** | `<thành viên 2>` |
 | `src/planner/nhanh_can.py` | **Quay lui – nhánh cận** + lời giải tham lam | `<thành viên 3>` |
-| `src/planner/dieu_phoi.py` | **Kết nối 3 thuật toán** – điểm vào duy nhất chatbot gọi | cả nhóm |
+| `src/planner/dieu_phoi.py` | **Kết nối A\* và nhánh cận** – điểm vào duy nhất chatbot gọi | cả nhóm |
 
 Kết nối với chatbot (file của Chức năng 4, phần dành cho Chức năng 1):
 
@@ -24,7 +24,7 @@ Kết nối với chatbot (file của Chức năng 4, phần dành cho Chức n�
 | `app.py` | Form "🗓️ Lộ trình học (Chức năng 1)" ở thanh bên |
 
 Ba file thuật toán **chỉ import từ `model.py`**, không phụ thuộc nhau, nên mỗi thành viên commit file
-của mình độc lập. File nào chưa có, bộ điều phối tự bỏ qua; chưa có file nào thì chatbot báo
+của mình độc lập. Bộ điều phối chỉ gọi A\* và nhánh cận; chưa có cả hai thì chatbot báo
 "mô-đun chưa cài đặt".
 
 ## 2. Dữ liệu và giả định
@@ -57,7 +57,7 @@ Giả định nhóm thống nhất (`model.GIA_DINH`, chatbot hiển thị kèm 
 
 | Thuật toán | Ý tưởng | Vai trò trong chatbot |
 |---|---|---|
-| **BFS** | Xét lần lượt từng tầng (mỗi tầng = 1 kỳ); tầng đầu tiên chạm đích là ít kỳ nhất | **Đối chiếu** (chế độ debug) – chắc chắn đúng nhưng tốn nút/bộ nhớ |
+| **BFS** | Xét lần lượt từng tầng (mỗi tầng = 1 kỳ); tầng đầu tiên chạm đích là ít kỳ nhất | **Không dùng trong chatbot** – cài đặt theo đề để giảng viên kiểm tra và để so sánh trong báo cáo |
 | **A\*** | Ưu tiên nút có `f = g + h` nhỏ nhất; h chấp nhận được nên lời giải tối ưu | **Thuật toán chính** |
 | **Nhánh cận** | Có sẵn lời giải tham lam (mỗi kỳ nhiều TC nhất) làm cận trên; cắt nhánh có `g + h ≥ tốt nhất` | **Dự phòng** khi A\* chậm – dừng lúc nào cũng có lời giải |
 
@@ -69,8 +69,12 @@ A* (60% thời gian cho phép, mặc định tổng 3 giây)
   └─ hết giờ   → Nhánh cận (thời gian còn lại)
                   ├─ xong    → lộ trình tối ưu
                   └─ hết giờ → lộ trình tốt nhất đã tìm + cảnh báo "có thể chưa tối ưu"
-Chế độ debug: chạy thêm BFS → "Đối chiếu BFS: … ✔ khớp"
 ```
+
+**Vì sao không dùng BFS trong chatbot:** cả ba thuật toán đều cho lộ trình ít học kỳ nhất, nhưng BFS mở
+nhiều nút nhất (ví dụ KT1: BFS 1.074 nút, A\* 4 nút). BFS cũng không có ích khi làm dự phòng thứ ba: A\* đã
+hết giờ thì BFS (làm nhiều việc hơn) cũng hết giờ, còn nhánh cận luôn có lời giải. `bfs.py` vẫn được giữ
+trong repo để giảng viên kiểm tra và để so sánh 3 thuật toán trong báo cáo.
 
 ## 5. Chatbot gọi Chức năng 1
 

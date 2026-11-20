@@ -115,7 +115,7 @@ Tóm tắt:
 - `model.py` dùng chung; mỗi thuật toán một file (`bfs.py`, `a_sao.py`, `nhanh_can.py`) để mỗi thành viên
   tự commit; `dieu_phoi.py` kết hợp 3 thuật toán cho chatbot.
 - Chatbot **không cho người dùng chọn thuật toán**: A* là bộ giải chính, nhánh cận (khởi tạo bằng lời
-  giải tham lam, dừng lúc nào cũng có lời giải) là dự phòng, BFS là chuẩn đối chiếu.
+  giải tham lam, dừng lúc nào cũng có lời giải) là dự phòng; BFS cài đặt theo đề nhưng không dùng trong chatbot.
 - Phạm vi hiện tại: chỉ thuật toán, file kết nối (`dieu_phoi.py`) và phần nối với chatbot.
 
 ---
@@ -298,7 +298,7 @@ Mỗi "fact" là một bản ghi có nguồn:
 
 Kết quả C2 hiển thị **vết suy diễn** (R3 → R7 → R12…) để chứng minh hệ luật; kết quả C1 hiển thị
 bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, nguồn CTĐT và giả định. Người dùng **không chọn thuật toán**;
-ở chế độ debug mới hiện thuật toán đã dùng, số nút và đối chiếu BFS.
+ở chế độ debug mới hiện thuật toán đã dùng và số nút.
 
 ### 7.7 Ngưỡng & chuyển cán bộ
 
