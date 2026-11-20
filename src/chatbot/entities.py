@@ -1,4 +1,7 @@
-"""Trích xuất thực thể bằng luật + từ điển: ngành, tổ hợp, năm, điểm, mã học phần, sở thích, định hướng."""
+"""Chức năng 4 - Trích xuất thực thể bằng luật và từ điển.
+
+Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
+"""
 from __future__ import annotations
 
 import datetime as dt
@@ -42,18 +45,18 @@ _KHU_VUC = re.compile(r"\b(?:kv|khu vực)\s?([123])(?:\s?(nt|nông thôn))?\b")
 _TO_HOP = re.compile(r"\b([abcdx])\s?0?(\d{1,2})\b")
 _YEAR = re.compile(r"\b(20[12]\d)\b")
 _SCORE = re.compile(r"(?<![\d.])(\d{1,2}(?:[.,]\d{1,2})?)(?![\d.])")
-_COURSE = re.compile(r"\b[A-Za-z]{2,5}\s?\d{3,4}\b")   # COMP1010, comp 1010
+_COURSE = re.compile(r"\b[A-Za-z]{2,5}\s?\d{3,4}\b")
 _HK1 = re.compile(r"\b(?:hk|học kỳ|kỳ)\s?1\b|\bhk1\b")
 
 
 @dataclass
 class Entities:
-    nganh: list[str] = field(default_factory=list)   # mã ngành trong KB: "cntt", "sp_tin"
-    to_hop: list[str] = field(default_factory=list)  # "A00", "D01"
+    nganh: list[str] = field(default_factory=list)
+    to_hop: list[str] = field(default_factory=list)
     nam: int | None = None
     diem: float | None = None
-    ma_hp: list[str] = field(default_factory=list)   # mã học phần (nhận cả mã lẫn tên học phần)
-    nhac_hk1: bool = False                           # có nhắc "học kỳ 1" / "hk1"
+    ma_hp: list[str] = field(default_factory=list)
+    nhac_hk1: bool = False
     so_thich: list[str] = field(default_factory=list)
     dinh_huong: list[str] = field(default_factory=list)
     phuong_thuc: str | None = None
@@ -79,8 +82,7 @@ def _find_majors(t: str, majors: dict) -> list[str]:
 
 
 def parse_score(text: str) -> float | None:
-    """Điểm xét tuyển (thang 30). Bỏ qua số trông như năm hoặc mã tổ hợp."""
-    t = _YEAR.sub(" ", text.lower())  # không dùng normalize(): nó xóa dấu "." trong "24.5"
+    t = _YEAR.sub(" ", text.lower())
     t = _TO_HOP.sub(" ", t)
     for m in _SCORE.finditer(t):
         v = float(m.group(1).replace(",", "."))
@@ -113,7 +115,6 @@ def parse_khu_vuc(text: str) -> str | None:
 
 
 def extract(text: str, majors: dict, courses: dict | None = None) -> Entities:
-    """courses: {mã: HocPhan} (hoặc tập mã). Nhận học phần theo mã hoặc theo tên đầy đủ."""
     t = normalize(text)
     e = Entities(nganh=_find_majors(t, majors))
 

@@ -1,7 +1,6 @@
-"""ChatEngine – lõi chatbot (Chức năng 4).
+"""Chức năng 4 - Lõi chatbot: định tuyến ý định, trả lời từ cơ sở tri thức, gọi Chức năng 1 và 2.
 
-Một lượt:  luồng đang chạy? → trích thực thể → nhận ý định → ngưỡng τ (chuyển cán bộ) → handler.
-Không dùng API mô hình ngôn ngữ lớn: mọi câu trả lời lấy từ cơ sở tri thức, hệ luật (C2) hoặc planner (C1).
+Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
 """
 from __future__ import annotations
 
@@ -24,7 +23,6 @@ from .schema import BotReply, DialogueState
 
 LOG_DIR = Path(__file__).resolve().parents[2] / "logs"
 
-# Ý định trả lời trực tiếp từ cơ sở tri thức
 KB_INTENTS = {
     "diem_chuan": "điểm chuẩn",
     "to_hop_xet_tuyen": "tổ hợp xét tuyển",
@@ -39,7 +37,7 @@ KB_INTENTS = {
 ELIGIBILITY_CUES = ("đủ điều kiện", "đủ đk", "có đậu", "đậu không", "đỗ không", "có đỗ",
                     "vào được", "trúng tuyển", "có vào", "đủ điểm")
 
-NOT_READY = "🚧 **Mô-đun {name} chưa được cài đặt** – sẽ hoàn thiện ở {where}."
+NOT_READY = "**Mô-đun {name} chưa được cài đặt** – sẽ hoàn thiện ở {where}."
 
 
 class ChatEngine:
@@ -48,15 +46,14 @@ class ChatEngine:
         self.classifier = classifier
         self.threshold = threshold
         self.log_dir = log_dir
-        self.debug = False            # bật từ giao diện: hiện thuật toán, số nút, đối chiếu BFS
+        self.debug = False
         try:
-            self.courses = doc_du_lieu()              # {mã: HocPhan} từ data/hoc_phan.csv
+            self.courses = doc_du_lieu()
             self.hk1 = hk1_co_dinh(self.courses)
         except (FileNotFoundError, ValueError):
             self.courses, self.hk1 = {}, frozenset()
         self.course_ids = set(self.courses)
 
-    # ------------------------------------------------------------------ lượt hội thoại
     def respond(self, text: str, state: DialogueState) -> BotReply:
         state.turns += 1
         text = text.strip()
@@ -65,7 +62,7 @@ class ChatEngine:
 
         if state.active_flow:
             reply = flows.continue_flow(text, state, self)
-            reply.confidence = reply.confidence or 1.0   # đang trong luồng: không qua bộ phân loại
+            reply.confidence = reply.confidence or 1.0
             return reply
 
         e = extract(text, self.kb.majors, self.courses)
@@ -99,15 +96,14 @@ class ChatEngine:
             return self.answer_from_kb(intent, text, e, state)
         return self.handoff(text, None)
 
-    # ------------------------------------------------------------------ handlers
     def greet(self, text: str) -> BotReply:
         t = normalize(text)
         if any(w in t for w in ("cảm ơn", "cám ơn", "thanks")):
-            return BotReply("Không có gì ạ! Chúc em một mùa tuyển sinh thật thành công 🎓")
+            return BotReply("Không có gì ạ! Chúc em một mùa tuyển sinh thật thành công!")
         if any(w in t for w in ("tạm biệt", "bye")):
-            return BotReply("Tạm biệt em, hẹn gặp lại! 👋")
+            return BotReply("Tạm biệt em, hẹn gặp lại!")
         return BotReply(
-            f"Chào em 👋 Mình là trợ lý tư vấn tuyển sinh của {self.kb.meta.get('khoa', 'Khoa CNTT')}. Mình có thể:\n"
+            f"Chào em! Mình là trợ lý tư vấn tuyển sinh của {self.kb.meta.get('khoa', 'Khoa CNTT')}. Mình có thể:\n"
             "- Trả lời về **điểm chuẩn, tổ hợp xét tuyển, học phí, học bổng, ký túc xá, chương trình đào tạo, "
             "việc làm, thủ tục nhập học**\n"
             "- **Tư vấn chọn ngành** (CNTT, Sư phạm Tin học, Công nghệ giáo dục) và kiểm tra em có "
@@ -116,11 +112,10 @@ class ChatEngine:
 
     def answer_from_kb(self, intent: str, text: str, e: Entities, state: DialogueState) -> BotReply:
         t = normalize(text)
-        # So sánh hai ngành: "CNTT khác Sư phạm Tin chỗ nào?"
         if intent == "chuong_trinh_dao_tao" and ("khác" in t or "so sánh" in t):
             parts = [f"**{m['ten']}** (mã {m['ma_nganh']}): {m['mo_ta']} {m.get('khac_biet', '')}"
                      for m in self.kb.majors.values()]
-            return BotReply("\n\n".join(parts) + "\n\n📌 Nguồn: mô tả ngành trong cơ sở tri thức "
+            return BotReply("\n\n".join(parts) + "\n\nNguồn: mô tả ngành trong cơ sở tri thức "
                             "(cần dẫn chương trình đào tạo chính thức).")
 
         nganh = e.nganh[0] if e.nganh else state.last_major
@@ -138,7 +133,6 @@ class ChatEngine:
         return BotReply(head + format_facts(res.facts), sources=res.facts)
 
     def handoff(self, text: str, pred, reason: str | None = None) -> BotReply:
-        """Không đủ tin cậy / ngoài phạm vi / thiếu dữ liệu → chuyển cán bộ tư vấn, không trả lời bừa."""
         self.log_dir.mkdir(parents=True, exist_ok=True)
         path = self.log_dir / "handoff.csv"
         new = not path.exists()
@@ -195,9 +189,8 @@ class ChatEngine:
     def du_kien_con_thieu(nganh_kb: str, user: dict) -> list[str]:
         return c2.kiem_tra_dieu_kien(user, tu_ma_kb(nganh_kb) or nganh_kb).can_hoi
 
-    # ------------------------------------------------------------------ C1: lộ trình học
     def make_plan_from_slots(self, slots: dict) -> BotReply:
-        def mo_rong(ds):  # "@HK1" = toàn bộ học phần HK1 do Trường xếp
+        def mo_rong(ds):
             out = set()
             for m in ds or []:
                 out |= set(self.hk1) if m == "@HK1" else {m}
@@ -208,7 +201,6 @@ class ChatEngine:
 
     def make_plan(self, da_dat: set[str], rot: set[str] = frozenset(), ky: int = 1,
                   hoc_vuot: bool = False) -> BotReply:
-        """Lập lộ trình. Người dùng KHÔNG chọn thuật toán – bộ điều phối (C1) tự chọn."""
         intent = "lo_trinh_hoc_tap"
         if not self.courses:
             return BotReply("Chưa có dữ liệu học phần (`data/hoc_phan.csv`).", intent=intent)
@@ -232,20 +224,20 @@ class ChatEngine:
             return BotReply(f"{info}\n\nMình chưa tìm được lộ trình phù hợp. Em nên gặp cố vấn học tập để được hỗ trợ.",
                             intent=intent)
         if not kq.lo_trinh:
-            return BotReply(f"{info}\n\n🎉 Em đã hoàn thành toàn bộ học phần mục tiêu!", intent=intent)
+            return BotReply(f"{info}\n\nEm đã hoàn thành toàn bộ học phần mục tiêu!", intent=intent)
 
         rows = ["| Học kỳ | Học phần | TC |", "|---|---|---|"]
         for hk, tap in kq.lo_trinh:
             mon = "; ".join(f"{m} – {self.courses[m].ten}" + (" *(học lại)*" if m in bt.hoc_phan_rot else "")
                               for m in sorted(tap, key=lambda x: self.courses[x].stt)) or "*(chờ kỳ sau)*"
-            nhan = " 🏫 Trường xếp" if hk in bt.truong_xep else ""
+            nhan = " (Trường xếp)" if hk in bt.truong_xep else ""
             rows.append(f"| {ten_hoc_ky(hk)}{nhan} | {mon} | {sum(self.courses[m].tin_chi for m in tap)} |")
-        ket_luan = ("✅ Đây là lộ trình **ít học kỳ nhất** để hoàn thành chương trình." if kq.toi_uu else
-                    "⚠️ Bài toán lớn nên hệ thống trả về lộ trình tốt nhất tìm được trong thời gian cho phép; "
+        ket_luan = ("Đây là lộ trình **ít học kỳ nhất** để hoàn thành chương trình." if kq.toi_uu else
+                    "Lưu ý: bài toán lớn nên hệ thống trả về lộ trình tốt nhất tìm được trong thời gian cho phép; "
                     "có thể chưa phải ít học kỳ nhất. Em nên trao đổi thêm với cố vấn học tập.")
         text = (f"{info}\n\n**Lộ trình đề xuất: {kq.so_ky} học kỳ** "
                 f"(đến hết {ten_hoc_ky(kq.lo_trinh[-1][0])})\n\n" + "\n".join(rows) + f"\n\n{ket_luan}"
-                f"\n\n📌 Nguồn: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}"
+                f"\n\nNguồn: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}"
                 "\n\n**Giả định:**\n" + "\n".join(f"- {g}" for g in GIA_DINH))
         if self.debug:
             dong = [f"Bộ giải: **{kq.thuat_toan}** · {kq.so_nut_mo_rong} nút mở rộng · {kq.so_nut_sinh} nút sinh · "
@@ -254,13 +246,12 @@ class ChatEngine:
             if kq_dp.doi_chieu is not None:
                 dc = kq_dp.doi_chieu
                 dong.append(f"Đối chiếu BFS: {dc.so_ky} kỳ, {dc.so_nut_mo_rong} nút, {dc.thoi_gian_ms:.1f} ms – "
-                            + ("✔ khớp" if kq_dp.khop_doi_chieu else "✘ KHÔNG khớp"))
-            text += "\n\n🔎 " + "  \n".join(dong)
+                            + ("khớp" if kq_dp.khop_doi_chieu else "KHÔNG khớp"))
+            text += "\n\nChi tiết: " + "  \n".join(dong)
         return BotReply(text, intent=intent, debug={"thuat_toan": kq.thuat_toan, "so_ky": kq.so_ky})
 
 
 def module_status() -> dict[str, bool]:
-    """Kiểm tra mô-đun nào đã được cài đặt (dùng cho sidebar). True = đã cài."""
     def ok(fn) -> bool:
         try:
             fn()
@@ -268,7 +259,7 @@ def module_status() -> dict[str, bool]:
         except NotImplementedError:
             return False
         except Exception:
-            return True  # đã cài nhưng lỗi với đầu vào thử – coi là đã có
+            return True
 
     status = {f"C1 – {ten}": co for ten, co in dieu_phoi.thuat_toan_san_co().items()}
     status["C2 – Suy diễn tiến"] = ok(lambda: inference.forward_chaining(set()))

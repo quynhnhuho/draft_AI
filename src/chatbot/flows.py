@@ -1,7 +1,6 @@
-"""Hội thoại nhiều lượt (slot filling) để gọi mô-đun C1 (lộ trình) và C2 (tư vấn ngành) ngay trong khung chat.
+"""Chức năng 4 - Hội thoại nhiều lượt cho Chức năng 1 và Chức năng 2.
 
-Mỗi luồng = danh sách Slot. Slot được điền sẵn từ thực thể của câu kích hoạt; slot còn thiếu
-thì hỏi lần lượt. Gõ "hủy" / "thoát" để dừng luồng.
+Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
 """
 from __future__ import annotations
 
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
 CANCEL_WORDS = {"hủy", "huỷ", "thoát", "dừng", "thôi", "cancel", "huy", "thoat"}
 SKIP_WORDS = ("không biết", "bỏ qua", "chưa biết", "không có", "tùy", "tuỳ")
 
-Parser = Callable[[str, Entities], Any]   # trả None nếu không hiểu → hỏi lại
+Parser = Callable[[str, Entities], Any]
 
 
 @dataclass
@@ -30,7 +29,7 @@ class Slot:
     name: str
     question: str
     parse: Parser
-    when: Callable[[dict], bool] = lambda slots: True   # điều kiện cần hỏi slot này
+    when: Callable[[dict], bool] = lambda slots: True
 
 
 def _skippable(parser: Parser, empty: Any) -> Parser:
@@ -98,7 +97,6 @@ _HK = re.compile(r"(?:học kỳ|hk|kỳ)\s?(\d{1,2})")
 
 
 def _p_ky(text, e):
-    """Học kỳ sắp đăng ký: "3", "học kỳ 3", "năm 2 học kỳ 1" (= 3), "năm nhất" (= 1)."""
     t = normalize(text)
     if "năm nhất" in t or "tân sinh viên" in t or "mới nhập học" in t:
         return 1
@@ -111,7 +109,6 @@ def _p_ky(text, e):
 
 
 def _p_list_hp(text, e):
-    """Danh sách học phần (mã hoặc tên). "hk1"/"học kỳ 1" = toàn bộ HK1 do Trường xếp."""
     hp = list(e.ma_hp) + (["@HK1"] if e.nhac_hk1 else [])
     if hp:
         return hp
@@ -161,7 +158,6 @@ KHOA_SLOT = {"phuong_thuc": SLOT_PT, "khu_vuc": SLOT_KV, "diem_dgnl": SLOT_DGNL,
 FLOWS: dict[str, list[Slot]] = {
     "tu_van_nganh": [SLOT_PT, SLOT_DIEM_THPT, SLOT_DGNL, SLOT_HB, SLOT_KV, SLOT_SO_THICH, SLOT_DINH_HUONG],
     "kiem_tra_dieu_kien": [SLOT_PT, SLOT_DIEM_THPT, SLOT_DGNL, SLOT_HB, SLOT_KV],
-    # C1 – lập lộ trình học
     "lo_trinh": [
         Slot("ky", "Học kỳ **sắp đăng ký** là học kỳ thứ mấy của em? (ví dụ: \"3\" hoặc \"năm 2 học kỳ 1\"; "
                    "tân sinh viên gõ \"năm nhất\")", _p_ky),
@@ -198,7 +194,6 @@ def _next_slot(flow: str, slots: dict, engine: "ChatEngine | None" = None) -> Sl
 
 
 def _prefill(flow: str, slots: dict, e: Entities, text: str) -> None:
-    """Điền sẵn slot từ câu kích hoạt (chỉ các slot có thực thể rõ ràng)."""
     if flow == "lo_trinh":
         t = normalize(text)
         if "năm nhất" in t or "tân sinh viên" in t:
