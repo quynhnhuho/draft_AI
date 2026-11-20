@@ -214,10 +214,10 @@ class ChatEngine:
                 f"{' (học vượt)' if hoc_vuot else ''} · đã đạt {len(da_dat)} học phần"
                 f"{f' · rớt {len(rot)} học phần' if rot else ''} · còn **{bt.tin_chi_con_lai(bt.trang_thai_dau())} TC**.")
         try:
-            kq_dp = dieu_phoi.lap_lo_trinh(bt, doi_chieu=self.debug)
+            kq_dp = dieu_phoi.lap_lo_trinh(bt)
         except NotImplementedError:
             return BotReply(f"{info}\n\n" + NOT_READY.format(
-                name="lập lộ trình học", where="`src/planner/` (bfs.py, a_sao.py, nhanh_can.py) – Chức năng 1"),
+                name="lập lộ trình học", where="`src/planner/` (a_sao.py, nhanh_can.py) – Chức năng 1"),
                 intent=intent)
         kq = kq_dp.ket_qua
         if kq is None or kq.lo_trinh is None:
@@ -243,11 +243,7 @@ class ChatEngine:
             dong = [f"Bộ giải: **{kq.thuat_toan}** · {kq.so_nut_mo_rong} nút mở rộng · {kq.so_nut_sinh} nút sinh · "
                     f"{kq.thoi_gian_ms:.1f} ms"]
             dong += kq_dp.ghi_chu
-            if kq_dp.doi_chieu is not None:
-                dc = kq_dp.doi_chieu
-                dong.append(f"Đối chiếu BFS: {dc.so_ky} kỳ, {dc.so_nut_mo_rong} nút, {dc.thoi_gian_ms:.1f} ms – "
-                            + ("khớp" if kq_dp.khop_doi_chieu else "KHÔNG khớp"))
-            text += "\n\nChi tiết: " + "  \n".join(dong)
+            text +="\n\nChi tiết: " + "  \n".join(dong)
         return BotReply(text, intent=intent, debug={"thuat_toan": kq.thuat_toan, "so_ky": kq.so_ky})
 
 

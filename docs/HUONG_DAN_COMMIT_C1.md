@@ -10,10 +10,10 @@ của mình** (lịch sử git là minh chứng ai làm phần nào).
 | 1 | Nhóm trưởng | `__init__.py` (rỗng) – tạo thư mục `planner`; `.gitignore` nếu chưa có | `src/planner/`, gốc repo |
 | 2 | Nhóm trưởng | `hoc_phan.csv`, `model.py` | `data/`, `src/planner/` |
 | 3 | Thành viên 1, 2, 3 | `bfs.py`, `a_sao.py`, `nhanh_can.py` (mỗi người một file) | `src/planner/` |
-| 4 | Nhóm trưởng | `dieu_phoi.py` – kết nối 3 thuật toán | `src/planner/` |
+| 4 | Nhóm trưởng | `dieu_phoi.py` – kết nối A\* và nhánh cận | `src/planner/` |
 | 5 | Nhóm trưởng *(khi repo đã có chatbot)* | `src/chatbot/engine.py`, `flows.py`, `entities.py`, `app.py` | như cũ |
 
-Phụ thuộc: `hoc_phan.csv` ← `model.py` ← 3 thuật toán ← `dieu_phoi.py` ← chatbot.
+Phụ thuộc: `hoc_phan.csv` ← `model.py` ← 3 thuật toán; `dieu_phoi.py` (chỉ dùng A\* và nhánh cận) ← chatbot.
 Bước 3: ba bạn làm **song song, thứ tự nào cũng được** – các file không phụ thuộc nhau.
 
 ## 2. Nguyên tắc
@@ -60,10 +60,10 @@ python -B -c "from src.planner.model import doc_du_lieu, tao_bai_toan; from src.
 Sau bước 4:
 
 ```bash
-python -B -c "from src.planner.model import doc_du_lieu, tao_bai_toan; from src.planner.dieu_phoi import lap_lo_trinh; kq = lap_lo_trinh(tao_bai_toan(doc_du_lieu(), set(), set(), 1), doi_chieu=True); print(kq.ket_qua.thuat_toan, kq.ket_qua.so_ky, 'kỳ; khớp BFS:', kq.khop_doi_chieu)"
+python -B -c "from src.planner.model import doc_du_lieu, tao_bai_toan; from src.planner.dieu_phoi import lap_lo_trinh; kq = lap_lo_trinh(tao_bai_toan(doc_du_lieu(), set(), set(), 1)); print(kq.ket_qua.thuat_toan, kq.ket_qua.so_ky, 'kỳ')"
 ```
 
-→ `A* 5 kỳ; khớp BFS: True`
+→ `A* 5 kỳ` (BFS không được bộ điều phối dùng; `bfs.py` chỉ để giảng viên kiểm tra và so sánh trong báo cáo)
 
 Sau bước 5: `streamlit run app.py` → hỏi "em là tân sinh viên, lộ trình học thế nào" → trả lời "không"
 → chatbot trả về lộ trình 5 học kỳ kèm nguồn.

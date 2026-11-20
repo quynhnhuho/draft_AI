@@ -27,7 +27,7 @@ C4 tự động dùng mô hình tốt nhất có trong `models/`: `intent_model.
 bộ phân loại từ khóa tạm thời. Kịch bản C2: `python -m src.advisor.kich_ban`.
 
 Lộ trình học (Chức năng 1): hỏi chatbot hoặc dùng form "Lộ trình học" ở thanh bên; chatbot tự chọn
-thuật toán (A* chính, nhánh cận dự phòng, BFS đối chiếu khi bật debug).
+thuật toán (A* chính, nhánh cận dự phòng). BFS được cài đặt theo đề nhưng không dùng trong chatbot.
 
 ## Việc cần làm tiếp
 

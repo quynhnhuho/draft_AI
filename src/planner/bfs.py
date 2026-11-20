@@ -1,9 +1,8 @@
 """Chức năng 1 – Thuật toán TÌM KIẾM THEO CHIỀU RỘNG (BFS).
 
 Thành viên phụ trách : <Họ tên – MSSV>
-Vai trò trong chatbot: CHUẨN ĐỐI CHIẾU. BFS không dùng để trả lời người dùng (tốn bộ nhớ khi bài
-                       toán lớn) mà dùng để kiểm chứng A*/nhánh cận cho đúng số học kỳ tối ưu
-                       (chế độ debug của chatbot).
+Vai trò: KHÔNG dùng trong chatbot. Cài đặt theo yêu cầu đề (mục 2.2) để giảng viên kiểm tra code
+         và để so sánh với A*/nhánh cận trong báo cáo (BFS mở nhiều nút và tốn bộ nhớ nhất).
 
 Ý tưởng: hàng đợi FIFO, mỗi tầng của cây tìm kiếm = 1 học kỳ, chi phí mỗi bước bằng nhau
 => lời giải đầu tiên tìm thấy là lộ trình ít học kỳ nhất. Kiểm tra đích ngay khi sinh nút.
