@@ -1,10 +1,6 @@
-"""C2 – Công thức tính điểm (mục 3 của tập luật). Các "hàm tính" được luật gọi tới (procedural attachment).
+"""Chức năng 2 - Công thức tính tổng điểm, điểm ưu tiên và điểm xét tuyển.
 
-    tong_diem  : THPT = M1 + M2 + M3 ;  ĐGNL = (0.5·NL + 0.35·HB1 + 0.15·HB2) · 3     (thang 30)
-    DUT        : tong ≥ 22.5 → (30 − tong) / 7.5 × mức ưu tiên ;  tong < 22.5 → mức ưu tiên
-    DXT        : tong_diem + DUT, làm tròn 2 chữ số thập phân (làm tròn nửa lên) TRƯỚC khi so sánh
-
-Dùng Decimal để kết quả khớp với tính tay (float cho 0.35*8.4 = 2.9399999…).
+Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
 """
 from __future__ import annotations
 
@@ -17,7 +13,6 @@ D7_5 = Decimal("7.5")
 
 
 def so(x) -> Decimal:
-    """float/int/str → Decimal theo đúng chữ số người dùng nhập (8.2 → Decimal('8.2'))."""
     return x if isinstance(x, Decimal) else Decimal(str(x))
 
 

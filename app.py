@@ -3,8 +3,8 @@
     streamlit run app.py
 
 Hai trang (chọn ở sidebar):
-  - 💬 Chatbot             : dành cho thí sinh / sinh viên. Không có lựa chọn thuật toán.
-  - 📊 So sánh thuật toán  : dành cho giảng viên / hội đồng – chạy BFS, A*, nhánh cận trên cùng bài toán.
+  - Chatbot             : dành cho thí sinh / sinh viên. Không có lựa chọn thuật toán.
+  - So sánh thuật toán  : dành cho giảng viên / hội đồng – chạy BFS, A*, nhánh cận trên cùng bài toán.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from src.planner import dieu_phoi, kich_ban
 from src.planner.model import (GIA_DINH, NAM_AP_DUNG, NGUON_CTDT, kiem_tra_lo_trinh, tao_bai_toan,
                                ten_hoc_ky)
 
-st.set_page_config(page_title="Tư vấn tuyển sinh – Khoa CNTT", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Tư vấn tuyển sinh – Khoa CNTT", layout="wide")
 
 
 @st.cache_resource
@@ -60,8 +60,8 @@ def hp_label(m: str) -> str:
 
 # ================================================================== sidebar
 with st.sidebar:
-    trang = st.radio("Trang", ["💬 Chatbot", "📊 So sánh thuật toán (C1)"], label_visibility="collapsed")
-    st.header("⚙️ Cấu hình")
+    trang = st.radio("Trang", ["Chatbot", "So sánh thuật toán (C1)"], label_visibility="collapsed")
+    st.header("Cấu hình")
     st.caption(f"Bộ phân loại ý định: **{classifier.name}**")
     if isinstance(classifier, KeywordClassifier):
         st.warning("Đang dùng **phân loại từ khóa tạm thời**. Huấn luyện mô hình Keras (Chức năng 3) "
@@ -73,11 +73,11 @@ with st.sidebar:
                            "số nút và đối chiếu BFS")
     engine.debug = debug
 
-    with st.expander("📦 Trạng thái mô-đun"):
+    with st.expander("Trạng thái mô-đun"):
         st.write({"C3 – Mô hình Keras": classifier.name == "keras", **module_status()})
 
-    if trang == "💬 Chatbot":
-        with st.expander("🎯 Tư vấn chọn ngành (Chức năng 2)"):
+    if trang == "Chatbot":
+        with st.expander("Tư vấn chọn ngành (Chức năng 2)"):
             with st.form("advisor"):
                 pt = st.radio("Phương thức xét tuyển", ["THPT", "DGNL"], horizontal=True)
                 kv = st.selectbox("Khu vực ưu tiên", ["KV1", "KV2-NT", "KV2", "KV3"], index=3)
@@ -102,7 +102,7 @@ with st.sidebar:
                         user |= {"diem_dgnl": dgnl, "HB_mon1": hb1, "HB_mon2": hb2, "mon_hb2": mon_hb2}
                     st.session_state.pending_form = ("advisor", user, check)
 
-        with st.expander("🗓️ Lộ trình học (Chức năng 1)"):
+        with st.expander("Lộ trình học (Chức năng 1)"):
             with st.form("planner"):
                 ids = sorted(engine.course_ids, key=lambda m: engine.courses[m].stt)
                 ky = st.number_input("Học kỳ sắp đăng ký (1 = năm nhất)", 1, 16, 1)
@@ -113,7 +113,7 @@ with st.sidebar:
                     st.session_state.pending_form = ("planner", {"da_dat": set(done), "rot": set(rot),
                                                                  "ky": int(ky), "hoc_vuot": hoc_vuot}, None)
 
-        if st.button("🗑️ Xóa hội thoại"):
+        if st.button("Xóa hội thoại"):
             st.session_state.messages = []
             st.session_state.dialog = DialogueState()
             st.rerun()
@@ -121,7 +121,7 @@ with st.sidebar:
 
 # ================================================================== trang chatbot
 def trang_chatbot():
-    st.title("🎓 Chatbot tư vấn tuyển sinh – Khoa CNTT")
+    st.title("Chatbot tư vấn tuyển sinh – Khoa CNTT")
     st.caption(f"{kb.meta.get('truong', '')} · Mọi số liệu đều kèm nguồn và năm áp dụng · "
                "Không dùng API mô hình ngôn ngữ lớn")
 
@@ -159,15 +159,15 @@ def trang_chatbot():
             meta = msg.get("meta")
             if debug and meta and meta.get("intent"):
                 top = ", ".join(f"{i}: {p:.2f}" for i, p in meta.get("top_k", []))
-                st.caption(f"🔎 ý định: `{meta['intent']}` · tin cậy {meta['confidence']:.2f} · top-k: {top}"
-                           + (" · ↪️ đã chuyển cán bộ" if meta.get("handoff") else ""))
+                st.caption(f"Ý định: `{meta['intent']}` · tin cậy {meta['confidence']:.2f} · top-k: {top}"
+                           + (" · đã chuyển cán bộ" if meta.get("handoff") else ""))
                 if meta.get("debug", {}).get("entities"):
                     st.caption(f"thực thể: `{meta['debug']['entities']}`")
 
 
 # ================================================================== trang so sánh thuật toán
 def trang_so_sanh():
-    st.title("📊 So sánh thuật toán lập lộ trình (Chức năng 1)")
+    st.title("So sánh thuật toán lập lộ trình (Chức năng 1)")
     st.markdown(
         "Trong chatbot, người dùng **không chọn thuật toán**. Bộ điều phối (`src/planner/dieu_phoi.py`) tự quyết:\n"
         "- **A\\*** – bộ giải chính (h = ⌈tín chỉ còn lại / MAX_TC⌉), cho lộ trình ít học kỳ nhất.\n"
@@ -176,7 +176,7 @@ def trang_so_sanh():
         "- **BFS** – chuẩn đối chiếu (chế độ debug, trang này, test tự động).\n\n"
         "Trang này chạy **tất cả** thuật toán trên cùng bài toán để kiểm chứng và lấy số liệu cho báo cáo. "
         "Các dòng *(h2)* dùng heuristic mở rộng h2 = max(h theo kỳ lẻ/chẵn, chuỗi học trước).")
-    st.caption(f"📌 Nguồn dữ liệu: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}")
+    st.caption(f"Nguồn dữ liệu: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}")
     with st.expander("Giả định của mô hình"):
         st.markdown("\n".join(f"- {g}" for g in GIA_DINH))
 
@@ -195,7 +195,7 @@ def trang_so_sanh():
         hk, hoc_vuot, da_dat, rot = kb_["hoc_ky"], kb_["hoc_vuot"], kb_["da_dat"], kb_["rot"]
     them_h2 = st.checkbox("Thêm biến thể heuristic h2", value=True)
 
-    if st.button("▶️ Chạy so sánh", type="primary"):
+    if st.button("Chạy so sánh", type="primary"):
         try:
             bt = tao_bai_toan(engine.courses, da_dat, rot, int(hk), hoc_vuot)
         except ValueError as e:
@@ -210,8 +210,8 @@ def trang_so_sanh():
             ct = kq.chi_tiet
             rows.append({"Thuật toán": kq.thuat_toan, "Số kỳ": kq.so_ky, "Nút mở rộng": kq.so_nut_mo_rong,
                          "Nút sinh": kq.so_nut_sinh, "Thời gian (ms)": round(kq.thoi_gian_ms, 2),
-                         "Tối ưu": "✔" if kq.toi_uu else "chưa chắc",
-                         "Hợp lệ": "✔" if kq.lo_trinh is not None and not kiem_tra_lo_trinh(bt, kq.lo_trinh) else "✘",
+                         "Tối ưu": "Có" if kq.toi_uu else "chưa chắc",
+                         "Hợp lệ": "Có" if kq.lo_trinh is not None and not kiem_tra_lo_trinh(bt, kq.lo_trinh) else "Không",
                          "Cận trên tham lam": ct.get("can_tren_ban_dau"),
                          "Cắt theo cận": ct.get("cat_theo_can"), "Cắt trùng lặp": ct.get("cat_trung_lap")})
         st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
@@ -224,14 +224,14 @@ def trang_so_sanh():
         if tot.lo_trinh:
             st.subheader(f"Lộ trình ({tot.thuat_toan})")
             st.dataframe(pd.DataFrame([{
-                "Học kỳ": ten_hoc_ky(ky) + (" 🏫" if ky in bt.truong_xep else ""),
+                "Học kỳ": ten_hoc_ky(ky) + (" (Trường xếp)" if ky in bt.truong_xep else ""),
                 "Học phần": "; ".join(m + (" (học lại)" if m in bt.hoc_phan_rot else "")
                                       for m in sorted(tap, key=lambda x: bt.hoc_phan[x].stt)),
                 "TC": sum(bt.hoc_phan[m].tin_chi for m in tap)} for ky, tap in tot.lo_trinh]),
                 hide_index=True, use_container_width=True)
 
 
-if trang == "💬 Chatbot":
+if trang == "Chatbot":
     trang_chatbot()
 else:
     trang_so_sanh()

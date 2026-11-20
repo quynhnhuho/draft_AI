@@ -1,4 +1,7 @@
-"""Trích xuất thực thể bằng luật + từ điển: ngành, tổ hợp, năm, điểm, mã học phần, sở thích, định hướng."""
+"""Chức năng 4 - Trích xuất thực thể bằng luật và từ điển.
+
+Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
+"""
 from __future__ import annotations
 
 import datetime as dt
@@ -8,7 +11,6 @@ from dataclasses import dataclass, field
 
 from ..nlu.preprocess import normalize
 
-# Khóa trùng tên dữ kiện đầu vào của hệ luật C2 (src/advisor/rules.py, R19–R28)
 SO_THICH = {
     "thich_lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web"],
     "thich_du_lieu": ["dữ liệu", "data", "trí tuệ nhân tạo", "học máy", "phân tích dữ liệu"],
@@ -27,7 +29,6 @@ TEN_SO_THICH = {"thich_lap_trinh": "lập trình", "thich_du_lieu": "dữ liệu
 TEN_DINH_HUONG = {"lap_trinh_vien": "lập trình viên", "phan_tich_du_lieu": "phân tích dữ liệu",
                   "giao_vien": "giáo viên", "chuyen_vien_edtech": "chuyên viên EdTech"}
 
-# Tên môn (có dấu / không dấu) → tên môn trong luật. Dài trước ngắn để "tiếng anh" khớp trước "anh".
 _MON_ALIAS = {
     "tiếng anh": "Anh", "anh văn": "Anh", "ngoại ngữ": "Anh", "tieng anh": "Anh", "anh": "Anh",
     "toán": "Toan", "toan": "Toan",
@@ -44,23 +45,23 @@ _KHU_VUC = re.compile(r"\b(?:kv|khu vực)\s?([123])(?:\s?(nt|nông thôn))?\b")
 _TO_HOP = re.compile(r"\b([abcdx])\s?0?(\d{1,2})\b")
 _YEAR = re.compile(r"\b(20[12]\d)\b")
 _SCORE = re.compile(r"(?<![\d.])(\d{1,2}(?:[.,]\d{1,2})?)(?![\d.])")
-_COURSE = re.compile(r"\b[A-Za-z]{2,5}\s?\d{3,4}\b")   # COMP1010, comp 1010
+_COURSE = re.compile(r"\b[A-Za-z]{2,5}\s?\d{3,4}\b")
 _HK1 = re.compile(r"\b(?:hk|học kỳ|kỳ)\s?1\b|\bhk1\b")
 
 
 @dataclass
 class Entities:
-    nganh: list[str] = field(default_factory=list)   # mã ngành trong KB: "cntt", "sp_tin"
-    to_hop: list[str] = field(default_factory=list)  # "A00", "D01"
+    nganh: list[str] = field(default_factory=list)
+    to_hop: list[str] = field(default_factory=list)
     nam: int | None = None
     diem: float | None = None
-    ma_hp: list[str] = field(default_factory=list)   # mã học phần (nhận cả mã lẫn tên học phần)
-    nhac_hk1: bool = False                           # có nhắc "học kỳ 1" / "hk1"
+    ma_hp: list[str] = field(default_factory=list)
+    nhac_hk1: bool = False
     so_thich: list[str] = field(default_factory=list)
     dinh_huong: list[str] = field(default_factory=list)
-    phuong_thuc: str | None = None                   # "THPT" | "DGNL"
-    khu_vuc: str | None = None                       # "KV1" | "KV2-NT" | "KV2" | "KV3"
-    diem_mon: dict[str, float] = field(default_factory=dict)   # {"Toan": 8.2, "Anh": 7.5, ...}
+    phuong_thuc: str | None = None
+    khu_vuc: str | None = None
+    diem_mon: dict[str, float] = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         return {k: v for k, v in self.__dict__.items() if v}
@@ -81,8 +82,7 @@ def _find_majors(t: str, majors: dict) -> list[str]:
 
 
 def parse_score(text: str) -> float | None:
-    """Điểm xét tuyển (thang 30). Bỏ qua số trông như năm hoặc mã tổ hợp."""
-    t = _YEAR.sub(" ", text.lower())  # không dùng normalize(): nó xóa dấu "." trong "24.5"
+    t = _YEAR.sub(" ", text.lower())
     t = _TO_HOP.sub(" ", t)
     for m in _SCORE.finditer(t):
         v = float(m.group(1).replace(",", "."))
@@ -92,7 +92,6 @@ def parse_score(text: str) -> float | None:
 
 
 def parse_diem_mon(text: str) -> dict[str, float]:
-    """"Toán 8.2, Anh 7,5, Lý: 6" → {"Toan": 8.2, "Anh": 7.5, "Ly": 6.0}. Không dùng normalize() (giữ dấu chấm)."""
     t = unicodedata.normalize("NFC", text).lower()
     return {_MON_ALIAS[m.group(1)]: float(m.group(2).replace(",", ".")) for m in _DIEM_MON.finditer(t)}
 
@@ -116,7 +115,6 @@ def parse_khu_vuc(text: str) -> str | None:
 
 
 def extract(text: str, majors: dict, courses: dict | None = None) -> Entities:
-    """courses: {mã: HocPhan} (hoặc tập mã). Nhận học phần theo mã hoặc theo tên đầy đủ."""
     t = normalize(text)
     e = Entities(nganh=_find_majors(t, majors))
 
