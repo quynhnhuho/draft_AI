@@ -11,7 +11,7 @@
 | 2 | Hệ luật 33 luật | `src/advisor/rules.py` | 1 | Chatbot chạy như cũ |
 | 3 | Dữ kiện và suy diễn tiến/lùi | `src/advisor/facts.py`, `src/advisor/inference.py` | 1, 2 | **Chatbot lỗi import** cho đến bước 5 |
 | 4 | Lớp tư vấn | `src/advisor/tu_van.py` | 1, 2, 3 | Gọi được `tu_van()`, `kiem_tra_dieu_kien()`; chatbot vẫn lỗi |
-| 5 | Nối chatbot | `src/chatbot/entities.py`, `flows.py`, `engine.py`, `kb.py`, `data/knowledge_base.json`, `app.py`, `tests/test_engine.py` | 1–4 | Chatbot chạy lại, `pytest` qua 9/9 |
+| 5 | Nối chatbot | `src/chatbot/entities.py`, `flows.py`, `engine.py`, `kb.py`, `data/knowledge_base.json`, `app.py`, `tests/test_engine.py` | 1–4 | Chatbot chạy lại, `pytest` qua 12/12 |
 | 6 | Khảo sát và kiểm chứng ID3 | `data/survey.csv`, `src/advisor/kiem_chung_sklearn.py`, `docs/hinh/cay_quyet_dinh_sklearn.png` | – | Không ảnh hưởng chatbot |
 | 7 | Tài liệu | `docs/C2_TU_VAN_NGANH.md`, `docs/C2_mo_ta_cai_dat.docx`, `docs/HUONG_DAN_COMMIT_C2.md`, `README.md` | – | Không đổi hành vi |
 
