@@ -63,10 +63,12 @@ draft_AI/
 │   │   ├── nhanh_can.py           #   nhánh cận      (thành viên 3)
 │   │   └── dieu_phoi.py           #   kết hợp 3 thuật toán – chatbot chỉ gọi file này
 │   ├── advisor/                   # C2
-│   │   ├── rules.py               #   Rule + tập ≥15 luật
+│   │   ├── tham_so.py, diem.py    #   tham số tuyển sinh 2026, công thức tính điểm
+│   │   ├── rules.py               #   biểu diễn luật + 33 luật
 │   │   ├── facts.py               #   chuyển input số (điểm) → sự kiện ký hiệu
 │   │   ├── inference.py           #   forward_chaining(), backward_chaining() ← TỰ CÀI ĐẶT
-│   │   └── id3.py                 #   tính entropy/IG, so với sklearn, rút luật
+│   │   ├── tu_van.py              #   điểm vào cho chatbot
+│   │   └── kiem_chung_sklearn.py  #   IG hai tầng, cây sklearn, rút luật
 │   ├── nlu/                       # C3
 │   │   ├── preprocess.py          #   chuẩn hóa dấu, teencode, tách từ
 │   │   ├── train_nb.py            #   baseline TF-IDF + MultinomialNB
@@ -163,7 +165,7 @@ Tóm tắt:
    (bạn bè, sinh viên khóa dưới…) hoặc "mô phỏng".
 2. **Tính tay** trong báo cáo: `H(S)`, `H(S|A)` và `IG(A)` cho cả 4 thuộc tính → chọn gốc; lặp lại
    cho từng nhánh tầng 2. Trình bày bảng, giữ 3–4 chữ số thập phân.
-3. Viết `id3.py` tính lại đúng các con số đó (để đối chiếu với tính tay).
+3. `kiem_chung_sklearn.py` tính lại đúng các con số đó (để đối chiếu với tính tay).
 4. **sklearn:** `DecisionTreeClassifier(criterion="entropy")` + one-hot. Lưu ý sklearn dùng **chia
    nhị phân (CART)** nên cây có thể khác ID3 đa nhánh — nêu và giải thích sự khác biệt, nhưng thuộc
    tính gốc thường trùng. `export_text` → rút luật → đưa vào `rules.py`.
