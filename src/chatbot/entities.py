@@ -1,7 +1,4 @@
-"""Chức năng 4 - Trích xuất thực thể bằng luật và từ điển.
-
-Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
-"""
+# AI-assisted: Claude (Anthropic) – rà soát, sửa lỗi và tái cấu trúc; thuật toán do nhóm viết và đã kiểm tra lại.
 from __future__ import annotations
 
 import datetime as dt

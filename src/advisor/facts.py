@@ -1,14 +1,11 @@
-"""Chức năng 2 - Dữ kiện đầu vào: kiểm tra hợp lệ, chuyển thành sự kiện, ngữ cảnh số cho các hàm tính.
-
-Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
-"""
+# AI-assisted: Claude (Anthropic) – rà soát, sửa lỗi và tái cấu trúc; thuật toán do nhóm viết và đã kiểm tra lại.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
 
 from . import diem as D
-from .tham_so import DIEM_LIET, DINH_HUONG, MON, MON_HB2, MUC_UU_TIEN, PHUONG_THUC, SO_THICH, TO_HOP
+from .tham_so import DINH_HUONG, MON, MON_HB2, MUC_UU_TIEN, PHUONG_THUC, SO_THICH, TO_HOP
 
 Atom = tuple[str, ...]
 
@@ -82,9 +79,6 @@ class DuLieu:
 
     def diem_thap_nhat(self, to_hop: str) -> Decimal:
         return min(self.diem_mon(m) for m in TO_HOP[to_hop])
-
-    def co_diem_liet(self, to_hop: str) -> bool:
-        return self.diem_thap_nhat(to_hop) <= DIEM_LIET
 
     def tong_diem(self, to_hop: str) -> Decimal:
         if self.pt == "DGNL":

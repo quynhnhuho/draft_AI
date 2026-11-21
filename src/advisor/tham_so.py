@@ -1,7 +1,4 @@
-"""Chức năng 2 - Bảng tham số tuyển sinh năm 2026.
-
-Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
-"""
+# AI-assisted: Claude (Anthropic) – rà soát, sửa lỗi và tái cấu trúc; thuật toán do nhóm viết và đã kiểm tra lại.
 from __future__ import annotations
 
 import json
@@ -13,7 +10,7 @@ DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "tuyen_sinh_2026.json
 _RAW: dict = json.loads(DATA_PATH.read_text(encoding="utf-8"))
 
 NAM: int = _RAW["nam"]
-NGUON: dict = {k: _RAW.get(k) for k in ("nguon", "url", "ngay_truy_cap", "da_kiem_chung", "ghi_chu")}
+NGUON: dict = {k: _RAW.get(k) for k in ("nguon", "url", "da_kiem_chung")}
 
 PHUONG_THUC = ("THPT", "DGNL")
 MON = ("Toan", "Anh", "Ly", "Hoa", "Sinh", "Tin")
