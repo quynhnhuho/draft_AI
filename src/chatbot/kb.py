@@ -61,7 +61,7 @@ def cite(fact: dict) -> str:
     if fact.get("url"):
         line += f" ([link]({fact['url']}))"
     if not fact.get("da_kiem_chung", False):
-        line += "  \nLưu ý: số liệu mẫu/mô phỏng, chưa đối chiếu với nguồn chính thức."
+        line += "  \nLưu ý: số liệu chưa được đối chiếu với nguồn chính thức."
     return line
 
 

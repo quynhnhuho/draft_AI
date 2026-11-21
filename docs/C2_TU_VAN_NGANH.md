@@ -47,4 +47,5 @@ số điểm còn thiếu) / Chưa đủ thông tin (dữ kiện cần hỏi –
 ## 5. Việc còn lại
 
 - Thay nguồn trong `data/tuyen_sinh_2026.json` bằng Đề án tuyển sinh 2026 chính thức, đặt `da_kiem_chung: true`.
-- `data/knowledge_base.json` vẫn là điểm chuẩn mẫu, chưa đồng bộ với số 2026 của hệ luật.
+- Điểm chuẩn và tổ hợp 2024–2026 trong `data/knowledge_base.json` đã khớp với `data/tuyen_sinh_2026.json`
+  (có test kiểm tra); khi đổi nguồn chính thức cần sửa cả hai file.

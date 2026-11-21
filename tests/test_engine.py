@@ -76,3 +76,26 @@ def test_dau_vao_ngoai_khoang_hoi_lai(engine):
     engine.respond("THPT", s)
     r = engine.respond("Toán 12, Anh 7, Lý 6", s)
     assert "chưa hiểu" in r.text and s.pending_slot == "diem_thpt"
+
+
+def test_nhan_dung_nganh_cong_nghe_giao_duc():
+    kb = KnowledgeBase()
+    assert extract("Em có đủ điều kiện vào ngành công nghệ giáo dục không?", kb.majors).nganh == ["cngd"]
+    assert extract("ngành công nghệ thông tin", kb.majors).nganh == ["cntt"]
+    assert extract("CNTT khác Sư phạm Tin chỗ nào?", kb.majors).nganh == ["cntt", "sp_tin"]
+
+
+def test_kiem_tra_dieu_kien_dung_nganh_cngd(engine):
+    s = DialogueState()
+    engine.respond("Em có đủ điều kiện vào ngành công nghệ giáo dục không?", s)
+    assert s.slots["nganh"] == "cngd"
+
+
+def test_co_so_tri_thuc_khop_so_lieu_2026():
+    from src.advisor.tham_so import NGANH, TO_HOP, diem_chuan
+    kb = KnowledgeBase()
+    for x, nganh in NGANH.items():
+        dc = {f["phuong_thuc"].upper(): f["gia_tri"] for f in kb.query("diem_chuan", nganh["ma_kb"], 2026).facts}
+        assert dc == {pt: float(diem_chuan(x, pt)) for pt in ("THPT", "DGNL")}
+        th = kb.query("to_hop_xet_tuyen", nganh["ma_kb"], 2026).facts
+        assert th and th[0]["to_hop"] == nganh["to_hop"] and set(th[0]["to_hop"]) <= set(TO_HOP)

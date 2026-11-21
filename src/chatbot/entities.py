@@ -69,13 +69,20 @@ def _has(text: str, phrase: str) -> bool:
 
 
 def _find_majors(t: str, majors: dict) -> list[str]:
-    found: list[tuple[int, str]] = []
+    s = f" {t} "
+    hits: list[tuple[int, int, str]] = []
     for code, info in majors.items():
-        names = {normalize(a) for a in info.get("aliases", [])} | {normalize(info["ten"])}
-        pos = [f" {t} ".find(f" {n} ") for n in names if _has(t, n)]
-        if pos:
-            found.append((min(pos), code))
-    return [c for _, c in sorted(found)]
+        for n in {normalize(a) for a in info.get("aliases", [])} | {normalize(info["ten"])}:
+            i = s.find(f" {n} ")
+            while i != -1:
+                hits.append((i, i + len(n) + 1, code))
+                i = s.find(f" {n} ", i + 1)
+    giu = [h for h in hits
+           if not any(o[0] < h[1] and h[0] < o[1] and o[1] - o[0] > h[1] - h[0] for o in hits)]
+    dau_tien: dict[str, int] = {}
+    for i, _, code in sorted(giu):
+        dau_tien.setdefault(code, i)
+    return sorted(dau_tien, key=dau_tien.get)
 
 
 def parse_score(text: str) -> float | None:
