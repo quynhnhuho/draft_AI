@@ -1,7 +1,4 @@
-"""Chức năng 2 - Lớp dịch vụ cho chatbot: tư vấn ngành (suy diễn tiến) và kiểm tra điều kiện (suy diễn lùi).
-
-Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
-"""
+# AI-assisted: Claude (Anthropic) – rà soát, sửa lỗi và tái cấu trúc; thuật toán do nhóm viết và đã kiểm tra lại.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -66,7 +63,6 @@ class KetQuaKiemTra:
     loi: list[str] = field(default_factory=list)
     lui: BackwardResult | None = None
     kha_nang: BackwardResult | None = None
-    best: tuple[str, Decimal] | None = None
 
     @property
     def ket_luan(self) -> str:
@@ -87,14 +83,11 @@ def bang_diem(facts: set[Atom], ctx: DuLieu) -> list[DongDiem]:
             for _, t in sorted(f for f in facts if f[0] == "tohop_hople")]
 
 
-def chon_tot_nhat(to_hop: list[str], ctx: DuLieu) -> tuple[str, Decimal] | None:
+def dxt_best(facts: set[Atom], ctx: DuLieu) -> tuple[str, Decimal] | None:
+    to_hop = [f[1] for f in facts if f[0] == "tohop_xet"]
     if not to_hop or not ctx.khu_vuc:
         return None
     return max(((t, ctx.dxt(t)) for t in to_hop), key=lambda p: (p[1], p[0]))
-
-
-def dxt_best(facts: set[Atom], ctx: DuLieu) -> tuple[str, Decimal] | None:
-    return chon_tot_nhat([f[1] for f in facts if f[0] == "tohop_xet"], ctx)
 
 
 def diem_phu_hop(facts: set[Atom], x: str) -> tuple[int, dict]:
@@ -167,8 +160,6 @@ def kiem_tra_dieu_kien(user: dict, nganh: str) -> KetQuaKiemTra:
     kq.lui = backward_chaining(("du_dk", nganh), facts, ctx)
     if kq.lui.proven:
         kq.kha_nang = backward_chaining(("kha_nang_cao", nganh), facts, ctx)
-        dung_duoc = [t for t in TO_HOP if backward_chaining(("tohop_xet", t), facts, ctx).proven]
-        kq.best = chon_tot_nhat(dung_duoc, ctx)
     return kq
 
 
@@ -236,8 +227,7 @@ def markdown_kiem_tra(kq: KetQuaKiemTra, vet: bool = False) -> str:
         parts.append(f"**Có.** Em đủ điều kiện xét tuyển ngành {ten} (đạt ngưỡng đảm bảo chất lượng đầu vào "
                      f"{nguong(kq.nganh, pt)}).")
         muc = "**Cao**" if kq.kha_nang.proven else "**Trung bình**"
-        them = f" (DXT_best = {kq.best[1]}, tổ hợp {kq.best[0]})" if kq.best else ""
-        parts.append(f"Khả năng trúng tuyển: {muc}, so với điểm chuẩn {NAM} là {diem_chuan(kq.nganh, pt)}{them}.")
+        parts.append(f"Khả năng trúng tuyển: {muc}, so với điểm chuẩn {NAM} là {diem_chuan(kq.nganh, pt)}.")
         parts.append("**Chuỗi luật đã dùng:**\n" + "\n".join(f"{i}. {s}" for i, s in enumerate(b.proof, 1)))
     elif b.missing:
         parts.append("**Chưa đủ thông tin** để kết luận. Mình cần biết thêm: "

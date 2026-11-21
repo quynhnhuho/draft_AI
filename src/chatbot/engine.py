@@ -1,7 +1,4 @@
-"""Chức năng 4 - Lõi chatbot: định tuyến ý định, trả lời từ cơ sở tri thức, gọi Chức năng 1 và 2.
-
-Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
-"""
+# AI-assisted: Claude (Anthropic) – rà soát, sửa lỗi và tái cấu trúc; thuật toán do nhóm viết và đã kiểm tra lại.
 from __future__ import annotations
 
 import csv
@@ -9,7 +6,6 @@ import datetime as dt
 import json
 from pathlib import Path
 
-from ..advisor import inference
 from ..advisor import tu_van as c2
 from ..advisor.tham_so import TEN_MON, nguon_trich_dan, ten_nganh, tu_ma_kb
 from ..nlu.preprocess import normalize
@@ -251,8 +247,6 @@ def module_status() -> dict[str, bool]:
             return True
 
     status = {}
-    status["C2 – Suy diễn tiến"] = ok(lambda: inference.forward_chaining(set()))
-    status["C2 – Suy diễn lùi"] = ok(lambda: inference.backward_chaining("du_dk(CNTT)", set()))
     return status
 
 

@@ -1,7 +1,4 @@
-"""Chức năng 2 - Suy diễn tiến và suy diễn lùi (tự cài đặt).
-
-Ghi chú hỗ trợ AI: mã nguồn được viết với sự hỗ trợ của trợ lý AI Claude (Anthropic); nhóm đã kiểm tra lại.
-"""
+# AI-assisted: Claude (Anthropic) – rà soát, sửa lỗi và tái cấu trúc; thuật toán do nhóm viết và đã kiểm tra lại.
 from __future__ import annotations
 
 import re
@@ -48,11 +45,8 @@ def _mo_ta_dk(c, ctx: DuLieu, theta: dict) -> str:
 @dataclass(frozen=True)
 class LanKichHoat:
     rule: Rule
-    theta: dict
     ket_luan: Atom
     dieu_kien: tuple[str, ...]
-    tang: int
-    vong: int
 
     def __str__(self) -> str:
         return f"{self.rule.id}: {' ∧ '.join(self.dieu_kien)} ⇒ {fmt(self.ket_luan)}"
@@ -98,7 +92,8 @@ def forward_chaining(facts: set[Atom], ctx: DuLieu | None = None, rules: list[Ru
     tang_vi_tu = phan_tang(rules)
     for tang in sorted({tang_vi_tu[r.ket_luan[0]] for r in rules}):
         luat_tang = [r for r in rules if tang_vi_tu[r.ket_luan[0]] == tang]
-        for vong in count(1):
+        moi = True
+        while moi:
             moi = False
             for r in luat_tang:
                 for theta in list(_khop(r.dieu_kien, wm, ctx, {})):
@@ -108,9 +103,7 @@ def forward_chaining(facts: set[Atom], ctx: DuLieu | None = None, rules: list[Ru
                     wm.add(kl)
                     moi = True
                     dk = tuple(_mo_ta_dk(c, ctx, theta) for c in r.dieu_kien)
-                    ket_qua.fired.append(LanKichHoat(r, theta, kl, dk, tang, vong))
-            if not moi:
-                break
+                    ket_qua.fired.append(LanKichHoat(r, kl, dk))
     return ket_qua
 
 
