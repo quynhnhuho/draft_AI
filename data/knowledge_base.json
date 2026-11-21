@@ -3,7 +3,7 @@
     "truong": "Trường Đại học Sư phạm Thành phố Hồ Chí Minh",
     "khoa": "Khoa Công nghệ thông tin",
     "phien_ban": "0.1",
-    "ghi_chu": "TẤT CẢ số liệu dưới đây là MẪU để chạy thử (da_kiem_chung=false). Thay bằng số liệu từ đề án tuyển sinh/thông báo chính thức, điền nguon + url + ngay_truy_cap, rồi đặt da_kiem_chung=true.",
+    "ghi_chu": "Điểm chuẩn và tổ hợp xét tuyển 2024–2026 lấy từ tài liệu Thông tin tuyển sinh của nhóm (trùng với data/tuyen_sinh_2026.json), chưa đối chiếu đề án chính thức (da_kiem_chung=false). Các mục còn lại (học phí, học bổng, ký túc xá, chương trình đào tạo, việc làm, thủ tục) vẫn là MẪU: thay bằng số liệu chính thức, điền nguon + url + ngay_truy_cap, rồi đặt da_kiem_chung=true.",
     "lien_he_tu_van": {
       "email": "<email tư vấn tuyển sinh của Khoa>",
       "dien_thoai": "<số điện thoại>",
@@ -35,38 +35,179 @@
   },
   "facts": [
     {
-      "id": "dc_cntt_2025_thpt", "loai": "diem_chuan", "nganh": "cntt", "nam": 2025,
-      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin (phương thức điểm thi tốt nghiệp THPT): 23.00 điểm (MẪU).",
-      "gia_tri": 23.0, "phuong_thuc": "thpt",
-      "nguon": "MẪU – thay bằng Thông báo điểm trúng tuyển năm 2025", "url": "", "ngay_truy_cap": "",
+      "id": "dc_cntt_2026_thpt", "loai": "diem_chuan", "nganh": "cntt", "nam": 2026,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin năm 2026 (phương thức điểm thi tốt nghiệp THPT): 18.00 điểm.",
+      "gia_tri": 18.0, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1FMX7d2NkS/", "ngay_truy_cap": "",
       "da_kiem_chung": false
     },
     {
-      "id": "dc_cntt_2024_thpt", "loai": "diem_chuan", "nganh": "cntt", "nam": 2024,
-      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin (phương thức điểm thi tốt nghiệp THPT): 22.50 điểm (MẪU).",
-      "gia_tri": 22.5, "phuong_thuc": "thpt",
-      "nguon": "MẪU – thay bằng Thông báo điểm trúng tuyển năm 2024", "url": "", "ngay_truy_cap": "",
+      "id": "dc_cntt_2026_dgnl", "loai": "diem_chuan", "nganh": "cntt", "nam": 2026,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin năm 2026 (phương thức học bạ kết hợp thi ĐGNL chuyên biệt): 17.00 điểm.",
+      "gia_tri": 17.0, "phuong_thuc": "dgnl",
+      "nguon": "Điểm chuẩn năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1FMX7d2NkS/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_sptin_2026_thpt", "loai": "diem_chuan", "nganh": "sp_tin", "nam": 2026,
+      "noi_dung": "Điểm chuẩn ngành Sư phạm Tin học năm 2026 (phương thức điểm thi tốt nghiệp THPT): 25.30 điểm.",
+      "gia_tri": 25.3, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1FMX7d2NkS/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_sptin_2026_dgnl", "loai": "diem_chuan", "nganh": "sp_tin", "nam": 2026,
+      "noi_dung": "Điểm chuẩn ngành Sư phạm Tin học năm 2026 (phương thức học bạ kết hợp thi ĐGNL chuyên biệt): 23.80 điểm.",
+      "gia_tri": 23.8, "phuong_thuc": "dgnl",
+      "nguon": "Điểm chuẩn năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1FMX7d2NkS/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cngd_2026_thpt", "loai": "diem_chuan", "nganh": "cngd", "nam": 2026,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ giáo dục năm 2026 (phương thức điểm thi tốt nghiệp THPT): 20.25 điểm.",
+      "gia_tri": 20.25, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1FMX7d2NkS/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cngd_2026_dgnl", "loai": "diem_chuan", "nganh": "cngd", "nam": 2026,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ giáo dục năm 2026 (phương thức học bạ kết hợp thi ĐGNL chuyên biệt): 18.75 điểm.",
+      "gia_tri": 18.75, "phuong_thuc": "dgnl",
+      "nguon": "Điểm chuẩn năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1FMX7d2NkS/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cntt_2025_thpt", "loai": "diem_chuan", "nganh": "cntt", "nam": 2025,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin năm 2025 (phương thức điểm thi tốt nghiệp THPT): 19.00 điểm.",
+      "gia_tri": 19.0, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn đợt 1 năm 2025 – Cổng Xây dựng chính sách, pháp luật (Chính phủ)",
+      "url": "https://xaydungchinhsach.chinhphu.vn/diem-chuan-truong-dai-hoc-su-pham-tphcm-nam-2025-11925082221091252.htm", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cntt_2025_dgnl", "loai": "diem_chuan", "nganh": "cntt", "nam": 2025,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin năm 2025 (phương thức học bạ kết hợp thi ĐGNL chuyên biệt): 18.35 điểm.",
+      "gia_tri": 18.35, "phuong_thuc": "dgnl",
+      "nguon": "Điểm chuẩn đợt 1 năm 2025 – Cổng Xây dựng chính sách, pháp luật (Chính phủ)",
+      "url": "https://xaydungchinhsach.chinhphu.vn/diem-chuan-truong-dai-hoc-su-pham-tphcm-nam-2025-11925082221091252.htm", "ngay_truy_cap": "",
       "da_kiem_chung": false
     },
     {
       "id": "dc_sptin_2025_thpt", "loai": "diem_chuan", "nganh": "sp_tin", "nam": 2025,
-      "noi_dung": "Điểm chuẩn ngành Sư phạm Tin học (phương thức điểm thi tốt nghiệp THPT): 24.00 điểm (MẪU).",
-      "gia_tri": 24.0, "phuong_thuc": "thpt",
-      "nguon": "MẪU – thay bằng Thông báo điểm trúng tuyển năm 2025", "url": "", "ngay_truy_cap": "",
+      "noi_dung": "Điểm chuẩn ngành Sư phạm Tin học năm 2025 (phương thức điểm thi tốt nghiệp THPT): 23.23 điểm.",
+      "gia_tri": 23.23, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn đợt 1 năm 2025 – Cổng Xây dựng chính sách, pháp luật (Chính phủ)",
+      "url": "https://xaydungchinhsach.chinhphu.vn/diem-chuan-truong-dai-hoc-su-pham-tphcm-nam-2025-11925082221091252.htm", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_sptin_2025_dgnl", "loai": "diem_chuan", "nganh": "sp_tin", "nam": 2025,
+      "noi_dung": "Điểm chuẩn ngành Sư phạm Tin học năm 2025 (phương thức học bạ kết hợp thi ĐGNL chuyên biệt): 22.47 điểm.",
+      "gia_tri": 22.47, "phuong_thuc": "dgnl",
+      "nguon": "Điểm chuẩn đợt 1 năm 2025 – Cổng Xây dựng chính sách, pháp luật (Chính phủ)",
+      "url": "https://xaydungchinhsach.chinhphu.vn/diem-chuan-truong-dai-hoc-su-pham-tphcm-nam-2025-11925082221091252.htm", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cngd_2025_thpt", "loai": "diem_chuan", "nganh": "cngd", "nam": 2025,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ giáo dục năm 2025 (phương thức điểm thi tốt nghiệp THPT): 19.25 điểm.",
+      "gia_tri": 19.25, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn đợt 1 năm 2025 – Cổng Xây dựng chính sách, pháp luật (Chính phủ)",
+      "url": "https://xaydungchinhsach.chinhphu.vn/diem-chuan-truong-dai-hoc-su-pham-tphcm-nam-2025-11925082221091252.htm", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cngd_2025_dgnl", "loai": "diem_chuan", "nganh": "cngd", "nam": 2025,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ giáo dục năm 2025 (phương thức học bạ kết hợp thi ĐGNL chuyên biệt): 18.60 điểm.",
+      "gia_tri": 18.6, "phuong_thuc": "dgnl",
+      "nguon": "Điểm chuẩn đợt 1 năm 2025 – Cổng Xây dựng chính sách, pháp luật (Chính phủ)",
+      "url": "https://xaydungchinhsach.chinhphu.vn/diem-chuan-truong-dai-hoc-su-pham-tphcm-nam-2025-11925082221091252.htm", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_cntt_2024_thpt", "loai": "diem_chuan", "nganh": "cntt", "nam": 2024,
+      "noi_dung": "Điểm chuẩn ngành Công nghệ thông tin năm 2024 (phương thức điểm thi tốt nghiệp THPT): 23.50 điểm.",
+      "gia_tri": 23.5, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn năm 2024 phương thức THPT – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1dSS8aWJUw/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "dc_sptin_2024_thpt", "loai": "diem_chuan", "nganh": "sp_tin", "nam": 2024,
+      "noi_dung": "Điểm chuẩn ngành Sư phạm Tin học năm 2024 (phương thức điểm thi tốt nghiệp THPT): 24.73 điểm.",
+      "gia_tri": 24.73, "phuong_thuc": "thpt",
+      "nguon": "Điểm chuẩn năm 2024 phương thức THPT – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1dSS8aWJUw/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_cntt_2026", "loai": "to_hop_xet_tuyen", "nganh": "cntt", "nam": 2026,
+      "noi_dung": "Ngành Công nghệ thông tin năm 2026 xét các tổ hợp: A01, B08, D07, X26.",
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguon": "Tổ hợp xét tuyển năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1VBox4XmDZ/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_sptin_2026", "loai": "to_hop_xet_tuyen", "nganh": "sp_tin", "nam": 2026,
+      "noi_dung": "Ngành Sư phạm Tin học năm 2026 xét các tổ hợp: A01, B08, D07, X26.",
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguon": "Tổ hợp xét tuyển năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1VBox4XmDZ/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_cngd_2026", "loai": "to_hop_xet_tuyen", "nganh": "cngd", "nam": 2026,
+      "noi_dung": "Ngành Công nghệ giáo dục năm 2026 xét các tổ hợp: A01, B08, D07, X26.",
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguon": "Tổ hợp xét tuyển năm 2026 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1VBox4XmDZ/", "ngay_truy_cap": "",
       "da_kiem_chung": false
     },
     {
       "id": "th_cntt_2025", "loai": "to_hop_xet_tuyen", "nganh": "cntt", "nam": 2025,
-      "noi_dung": "Ngành Công nghệ thông tin xét các tổ hợp: A00, A01, D01, D07 (MẪU).",
-      "to_hop": ["A00", "A01", "D01", "D07"],
-      "nguon": "MẪU – thay bằng Đề án tuyển sinh năm 2025, mục ...", "url": "", "ngay_truy_cap": "",
+      "noi_dung": "Ngành Công nghệ thông tin năm 2025 xét các tổ hợp: A01, B08, D07, X26.",
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguon": "Chỉ tiêu, tổ hợp xét tuyển năm 2025 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1CMgNguLkP/", "ngay_truy_cap": "",
       "da_kiem_chung": false
     },
     {
       "id": "th_sptin_2025", "loai": "to_hop_xet_tuyen", "nganh": "sp_tin", "nam": 2025,
-      "noi_dung": "Ngành Sư phạm Tin học xét các tổ hợp: A00, A01, D01 (MẪU).",
-      "to_hop": ["A00", "A01", "D01"],
-      "nguon": "MẪU – thay bằng Đề án tuyển sinh năm 2025, mục ...", "url": "", "ngay_truy_cap": "",
+      "noi_dung": "Ngành Sư phạm Tin học năm 2025 xét các tổ hợp: A01, B08, D07, X26.",
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguon": "Chỉ tiêu, tổ hợp xét tuyển năm 2025 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1CMgNguLkP/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_cngd_2025", "loai": "to_hop_xet_tuyen", "nganh": "cngd", "nam": 2025,
+      "noi_dung": "Ngành Công nghệ giáo dục năm 2025 xét các tổ hợp: A01, B08, D07, X26.",
+      "to_hop": ["A01", "B08", "D07", "X26"],
+      "nguon": "Chỉ tiêu, tổ hợp xét tuyển năm 2025 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1CMgNguLkP/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_cntt_2024", "loai": "to_hop_xet_tuyen", "nganh": "cntt", "nam": 2024,
+      "noi_dung": "Ngành Công nghệ thông tin năm 2024 xét các tổ hợp: A00, A01, B08.",
+      "to_hop": ["A00", "A01", "B08"],
+      "nguon": "Chỉ tiêu, tổ hợp xét tuyển năm 2024 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1F74aSqUiQ/", "ngay_truy_cap": "",
+      "da_kiem_chung": false
+    },
+    {
+      "id": "th_sptin_2024", "loai": "to_hop_xet_tuyen", "nganh": "sp_tin", "nam": 2024,
+      "noi_dung": "Ngành Sư phạm Tin học năm 2024 xét các tổ hợp: A00, A01, B08.",
+      "to_hop": ["A00", "A01", "B08"],
+      "nguon": "Chỉ tiêu, tổ hợp xét tuyển năm 2024 – fanpage tuyển sinh, theo tài liệu Thông tin tuyển sinh của nhóm",
+      "url": "https://www.facebook.com/share/p/1F74aSqUiQ/", "ngay_truy_cap": "",
       "da_kiem_chung": false
     },
     {
