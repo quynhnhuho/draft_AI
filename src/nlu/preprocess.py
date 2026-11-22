@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-preprocess.py – Vietnamese NLU text pre-processing utilities.
-"""
-
 import unicodedata
 import re
 
