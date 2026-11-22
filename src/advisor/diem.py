@@ -25,12 +25,12 @@ def tong_dgnl(nl, hb1, hb2) -> Decimal:
     return (HE_SO_DGNL["NL"] * so(nl) + HE_SO_DGNL["HB1"] * so(hb1) + HE_SO_DGNL["HB2"] * so(hb2)) * NHAN_DGNL
 
 
-def diem_uu_tien(tong: Decimal, khu_vuc: str) -> Decimal:
-    muc = MUC_UU_TIEN[khu_vuc]
+def diem_uu_tien(tong, khu_vuc: str) -> Decimal:
+    tong, muc = so(tong), MUC_UU_TIEN[khu_vuc]
     if tong >= NGUONG_GIAM_UU_TIEN:
         return (D30 - tong) / D7_5 * muc
     return muc
 
 
-def diem_xet_tuyen(tong: Decimal, khu_vuc: str) -> Decimal:
-    return lam_tron(tong + diem_uu_tien(tong, khu_vuc))
+def diem_xet_tuyen(tong, khu_vuc: str) -> Decimal:
+    return lam_tron(so(tong) + diem_uu_tien(tong, khu_vuc))
