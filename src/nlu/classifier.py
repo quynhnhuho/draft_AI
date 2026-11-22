@@ -1,106 +1,122 @@
-"""Bộ phân loại ý định dùng trong chatbot.
-
-HỢP ĐỒNG với C4:  IntentClassifier.predict(text) -> Prediction(intent, confidence, top_k)
-
-Thứ tự nạp:
-  1. Mô hình Keras  : models/intent_model.keras + models/labels.json   (mô hình CHÍNH – C3)
-  2. Baseline NB    : models/nb_pipeline.pkl                            (dự phòng)
-  3. KeywordClassifier – CHỈ để phát triển giao diện khi chưa có mô hình. Không dùng khi demo.
-"""
-from __future__ import annotations
-
 import json
-import pickle
-from dataclasses import dataclass, field
+import numpy as np
 from pathlib import Path
 
-from .preprocess import normalize, preprocess
+from .preprocess import preprocess
 
-MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
+class IntentClassifier:
+    MAX_LEN = 50
 
+    def __init__(
+        self,
+        model_dir: str | Path = "models",
+        threshold: float = 0.84,
+        backend: str = "keras",
+    ):
+        self.model_dir     = Path(model_dir)
+        self.threshold     = threshold
+        self.backend       = backend
+        self.model         = None
+        self.tokenizer     = None
+        self.nb_pipeline   = None
+        self.label_names   = None
 
-@dataclass
-class Prediction:
-    intent: str
-    confidence: float
-    top_k: list[tuple[str, float]] = field(default_factory=list)
+        # Tu dong doc nguong tu threshold_config.json
+        thresh_path = self.model_dir / "threshold_config.json"
+        if thresh_path.exists():
+            try:
+                with open(thresh_path, encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    self.threshold = float(cfg.get("confidence_threshold", self.threshold))
+            except Exception:
+                pass
 
+    # Load artifacts
 
-class KerasIntentModel:
-    name = "keras"
+    def load(self) -> "IntentClassifier":
+        """Load model, tokenizer và labels từ model_dir."""
+        # Labels
+        with open(self.model_dir / "labels.json", encoding="utf-8") as f:
+            raw_labels = json.load(f)
+            if isinstance(raw_labels, dict):
+                self.label_names = [
+                    raw_labels[str(i)] if str(i) in raw_labels else raw_labels[i]
+                    for i in range(len(raw_labels))
+                ]
+            else:
+                self.label_names = list(raw_labels)
 
-    def __init__(self, model_path: Path, labels_path: Path):
-        import tensorflow as tf  # nạp muộn: app vẫn chạy khi chưa cài TF
+        if self.backend in ["keras", "conv1d", "lstm"]:
+            import tensorflow as tf
+            from tensorflow.keras.preprocessing.text import tokenizer_from_json
 
-        self._tf = tf
-        self.model = tf.keras.models.load_model(model_path)
-        self.labels: list[str] = json.loads(labels_path.read_text(encoding="utf-8"))
+            # Uu tien conv1d_best.keras
+            if self.backend == "lstm" or not (self.model_dir / "conv1d_best.keras").exists():
+                model_file = "lstm_best.keras"
+            else:
+                model_file = "conv1d_best.keras"
 
-    def predict(self, text: str, k: int = 3) -> Prediction:
-        probs = self.model.predict(self._tf.constant([preprocess(text)]), verbose=0)[0]
-        order = probs.argsort()[::-1][:k]
-        top = [(self.labels[i], float(probs[i])) for i in order]
-        return Prediction(top[0][0], top[0][1], top)
+            self.model = tf.keras.models.load_model(self.model_dir / model_file)
+            with open(self.model_dir / "tokenizer.json", encoding="utf-8") as f:
+                self.tokenizer = tokenizer_from_json(f.read())
 
+        elif self.backend == "nb":
+            import pickle
 
-class NBIntentModel:
-    name = "naive_bayes"
+            with open(self.model_dir / "nb_pipeline.pkl", "rb") as f:
+                self.nb_pipeline = pickle.load(f)
 
-    def __init__(self, path: Path):
-        with open(path, "rb") as f:
-            self.pipe = pickle.load(f)
+        else:
+            raise ValueError(f"Unknown backend: {self.backend!r}. Use 'keras' or 'nb'.")
 
-    def predict(self, text: str, k: int = 3) -> Prediction:
-        probs = self.pipe.predict_proba([preprocess(text)])[0]
-        order = probs.argsort()[::-1][:k]
-        top = [(str(self.pipe.classes_[i]), float(probs[i])) for i in order]
-        return Prediction(top[0][0], top[0][1], top)
+        return self
 
+    # Predict
+    def predict(self, text: str) -> dict:
 
-class KeywordClassifier:
-    """Phân loại tạm bằng từ khóa – chỉ để dựng/kiểm thử giao diện C4 trước khi có mô hình."""
+        clean = preprocess(text)
 
-    name = "keyword (tạm thời)"
-    KEYWORDS = {
-        "diem_chuan": ["điểm chuẩn", "lấy bao nhiêu điểm", "bao nhiêu điểm", "điểm trúng tuyển"],
-        "to_hop_xet_tuyen": ["tổ hợp", "khối", "xét tuyển môn"],
-        "hoc_phi": ["học phí", "tiền học", "miễn phí", "đóng bao nhiêu"],
-        "hoc_bong": ["học bổng"],
-        "ky_tuc_xa": ["ký túc xá", "kí túc xá", "chỗ ở", "phòng ở"],
-        "chuong_trinh_dao_tao": ["chương trình đào tạo", "học những môn", "học môn gì", "khác", "khác nhau", "tín chỉ"],
-        "viec_lam": ["việc làm", "ra trường làm", "xin việc", "cơ hội nghề", "lương"],
-        "thu_tuc_nhap_hoc": ["nhập học", "hồ sơ", "giấy tờ"],
-        "chao_hoi": ["xin chào", "chào", "hello", "cảm ơn", "tạm biệt", "hi"],
-        "tu_van_chon_nganh": ["nên chọn ngành", "ngành nào", "đủ điều kiện", "có đậu", "vào được", "tư vấn ngành", "phù hợp"],
-        "lo_trinh_hoc_tap": ["lộ trình", "đăng ký học phần", "học vượt", "rớt", "ra trường đúng hạn", "học kỳ sau"],
-    }
+        if self.backend == "keras":
+            from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-    def predict(self, text: str, k: int = 3) -> Prediction:
-        t = f" {normalize(text)} "  # so khớp nguyên từ: tránh "hi" khớp trong "nhiêu"
-        scores = {it: sum(len(kw) for kw in kws if f" {kw} " in t) for it, kws in self.KEYWORDS.items()}
-        total = sum(scores.values())
-        if total == 0:
-            return Prediction("chao_hoi", 0.0, [("chao_hoi", 0.0)])
-        top = sorted(((it, s / total) for it, s in scores.items()), key=lambda x: -x[1])[:k]
-        return Prediction(top[0][0], top[0][1], top)
+            seq    = self.tokenizer.texts_to_sequences([clean])
+            padded = pad_sequences(
+                seq, maxlen=self.MAX_LEN, padding="post", truncating="post"
+            )
+            proba = self.model.predict(padded, verbose=0)[0]
 
+        elif self.backend == "nb":
+            proba = self.nb_pipeline.predict_proba([clean])[0]
 
-def load_classifier(models_dir: Path = MODELS_DIR):
-    """Nạp mô hình tốt nhất hiện có. Trả về đối tượng có .name và .predict(text)."""
-    keras_path, labels_path = models_dir / "intent_model.keras", models_dir / "labels.json"
-    if keras_path.exists() and labels_path.exists():
-        try:
-            return KerasIntentModel(keras_path, labels_path)
-        except ImportError:
-            pass
-    nb_path = models_dir / "nb_pipeline.pkl"
-    if nb_path.exists():
-        return NBIntentModel(nb_path)
-    return KeywordClassifier()
+        max_idx    = int(np.argmax(proba))
+        confidence = float(proba[max_idx])
 
+        if confidence < self.threshold:
+            return {
+                "intent":      "ngoai_pham_vi",
+                "confidence":  confidence,
+                "transferred": True,
+            }
 
-def load_threshold(models_dir: Path = MODELS_DIR, default: float = 0.6) -> float:
-    cfg = models_dir / "config.json"
-    if cfg.exists():
-        return float(json.loads(cfg.read_text(encoding="utf-8")).get("threshold", default))
-    return default
+        return {
+            "intent":      self.label_names[max_idx],
+            "confidence":  confidence,
+            "transferred": False,
+            "all_proba": {
+                self.label_names[i]: float(proba[i])
+                for i in range(len(self.label_names))
+            },
+        }
+
+    def predict_batch(self, texts: list) -> list:
+        """Phân loại ý định cho nhiều câu cùng lúc."""
+        return [self.predict(t) for t in texts]
+
+    # Repr
+    def __repr__(self) -> str:
+        loaded = self.model is not None or self.nb_pipeline is not None
+        return (
+            f"IntentClassifier(backend={self.backend!r}, "
+            f"threshold={self.threshold}, "
+            f"loaded={loaded})"
+        )
