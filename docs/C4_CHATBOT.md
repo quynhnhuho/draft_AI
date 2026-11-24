@@ -1,0 +1,98 @@
+# Chức năng 4 – Ứng dụng chatbot (CLO 3, CLO 4)
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py                       # giao diện
+pytest -q                                  # 39 test (unit + kịch bản end-to-end)
+python -m src.chatbot.danh_gia --out docs/C4_DANH_GIA.md   # đánh giá end-to-end, ghi báo cáo
+```
+
+## 1. Kiến trúc
+
+```
+app.py (Streamlit) ──► ChatEngine.respond()            src/chatbot/engine.py
+                          │
+   đang trong luồng? ─có─► flows.continue_flow()        src/chatbot/flows.py   (gõ "hủy" để thoát)
+                          │ không
+                          ▼
+              entities.extract()  +  normalize()        src/chatbot/entities.py, src/nlu/preprocess.py
+                          │
+              classifier.predict() → (intent, conf, top-3)   src/nlu/classifier.py  ← models/ (C3)
+                          │
+   ① chặn phạm vi: ngành / trường khác ─► chuyển cán bộ      src/chatbot/pham_vi.py
+   ② luật ưu tiên: ngành của Khoa + "đủ điều kiện/đậu…" ─► suy diễn lùi (C2)
+   ③ conf ≥ τ ─► định tuyến theo ý định của mô hình
+   ④ conf < τ ─► luật bổ trợ (xác nhận ý định trong top-3) hoặc chuyển cán bộ + logs/handoff.csv
+                          │
+   _route(): KB (8 ý định) · chào hỏi · C2 (suy diễn tiến/lùi) · C1 (lộ trình, A* + nhánh cận)
+```
+
+Bộ phân loại được nạp **một lần** (`@st.cache_resource`) theo thứ tự: Keras (`models/intent_model.keras`,
+cần TensorFlow) → Naive Bayes (`models/nb_pipeline.pkl`) → phân loại từ khóa (chỉ để phát triển). τ lấy
+theo đúng mô hình đang dùng từ `models/config.json` (Conv1D 0.92, NB 0.16). Nếu máy chạy không có
+underthesea mà mô hình được huấn luyện với underthesea, sidebar hiện cảnh báo (lỗi 7.10).
+
+## 2. Định tuyến (mục 7.2)
+
+| Ý định | Xử lý | Nguồn trả lời |
+|---|---|---|
+| diem_chuan, to_hop_xet_tuyen, hoc_phi, hoc_bong, ky_tuc_xa, thu_tuc_nhap_hoc, chuong_trinh_dao_tao, viec_lam | `answer_from_kb` – lọc theo loại, ngành (nhớ ngữ cảnh), năm; không nêu năm → năm mới nhất; năm không có → nói rõ + năm gần nhất | `data/knowledge_base.json` |
+| chuong_trinh_dao_tao / tu_van_chon_nganh có ≥ 2 ngành + "khác/so sánh" | `compare_majors` – so sánh mô tả các ngành | cơ sở tri thức |
+| chao_hoi | `greet` | câu mẫu |
+| tu_van_chon_nganh | có ngành + "đủ điều kiện/đậu/vào được" → **suy diễn lùi**; ngược lại → **suy diễn tiến**; thiếu thông tin → luồng hỏi tiếp | C2 |
+| lo_trinh_hoc_tap | luồng hỏi: học kỳ → môn đã đạt → môn rớt → học vượt → `dieu_phoi.lap_lo_trinh()` | C1 |
+
+Mọi câu trả lời có số liệu in `Nguồn: … – năm áp dụng …`; số liệu chưa đối chiếu nguồn chính thức
+(`da_kiem_chung=false`) có thêm dòng cảnh báo.
+
+## 3. Ba cơ chế bổ sung cho mô hình (và lý do)
+
+| Cơ chế | Khi nào | Vì sao cần | Đã đo |
+|---|---|---|---|
+| **Chặn phạm vi** (`pham_vi.py`) | câu nhắc "ngành X" không thuộc Khoa, hoặc tên trường khác | mô hình tự tin ~1.0 cho "điểm chuẩn ngành Sư phạm Toán" → nếu không chặn, bot trả số liệu CNTT (sai) | 0/660 câu trong `intents.csv` bị chặn nhầm; chặn 10/82 câu `out_of_scope.csv` |
+| **Luật ưu tiên** đủ điều kiện | ngành của Khoa + cụm "đủ điều kiện vào/đủ điểm vào/có đậu/vào được…" | dữ liệu C3 chưa có câu loại này, mô hình đoán `viec_lam` | trùng 2/660 câu (đều là "em được 27đ có đủ điểm vào CNTT không") |
+| **Luật bổ trợ** | conf < τ, ý định C1/C2 nằm trong top-3 và câu có cụm đặc trưng ("lộ trình", "rớt môn", "nên chọn ngành nào"…) | hai ý định này chỉ mở luồng hỏi thêm, không đưa số liệu → rủi ro thấp | ghi `nguon_y_dinh = luat_bo_tro` để thống kê |
+
+Chế độ debug hiện **ý định, độ tin cậy, top-3, thực thể, ai quyết định ý định** (`mo_hinh`,
+`luat_uu_tien`, `luat_bo_tro`, `chan_pham_vi`, `duoi_nguong`) và thời gian xử lý.
+
+## 4. Chuyển cán bộ và nhật ký (mục 7.7)
+
+- `logs/handoff.csv`: thời gian, câu hỏi, ý định dự đoán, độ tin cậy, top-3, lý do
+  (`duoi_nguong`, `nganh_khac`, `truong_khac`, `thieu_du_lieu`) – hàng đợi cho cán bộ và dữ liệu bổ
+  sung tập huấn luyện vòng sau.
+- `logs/feedback.csv`: nút 👍/👎 dưới mỗi câu trả lời.
+- `logs/conversations.jsonl`: mọi lượt (ý định, độ tin cậy, top-3, nguồn ý định, thời gian).
+- Kênh liên hệ lấy từ `meta.lien_he_tu_van` trong `knowledge_base.json`; giá trị còn để mẫu `<…>` không
+  được hiển thị.
+
+## 5. Đánh giá end-to-end (mục 7.9)
+
+`tests/scenarios.yaml`: 17 hội thoại, 44 lượt (câu do nhóm viết, không lấy từ tập huấn luyện), gồm
+ngữ cảnh nhiều lượt, 3 luồng C1/C2, hủy luồng, ngoài phạm vi, ngành/trường khác. Kết quả đầy đủ:
+[`C4_DANH_GIA.md`](C4_DANH_GIA.md).
+
+| Chỉ số | Keras Conv1D (τ 0.92) | Naive Bayes (τ 0.16) |
+|---|---|---|
+| Lượt đạt mọi kỳ vọng | 42/44 (95%) | 41/44 (93%) |
+| Đúng ý định | 22/24 (92%) | 21/24 (88%) |
+| Câu có số liệu kèm nguồn + năm | 18/18 (100%) | 17/17 (100%) |
+| Chuyển cán bộ đúng | 7/7 (100%) | 7/7 (100%) |
+| Chuyển cán bộ thừa | 1/24 (4%) | 1/24 (4%) |
+| Thời gian phản hồi trung bình | ~15–25 ms (không tính lần nạp mô hình) | ~8 ms |
+
+Hai lượt sai của Keras là lỗi mô hình (giữ nguyên để báo cáo trung thực): "nhập học cần mang theo những
+giấy tờ gì" (0.76 < τ → chuyển cán bộ thừa) và "CNTT với sư phạm tin khác nhau ở điểm nào" (`diem_chuan` 1.00).
+
+Còn lại cho nhóm: thử với 3–5 người dùng thật (dùng nút 👍/👎 + `logs/feedback.csv`) → mục "Đánh giá
+người dùng" trong báo cáo.
+
+## 6. Việc nhóm cần làm trước khi nộp
+
+- [ ] `data/knowledge_base.json`: điền **kênh liên hệ thật** của Khoa (`meta.lien_he_tu_van`); thay số liệu
+  mẫu (học phí, học bổng, ký túc xá, CTĐT, việc làm, thủ tục) bằng nguồn chính thức + url + ngày truy cập
+  rồi đặt `da_kiem_chung: true`; bổ sung học phí / việc làm / CTĐT ngành **Công nghệ giáo dục** (hiện chưa có
+  → bot chuyển cán bộ với lý do `thieu_du_lieu`).
+- [ ] C3: quy trình gán nhãn + kappa; thêm câu "đủ điều kiện vào ngành X", câu ngắn, câu `viec_lam`,
+  `thu_tuc_nhap_hoc`; huấn luyện lại bằng notebook rồi chép `models.zip` vào `models/` và chạy `pytest -q`.
+- [ ] Thử với người dùng thật, quay video demo.
