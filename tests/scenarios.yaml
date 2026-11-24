@@ -1,0 +1,193 @@
+# Kịch bản kiểm thử end-to-end Chức năng 4 (mục 7.9 HUONG_DAN_DO_AN).
+# Chạy:  python -m src.chatbot.danh_gia          (mô hình Keras trong models/)
+#        python -m src.chatbot.danh_gia --backend nb
+#
+# Mỗi hội thoại là một chuỗi lượt dùng chung DialogueState (kiểm tra ngữ cảnh và luồng nhiều lượt).
+# Trường của một lượt (đều tùy chọn, trừ "noi"):
+#   y_dinh        : ý định mong đợi (chuỗi hoặc danh sách các ý định chấp nhận được)
+#   chuyen_can_bo : true/false – có phải chuyển cán bộ không
+#   so_lieu       : true nếu câu trả lời là số liệu → BẮT BUỘC có "Nguồn:" và "năm áp dụng"
+#   chua          : các chuỗi phải xuất hiện trong câu trả lời
+#   luong         : tên luồng nhiều lượt phải đang mở sau lượt này (null = không còn luồng)
+# Câu hỏi do nhóm tự viết, KHÔNG lấy từ data/intents.csv (tránh đánh giá trên dữ liệu huấn luyện).
+
+- ten: Chào hỏi và cảm ơn
+  luot:
+    - noi: "chào bạn nha"
+      y_dinh: chao_hoi
+      chuyen_can_bo: false
+    - noi: "cảm ơn ad nhiều"
+      y_dinh: chao_hoi
+      chua: ["Không có gì"]
+
+- ten: Điểm chuẩn có năm, rồi đổi năm
+  luot:
+    - noi: "Điểm chuẩn ngành CNTT năm 2024 là bao nhiêu?"
+      y_dinh: diem_chuan
+      so_lieu: true
+      chua: ["2024"]
+    - noi: "thế điểm chuẩn năm 2025 của ngành đó thì sao"
+      y_dinh: diem_chuan
+      so_lieu: true
+      chua: ["2025", "Công nghệ thông tin"]
+
+- ten: Điểm chuẩn không nêu năm → năm mới nhất
+  luot:
+    - noi: "sư phạm tin lấy bao nhiêu điểm vậy ạ"
+      y_dinh: diem_chuan
+      so_lieu: true
+      chua: ["mới nhất", "Sư phạm Tin học"]
+
+- ten: Năm không có dữ liệu → nói rõ, đưa năm gần nhất
+  luot:
+    - noi: "điểm chuẩn CNTT năm 2021"
+      y_dinh: diem_chuan
+      so_lieu: true
+      chua: ["chưa có số liệu năm 2021"]
+
+- ten: Tổ hợp xét tuyển
+  luot:
+    - noi: "ngành công nghệ giáo dục xét tuyển những tổ hợp môn nào"
+      y_dinh: to_hop_xet_tuyen
+      so_lieu: true
+      chua: ["Công nghệ giáo dục"]
+
+- ten: Học phí – viết tắt, rồi hỏi tiếp theo ngữ cảnh
+  luot:
+    - noi: "hp ngành cntt 1 năm bn tiền"
+      y_dinh: hoc_phi
+      so_lieu: true
+    - noi: "điểm chuẩn sp tin năm 2025"
+      y_dinh: diem_chuan
+      so_lieu: true
+    - noi: "còn học phí ngành đó thì sao ạ"
+      y_dinh: hoc_phi
+      so_lieu: true
+      chua: ["Sư phạm Tin học"]
+
+- ten: Học bổng, ký túc xá, thủ tục
+  luot:
+    - noi: "trường có học bổng cho sinh viên giỏi không ạ"
+      y_dinh: hoc_bong
+      so_lieu: true
+    - noi: "ktx của trường đăng ký thế nào"
+      y_dinh: ky_tuc_xa
+      so_lieu: true
+    - noi: "nhập học cần mang theo những giấy tờ gì"
+      y_dinh: thu_tuc_nhap_hoc
+      so_lieu: true
+
+- ten: Chương trình đào tạo và so sánh ngành
+  luot:
+    - noi: "ngành CNTT học những môn gì trong 4 năm"
+      y_dinh: chuong_trinh_dao_tao
+      so_lieu: true
+    - noi: "CNTT với sư phạm tin khác nhau ở điểm nào"
+      y_dinh: [chuong_trinh_dao_tao, tu_van_chon_nganh]
+      chua: ["Công nghệ thông tin", "Sư phạm Tin học"]
+      luong: null
+
+- ten: Việc làm
+  luot:
+    - noi: "học công nghệ thông tin ra trường có dễ xin việc không"
+      y_dinh: viec_lam
+      so_lieu: true
+
+- ten: Kiểm tra đủ điều kiện – điền sẵn từ câu hỏi (suy diễn lùi)
+  luot:
+    - noi: "Em thi THPT được Toán 8, Anh 7, Lý 7, KV3, có đủ điều kiện vào CNTT không?"
+      y_dinh: tu_van_chon_nganh
+      chua: ["**Có.**", "Nguồn"]
+      luong: null
+
+- ten: Kiểm tra đủ điều kiện – hỏi từng bước
+  luot:
+    - noi: "với điểm của em thì có đậu sư phạm tin không ạ"
+      luong: kiem_tra_dieu_kien
+      chua: ["phương thức"]
+    - noi: "thpt"
+      luong: kiem_tra_dieu_kien
+      chua: ["điểm thi THPT"]
+    - noi: "Toán 7, Anh 6.2, Lý 6"
+      luong: kiem_tra_dieu_kien
+      chua: ["khu vực"]
+    - noi: "KV1"
+      y_dinh: tu_van_chon_nganh
+      luong: null
+      chua: ["Nguồn"]
+
+- ten: Tư vấn chọn ngành (suy diễn tiến)
+  luot:
+    - noi: "em đang phân vân không biết nên chọn ngành nào của khoa"
+      y_dinh: [tu_van_chon_nganh, tu_van_nganh]
+      luong: tu_van_nganh
+    - noi: "học bạ + đgnl"
+      luong: tu_van_nganh
+    - noi: "8"
+      luong: tu_van_nganh
+    - noi: "Anh 8.5, Tin 9"
+      luong: tu_van_nganh
+    - noi: "kv2"
+      luong: tu_van_nganh
+    - noi: "lập trình, thiết kế học liệu"
+      luong: tu_van_nganh
+    - noi: "edtech"
+      y_dinh: tu_van_chon_nganh
+      luong: null
+      chua: ["Công nghệ giáo dục", "Rất phù hợp"]
+
+- ten: Lộ trình học – tân sinh viên
+  luot:
+    - noi: "em là tân sinh viên, cho em xin lộ trình học các kỳ"
+      y_dinh: [lo_trinh_hoc_tap, lo_trinh]
+      luong: lo_trinh
+    - noi: "không"
+      y_dinh: lo_trinh_hoc_tap
+      luong: null
+      chua: ["Lộ trình đề xuất", "Nguồn"]
+
+- ten: Lộ trình học – bị rớt môn, hỏi từng bước
+  luot:
+    - noi: "em rớt một môn thì học kỳ tới nên đăng ký học phần nào"
+      y_dinh: [lo_trinh_hoc_tap, lo_trinh]
+      luong: lo_trinh
+    - noi: "3"
+      luong: lo_trinh
+    - noi: "hk1"
+      luong: lo_trinh
+    - noi: "không"
+      luong: lo_trinh
+    - noi: "có"
+      y_dinh: lo_trinh_hoc_tap
+      luong: null
+      chua: ["Lộ trình đề xuất"]
+
+- ten: Hủy luồng giữa chừng
+  luot:
+    - noi: "tư vấn chọn ngành giúp em"
+      luong: tu_van_nganh
+    - noi: "hủy"
+      luong: null
+      chua: ["Đã dừng"]
+
+- ten: Ngoài phạm vi – chủ đề khác
+  luot:
+    - noi: "cuối tuần này Sài Gòn có mưa không"
+      chuyen_can_bo: true
+    - noi: "chỉ mình cách nấu canh chua cá lóc"
+      chuyen_can_bo: true
+    - noi: "giá vàng hôm nay bao nhiêu một chỉ"
+      chuyen_can_bo: true
+    - noi: "viết giúp em đoạn code python sắp xếp nổi bọt"
+      chuyen_can_bo: true
+
+- ten: Ngoài phạm vi – ngành/trường khác (mô hình tự tin nhưng không có dữ liệu)
+  luot:
+    - noi: "điểm chuẩn ngành sư phạm ngữ văn năm 2025"
+      chuyen_can_bo: true
+      chua: ["không thuộc phạm vi"]
+    - noi: "học phí ngành tâm lý học bao nhiêu ạ"
+      chuyen_can_bo: true
+    - noi: "điểm chuẩn CNTT của đại học bách khoa năm nay"
+      chuyen_can_bo: true
+      chua: ["bách khoa"]
