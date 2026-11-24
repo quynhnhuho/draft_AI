@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import json
+import time
 from pathlib import Path
 
 from ..advisor import tu_van as c2
@@ -13,8 +14,9 @@ from ..planner import dieu_phoi
 from ..planner.model import (GIA_DINH, MAX_TC_BINH_THUONG, MAX_TC_HOC_VUOT, NAM_AP_DUNG, NGUON_CTDT,
                              doc_du_lieu, hk1_co_dinh, kiem_tra_dau_vao, tao_bai_toan, ten_hoc_ky)
 from . import flows
-from .entities import DINH_HUONG, SO_THICH, TEN_DINH_HUONG, TEN_SO_THICH, Entities, extract
+from .entities import DINH_HUONG, SO_THICH, TEN_DINH_HUONG, TEN_SO_THICH, Entities, _find_majors, extract
 from .kb import KnowledgeBase, format_facts
+from .pham_vi import kiem_tra_pham_vi
 from .schema import BotReply, DialogueState
 
 LOG_DIR = Path(__file__).resolve().parents[2] / "logs"
@@ -30,8 +32,25 @@ KB_INTENTS = {
     "thu_tuc_nhap_hoc": "thủ tục nhập học",
 }
 
-ELIGIBILITY_CUES = ("đủ điều kiện", "đủ đk", "có đậu", "đậu không", "đỗ không", "có đỗ",
+ELIGIBILITY_CUES = ("đủ điều kiện", "có đậu", "đậu không", "đỗ không", "có đỗ",
                     "vào được", "trúng tuyển", "có vào", "đủ điểm")
+
+# LUẬT ƯU TIÊN (mục 7.2 HUONG_DAN_DO_AN): câu có ngành của Khoa + một cụm hỏi "đủ điều kiện/đậu…"
+# → luôn đi vào suy diễn lùi của C2, kể cả khi mô hình đoán ý định khác. Cụm từ hẹp hơn
+# ELIGIBILITY_CUES để không bắt nhầm câu điểm chuẩn ("điểm trúng tuyển ngành CNTT…"): trên 660 câu
+# của data/intents.csv chỉ trùng 2 câu (đều là "em được 27đ, có đủ điểm vào CNTT không").
+ELIGIBILITY_RULE = ("đủ điều kiện vào", "đủ điều kiện xét tuyển", "đủ điều kiện học", "đủ điều kiện đậu",
+                    "đủ điểm vào", "có đậu", "đậu không", "đỗ không", "có đỗ", "vào được")
+
+# LUẬT BỔ TRỢ: khi độ tin cậy < τ, chỉ XÁC NHẬN một ý định nằm trong top-3 của mô hình nếu câu chứa
+# cụm từ đặc trưng. Hai ý định này chỉ mở luồng hỏi thêm (không đưa ra số liệu) nên rủi ro thấp.
+RULE_CUES = {
+    "tu_van_chon_nganh": ("nên chọn ngành", "chọn ngành nào", "ngành nào phù hợp", "nên học ngành nào",
+                          "tư vấn chọn ngành", "tư vấn ngành", "phân vân giữa"),
+    "lo_trinh_hoc_tap": ("lộ trình", "đăng ký học phần", "học vượt", "ra trường đúng hạn", "kế hoạch học tập",
+                         "học phần nào", "đăng ký môn", "học lại", "rớt môn", "nợ môn"),
+}
+COMPARE_CUES = ("khác", "so sánh", "giống", "khác biệt")
 
 
 class ChatEngine:
@@ -59,22 +78,55 @@ class ChatEngine:
             reply.confidence = reply.confidence or 1.0
             return reply
 
+        t0 = time.perf_counter()
         e = extract(text, self.kb.majors, self.courses)
+        t = normalize(text)
         pred = self.classifier.predict(text)
         dbg = {"classifier": getattr(self.classifier, "name", "?"), "entities": e.as_dict(),
                "threshold": self.threshold}
 
-        if pred.confidence < self.threshold:
-            reply = self.handoff(text, pred)
+        intent, nguon = pred.intent, "mo_hinh"
+        if (ngoai := kiem_tra_pham_vi(t, self.kb.majors, lambda s: _find_majors(s, self.kb.majors))):
+            intent, nguon = None, "chan_pham_vi"
+            reply = self.handoff(text, pred, reason=ngoai[1], code=ngoai[0])
         else:
-            if e.nganh:
-                state.last_major = e.nganh[0]
-            reply = self._route(pred.intent, text, e, state)
+            if e.nganh and tu_ma_kb(e.nganh[0]) and any(c in t for c in ELIGIBILITY_RULE):
+                intent, nguon = "tu_van_chon_nganh", "luat_uu_tien"
+            elif pred.confidence < self.threshold:
+                intent, nguon = self._rule_intent(t, pred), "luat_bo_tro"
+            if intent is None:
+                nguon = "duoi_nguong"
+                reply = self.handoff(text, pred)
+            else:
+                if e.nganh:
+                    state.last_major = e.nganh[0]
+                reply = self._route(intent, text, e, state)
 
-        reply.intent = reply.intent or pred.intent
+        reply.intent = reply.intent or intent
         reply.confidence, reply.top_k = pred.confidence, pred.top_k
-        reply.debug = {**dbg, **reply.debug}
+        reply.debug = {**dbg, "nguon_y_dinh": nguon, "y_dinh_mo_hinh": pred.intent,
+                       "thoi_gian_ms": round((time.perf_counter() - t0) * 1000, 1), **reply.debug}
         return reply
+
+    @staticmethod
+    def _rule_intent(t: str, pred) -> str | None:
+        """Luật bổ trợ: xác nhận ý định trong top-3 của mô hình nhờ cụm từ đặc trưng."""
+        top = {i for i, _ in pred.top_k}
+        for intent, cues in RULE_CUES.items():
+            if intent in top and any(c in t for c in cues):
+                return intent
+        return None
+
+    def compare_majors(self, e: Entities) -> BotReply:
+        codes = [c for c in e.nganh if c in self.kb.majors]
+        codes = codes if len(codes) >= 2 else list(self.kb.majors)
+        parts = [f"**{self.kb.majors[c]['ten']}** (mã ngành {self.kb.majors[c]['ma_nganh']}): "
+                 f"{self.kb.majors[c]['mo_ta']} {self.kb.majors[c].get('khac_biet', '')}" for c in codes]
+        return BotReply("\n\n".join(parts) + f"\n\nNguồn: mô tả ngành trong cơ sở tri thức của "
+                        f"{self.kb.meta.get('khoa', 'Khoa')} (phiên bản {self.kb.meta.get('phien_ban', '?')}) "
+                        "– cần đối chiếu chương trình đào tạo chính thức."
+                        "\n\nNếu em muốn mình **tư vấn chọn ngành theo điểm và sở thích**, gõ "
+                        "\"tư vấn chọn ngành\".", intent="chuong_trinh_dao_tao")
 
     def _route(self, intent: str, text: str, e: Entities, state: DialogueState) -> BotReply:
         if intent == "chao_hoi":
@@ -83,6 +135,8 @@ class ChatEngine:
             t = normalize(text)
             if e.nganh and tu_ma_kb(e.nganh[0]) and any(c in t for c in ELIGIBILITY_CUES):
                 return flows.start_flow("kiem_tra_dieu_kien", text, e, state, self, extra={"nganh": e.nganh[0]})
+            if len(e.nganh) >= 2 and any(c in t for c in COMPARE_CUES) and not e.diem_mon:
+                return self.compare_majors(e)   # "CNTT khác Sư phạm Tin chỗ nào?" – so sánh, không mở luồng
             return flows.start_flow("tu_van_nganh", text, e, state, self)
         if intent == "lo_trinh_hoc_tap":
             return flows.start_flow("lo_trinh", text, e, state, self)
@@ -106,16 +160,14 @@ class ChatEngine:
 
     def answer_from_kb(self, intent: str, text: str, e: Entities, state: DialogueState) -> BotReply:
         t = normalize(text)
-        if intent == "chuong_trinh_dao_tao" and ("khác" in t or "so sánh" in t):
-            parts = [f"**{m['ten']}** (mã {m['ma_nganh']}): {m['mo_ta']} {m.get('khac_biet', '')}"
-                     for m in self.kb.majors.values()]
-            return BotReply("\n\n".join(parts) + "\n\nNguồn: mô tả ngành trong cơ sở tri thức "
-                            "(cần dẫn chương trình đào tạo chính thức).")
+        if intent == "chuong_trinh_dao_tao" and any(c in t for c in COMPARE_CUES) and len(e.nganh) != 1:
+            return self.compare_majors(e)
 
         nganh = e.nganh[0] if e.nganh else state.last_major
         res = self.kb.query(intent, nganh, e.nam)
         if not res.facts:
-            return self.handoff(text, None, reason=f"Hiện mình chưa có dữ liệu đã kiểm chứng về {KB_INTENTS[intent]}"
+            return self.handoff(text, None, code="thieu_du_lieu",
+                                reason=f"Hiện mình chưa có dữ liệu về {KB_INTENTS[intent]}"
                                 + (f" ngành {self.kb.major_name(nganh)}" if nganh else "") + ".")
         head = ""
         if res.year_fallback:
@@ -126,7 +178,8 @@ class ChatEngine:
             head = f"Số liệu mới nhất mình có (năm {max(f['nam'] for f in res.facts)}):\n\n"
         return BotReply(head + format_facts(res.facts), sources=res.facts)
 
-    def handoff(self, text: str, pred, reason: str | None = None) -> BotReply:
+    def handoff(self, text: str, pred, reason: str | None = None, code: str = "duoi_nguong") -> BotReply:
+        """Chuyển cán bộ: trả lời lịch sự + liên hệ, ghi logs/handoff.csv (hàng đợi + dữ liệu bổ sung C3)."""
         self.log_dir.mkdir(parents=True, exist_ok=True)
         path = self.log_dir / "handoff.csv"
         new = not path.exists()
@@ -137,7 +190,7 @@ class ChatEngine:
             w.writerow([dt.datetime.now().isoformat(timespec="seconds"), text,
                         pred.intent if pred else "", f"{pred.confidence:.3f}" if pred else "",
                         json.dumps(pred.top_k if pred else [], ensure_ascii=False),
-                        reason or "duoi_nguong"])
+                        code])
         msg = reason or "Câu hỏi này nằm ngoài phạm vi mình chắc chắn trả lời được."
         return BotReply(f"{msg} Mình đã **chuyển câu hỏi đến cán bộ tư vấn** của Khoa. "
                         f"Em có thể liên hệ trực tiếp:\n{self.kb.contact_text()}",
@@ -233,21 +286,34 @@ class ChatEngine:
                     f"{kq.thoi_gian_ms:.1f} ms"]
             dong += kq_dp.ghi_chu
             text +="\n\nChi tiết: " + "  \n".join(dong)
-        return BotReply(text, intent=intent, debug={"thuat_toan": kq.thuat_toan, "so_ky": kq.so_ky})
+        return BotReply(text, intent=intent, sources=[{"nguon": NGUON_CTDT, "nam": NAM_AP_DUNG}],
+                        debug={"thuat_toan": kq.thuat_toan, "so_ky": kq.so_ky})
 
 
-def module_status() -> dict[str, bool]:
-    def ok(fn) -> bool:
-        try:
-            fn()
-            return True
-        except NotImplementedError:
-            return False
-        except Exception:
-            return True
-
-    status = {}
-    return status
+def module_status(classifier=None, kb: KnowledgeBase | None = None) -> dict[str, str]:
+    """Trạng thái các mô-đun – hiện ở sidebar để kiểm tra trước khi demo."""
+    out: dict[str, str] = {}
+    try:
+        from ..planner import a_sao, nhanh_can  # noqa: F401
+        courses = doc_du_lieu()
+        out["C1 – Lộ trình (A*, nhánh cận)"] = f"sẵn sàng · {len(courses)} học phần"
+    except Exception as exc:  # hiển thị lỗi thay vì làm sập giao diện
+        out["C1 – Lộ trình (A*, nhánh cận)"] = f"lỗi: {exc}"
+    try:
+        from ..advisor import inference
+        from ..advisor.rules import RULES
+        assert callable(inference.forward_chaining) and callable(inference.backward_chaining)
+        out["C2 – Hệ luật (suy diễn tiến/lùi)"] = f"sẵn sàng · {len(RULES)} luật"
+    except Exception as exc:
+        out["C2 – Hệ luật (suy diễn tiến/lùi)"] = f"lỗi: {exc}"
+    if classifier is not None:
+        name = getattr(classifier, "name", "?")
+        out["C3 – Phân loại ý định"] = (f"{name}" + (" · CHƯA có mô hình đã huấn luyện"
+                                                       if name.startswith("keyword") else ""))
+    if kb is not None:
+        chua = sum(not f.get("da_kiem_chung", False) for f in kb.facts)
+        out["C4 – Cơ sở tri thức"] = f"{len(kb.facts)} mục · {chua} mục chưa đối chiếu nguồn chính thức"
+    return out
 
 
 __all__ = ["ChatEngine", "module_status", "SO_THICH", "DINH_HUONG"]

@@ -50,9 +50,12 @@ class KnowledgeBase:
         return res
 
     def contact_text(self) -> str:
+        """Kênh liên hệ thật của Khoa; bỏ qua giá trị còn để mẫu dạng "<...>" trong knowledge_base.json."""
         c = self.meta.get("lien_he_tu_van", {})
-        return (f"- Email: {c.get('email', '')}\n- Điện thoại: {c.get('dien_thoai', '')}\n"
-                f"- Fanpage: {c.get('fanpage', '')}")
+        dong = [f"- {nhan}: {c[k]}" for k, nhan in (("email", "Email"), ("dien_thoai", "Điện thoại"),
+                                                    ("fanpage", "Fanpage"))
+                if c.get(k) and not str(c[k]).startswith("<")]
+        return "\n".join(dong) or "- (Nhóm chưa cập nhật kênh liên hệ của Khoa trong data/knowledge_base.json)"
 
 
 def cite(fact: dict) -> str:
