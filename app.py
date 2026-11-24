@@ -6,6 +6,7 @@ Người dùng không chọn thuật toán lập lộ trình: chatbot gọi bộ
 """
 from __future__ import annotations
 
+import csv
 import datetime as dt
 import json
 
@@ -21,9 +22,10 @@ from src.nlu.classifier import KeywordClassifier, load_classifier, load_threshol
 st.set_page_config(page_title="Tư vấn tuyển sinh – Khoa CNTT", layout="wide")
 
 
-@st.cache_resource
+@st.cache_resource  # nạp mô hình Keras MỘT lần, không nạp lại mỗi lượt chat (mục 7.10)
 def get_resources():
-    return KnowledgeBase(), load_classifier(), load_threshold()
+    clf = load_classifier()
+    return KnowledgeBase(), clf, load_threshold(classifier=clf)
 
 
 kb, classifier, default_tau = get_resources()
@@ -39,7 +41,24 @@ def log_turn(user_text: str, reply: BotReply) -> None:
     with open(LOG_DIR / "conversations.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps({"t": dt.datetime.now().isoformat(timespec="seconds"), "user": user_text,
                             "intent": reply.intent, "conf": round(reply.confidence, 3),
+                            "top_k": [[i, round(p, 3)] for i, p in reply.top_k],
+                            "nguon_y_dinh": reply.debug.get("nguon_y_dinh"),
+                            "ms": reply.debug.get("thoi_gian_ms"),
                             "handoff": reply.handoff}, ensure_ascii=False) + "\n")
+
+
+def log_feedback(question: str, msg: dict, value: int) -> None:
+    """Nút 👍/👎 → logs/feedback.csv (mục 7.7) – dữ liệu để đánh giá người dùng và bổ sung tập huấn luyện."""
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    path = LOG_DIR / "feedback.csv"
+    new = not path.exists()
+    meta = msg.get("meta") or {}
+    with open(path, "a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["thoi_gian", "cau_hoi", "y_dinh", "do_tin_cay", "chuyen_can_bo", "danh_gia"])
+        w.writerow([dt.datetime.now().isoformat(timespec="seconds"), question, meta.get("intent"),
+                    f"{meta.get('confidence', 0):.3f}", meta.get("handoff"), "tot" if value == 1 else "chua_tot"])
 
 
 def push_bot(reply: BotReply) -> None:
@@ -59,15 +78,19 @@ with st.sidebar:
     if isinstance(classifier, KeywordClassifier):
         st.warning("Đang dùng **phân loại từ khóa tạm thời**. Huấn luyện mô hình Keras (Chức năng 3) "
                    "→ `models/intent_model.keras` để thay thế.")
-    engine.threshold = st.slider("Ngưỡng tin cậy τ", 0.0, 1.0, float(default_tau), 0.05,
-                                 help="Độ tin cậy < τ → chuyển cán bộ tư vấn thay vì trả lời bừa")
+    for w in getattr(classifier, "warnings", []):
+        st.warning(w)
+    engine.threshold = st.slider("Ngưỡng tin cậy τ", 0.0, 1.0, float(default_tau), 0.01,
+                                 help=f"Độ tin cậy < τ → chuyển cán bộ tư vấn thay vì trả lời bừa. "
+                                      f"Giá trị mặc định {default_tau:.2f} được chọn khi huấn luyện "
+                                      "(models/config.json).")
     debug = st.toggle("Chế độ debug (ý định, thực thể, thuật toán)", value=False,
                       help="Hiện ý định, độ tin cậy, thực thể; với lộ trình học: thuật toán đã dùng "
                            "và số nút")
     engine.debug = debug
 
     with st.expander("Trạng thái mô-đun"):
-        st.write({"C3 – Mô hình Keras": classifier.name == "keras", **module_status()})
+        st.write(module_status(classifier, kb))
 
     with st.expander("Tư vấn chọn ngành (Chức năng 2)"):
         with st.form("advisor"):
@@ -145,16 +168,25 @@ def trang_chatbot():
         push_bot(reply)
         log_turn(prompt, reply)
 
-    for msg in st.session_state.messages:
+    msgs = st.session_state.messages
+    for idx, msg in enumerate(msgs):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             meta = msg.get("meta")
             if debug and meta and meta.get("intent"):
                 top = ", ".join(f"{i}: {p:.2f}" for i, p in meta.get("top_k", []))
+                dbg = meta.get("debug", {})
                 st.caption(f"Ý định: `{meta['intent']}` · tin cậy {meta['confidence']:.2f} · top-k: {top}"
+                           + (f" · quyết định bởi: `{dbg['nguon_y_dinh']}`" if dbg.get("nguon_y_dinh") else "")
+                           + (f" · {dbg['thoi_gian_ms']} ms" if dbg.get("thoi_gian_ms") else "")
                            + (" · đã chuyển cán bộ" if meta.get("handoff") else ""))
-                if meta.get("debug", {}).get("entities"):
-                    st.caption(f"thực thể: `{meta['debug']['entities']}`")
+                if dbg.get("entities"):
+                    st.caption(f"thực thể: `{dbg['entities']}`")
+            if msg["role"] == "assistant" and meta and idx > 0 and msgs[idx - 1]["role"] == "user":
+                fb = st.feedback("thumbs", key=f"fb_{idx}")
+                if fb is not None and msg.get("fb") != fb:
+                    msg["fb"] = fb
+                    log_feedback(msgs[idx - 1]["content"], msg, fb)
 
 
 trang_chatbot()

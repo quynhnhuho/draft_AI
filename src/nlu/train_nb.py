@@ -1,3 +1,6 @@
+# LƯU Ý: script thử nghiệm cũ, KHÔNG dùng để tạo mô hình cho chatbot.
+# Mô hình chatbot (models/intent_model.keras, tokenizer.json, config.json…) do
+# notebooks/N31_De03_Train.ipynb sinh ra; script này ghi kết quả vào models/thu_nghiem/.
 """
 train_nb.py - Baseline Naive Bayes (TF-IDF + MultinomialNB) cho bai toan phan loai y dinh.
 
@@ -37,7 +40,7 @@ from src.nlu.preprocess import preprocess
 
 # ── Đường dẫn ──────────────────────────────────────────────────────────────
 DATA_PATH = ROOT / "data" / "intents.csv"
-MODEL_DIR = ROOT / "models"
+MODEL_DIR = ROOT / "models" / "thu_nghiem"  # KHÔNG ghi đè mô hình chatbot trong models/
 IMAGE_DIR = ROOT / "images"
 
 MODEL_DIR.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,36 @@
+{
+  "threshold": 0.92,
+  "best_model": "Conv1D",
+  "model_file": "intent_model.keras",
+  "max_len": 50,
+  "padding": "post",
+  "use_word_segment": true,
+  "word_segmenter": "underthesea",
+  "labels": [
+    "chao_hoi",
+    "chuong_trinh_dao_tao",
+    "diem_chuan",
+    "hoc_bong",
+    "hoc_phi",
+    "ky_tuc_xa",
+    "lo_trinh_hoc_tap",
+    "thu_tuc_nhap_hoc",
+    "to_hop_xet_tuyen",
+    "tu_van_chon_nganh",
+    "viec_lam"
+  ],
+  "seed": 42,
+  "split": {
+    "train": 462,
+    "val": 99,
+    "test": 99,
+    "oos_val": 41,
+    "oos_test": 41
+  },
+  "thresholds_per_model": {
+    "NaiveBayes": 0.16,
+    "LSTM": 0.77,
+    "LSTM_v2": 0.87,
+    "Conv1D": 0.92
+  }
+}

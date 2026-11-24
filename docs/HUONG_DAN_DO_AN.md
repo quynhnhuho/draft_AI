@@ -174,6 +174,9 @@ Tóm tắt:
 
 ## 6. Chức năng 3 – Phân loại ý định (Phần 5: 5.2, 5.3)
 
+> ✅ **Đã huấn luyện** – dữ liệu, kết quả NB/LSTM/Conv1D, ngưỡng τ: [`docs/C3_PHAN_LOAI_Y_DINH.md`](C3_PHAN_LOAI_Y_DINH.md);
+> notebook: `notebooks/N31_De03_Train.ipynb`. Hợp đồng thực tế với C4: `predict(text) -> Prediction(intent, confidence, top_k)`.
+
 ### 6.1 Danh sách ý định đề xuất (11)
 
 `diem_chuan`, `to_hop_xet_tuyen`, `hoc_phi`, `hoc_bong`, `ky_tuc_xa`, `chuong_trinh_dao_tao`,
@@ -221,6 +224,9 @@ huấn luyện và lúc chatbot chạy.
 ---
 
 ## 7. Chức năng 4 – Ứng dụng chatbot (CLO 3, CLO 4) ★
+
+> ✅ **Đã tích hợp mô hình C3** – kiến trúc, định tuyến, chặn phạm vi, đánh giá end-to-end:
+> [`docs/C4_CHATBOT.md`](C4_CHATBOT.md), kết quả kịch bản: [`docs/C4_DANH_GIA.md`](C4_DANH_GIA.md).
 
 Khung đã có trong repo: `app.py` + `src/chatbot/`. Chạy được ngay kể cả khi C1–C3 chưa xong
 (dùng bộ phân loại từ khóa tạm thời và thông báo "mô-đun chưa cài đặt").

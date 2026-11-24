@@ -5,6 +5,17 @@ logs/*
 !logs/.gitkeep
 models/*
 !models/.gitkeep
+# Mô hình C3 dùng khi chạy chatbot (mỗi file < 2 MB) – được commit để cả nhóm chạy được ngay
+!models/intent_model.keras
+!models/tokenizer.json
+!models/labels.json
+!models/config.json
+!models/nb_pipeline.pkl
+!models/metrics_c3.json
+!models/threshold_config.json
+# Sản phẩm phụ khi chạy notebook huấn luyện cục bộ
+images/
+*.zip
 .venv/
 venv/
 env/

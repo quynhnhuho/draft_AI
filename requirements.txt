@@ -1,8 +1,10 @@
 numpy
 pandas
 scikit-learn
-tensorflow>=2.16
-pyvi            # hoặc: underthesea
+tensorflow>=2.16        # mô hình ý định chính (C3); thiếu thì chatbot tự dùng Naive Bayes
+underthesea             # tách từ – PHẢI cài, mô hình được huấn luyện với underthesea
 streamlit>=1.40
+pyyaml                  # tests/scenarios.yaml – đánh giá end-to-end C4
 matplotlib
+seaborn                 # biểu đồ khi huấn luyện (notebook C3)
 pytest

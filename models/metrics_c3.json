@@ -1,0 +1,415 @@
+{
+  "n_samples": {
+    "raw": 660,
+    "dedup": 660,
+    "oos": 82
+  },
+  "nb_alpha": 1.0,
+  "models": {
+    "NaiveBayes": {
+      "val_acc": 0.8484848484848485,
+      "val_macro_f1": 0.8536452281808319,
+      "test_acc": 0.8282828282828283,
+      "test_macro_f1": 0.8308497300616636,
+      "test_weighted_f1": 0.8308497300616637,
+      "threshold": 0.16
+    },
+    "LSTM": {
+      "val_acc": 0.7878787878787878,
+      "val_macro_f1": 0.7814955362909327,
+      "test_acc": 0.7676767676767676,
+      "test_macro_f1": 0.7764425384478861,
+      "test_weighted_f1": 0.7764425384478861,
+      "threshold": 0.77
+    },
+    "LSTM_v2": {
+      "val_acc": 0.8888888888888888,
+      "val_macro_f1": 0.8879569690715201,
+      "test_acc": 0.8787878787878788,
+      "test_macro_f1": 0.8806383159324337,
+      "test_weighted_f1": 0.8806383159324336,
+      "threshold": 0.87
+    },
+    "Conv1D": {
+      "val_acc": 0.9292929292929293,
+      "val_macro_f1": 0.9283645834729427,
+      "test_acc": 0.8888888888888888,
+      "test_macro_f1": 0.8943587131822427,
+      "test_weighted_f1": 0.8943587131822427,
+      "threshold": 0.92
+    }
+  },
+  "report_test": {
+    "NaiveBayes": {
+      "chao_hoi": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "chuong_trinh_dao_tao": {
+        "precision": 1.0,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.875,
+        "support": 9.0
+      },
+      "diem_chuan": {
+        "precision": 0.6153846153846154,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.7272727272727273,
+        "support": 9.0
+      },
+      "hoc_bong": {
+        "precision": 1.0,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.875,
+        "support": 9.0
+      },
+      "hoc_phi": {
+        "precision": 0.6666666666666666,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.6666666666666666,
+        "support": 9.0
+      },
+      "ky_tuc_xa": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "lo_trinh_hoc_tap": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "thu_tuc_nhap_hoc": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "to_hop_xet_tuyen": {
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1-score": 0.75,
+        "support": 9.0
+      },
+      "tu_van_chon_nganh": {
+        "precision": 0.9,
+        "recall": 1.0,
+        "f1-score": 0.9473684210526315,
+        "support": 9.0
+      },
+      "viec_lam": {
+        "precision": 0.6666666666666666,
+        "recall": 0.4444444444444444,
+        "f1-score": 0.5333333333333333,
+        "support": 9.0
+      },
+      "accuracy": 0.8282828282828283,
+      "macro avg": {
+        "precision": 0.8589743589743588,
+        "recall": 0.8282828282828283,
+        "f1-score": 0.8308497300616636,
+        "support": 99.0
+      },
+      "weighted avg": {
+        "precision": 0.858974358974359,
+        "recall": 0.8282828282828283,
+        "f1-score": 0.8308497300616637,
+        "support": 99.0
+      }
+    },
+    "LSTM": {
+      "chao_hoi": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "chuong_trinh_dao_tao": {
+        "precision": 0.7777777777777778,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.7777777777777778,
+        "support": 9.0
+      },
+      "diem_chuan": {
+        "precision": 0.6153846153846154,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.7272727272727273,
+        "support": 9.0
+      },
+      "hoc_bong": {
+        "precision": 0.5,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.64,
+        "support": 9.0
+      },
+      "hoc_phi": {
+        "precision": 0.875,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.8235294117647058,
+        "support": 9.0
+      },
+      "ky_tuc_xa": {
+        "precision": 1.0,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.875,
+        "support": 9.0
+      },
+      "lo_trinh_hoc_tap": {
+        "precision": 0.8571428571428571,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.75,
+        "support": 9.0
+      },
+      "thu_tuc_nhap_hoc": {
+        "precision": 1.0,
+        "recall": 0.5555555555555556,
+        "f1-score": 0.7142857142857143,
+        "support": 9.0
+      },
+      "to_hop_xet_tuyen": {
+        "precision": 1.0,
+        "recall": 0.5555555555555556,
+        "f1-score": 0.7142857142857143,
+        "support": 9.0
+      },
+      "tu_van_chon_nganh": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "viec_lam": {
+        "precision": 0.5384615384615384,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.6363636363636364,
+        "support": 9.0
+      },
+      "accuracy": 0.7676767676767676,
+      "macro avg": {
+        "precision": 0.8330697080697079,
+        "recall": 0.7676767676767677,
+        "f1-score": 0.7764425384478861,
+        "support": 99.0
+      },
+      "weighted avg": {
+        "precision": 0.833069708069708,
+        "recall": 0.7676767676767676,
+        "f1-score": 0.7764425384478861,
+        "support": 99.0
+      }
+    },
+    "LSTM_v2": {
+      "chao_hoi": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "chuong_trinh_dao_tao": {
+        "precision": 0.7777777777777778,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.7777777777777778,
+        "support": 9.0
+      },
+      "diem_chuan": {
+        "precision": 0.8888888888888888,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.8888888888888888,
+        "support": 9.0
+      },
+      "hoc_bong": {
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.8,
+        "support": 9.0
+      },
+      "hoc_phi": {
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1-score": 0.8571428571428571,
+        "support": 9.0
+      },
+      "ky_tuc_xa": {
+        "precision": 0.8888888888888888,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.8888888888888888,
+        "support": 9.0
+      },
+      "lo_trinh_hoc_tap": {
+        "precision": 0.8888888888888888,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.8888888888888888,
+        "support": 9.0
+      },
+      "thu_tuc_nhap_hoc": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "to_hop_xet_tuyen": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 9.0
+      },
+      "tu_van_chon_nganh": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "viec_lam": {
+        "precision": 0.6666666666666666,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.7619047619047619,
+        "support": 9.0
+      },
+      "accuracy": 0.8787878787878788,
+      "macro avg": {
+        "precision": 0.8964646464646464,
+        "recall": 0.8787878787878788,
+        "f1-score": 0.8806383159324337,
+        "support": 99.0
+      },
+      "weighted avg": {
+        "precision": 0.8964646464646465,
+        "recall": 0.8787878787878788,
+        "f1-score": 0.8806383159324336,
+        "support": 99.0
+      }
+    },
+    "Conv1D": {
+      "chao_hoi": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "chuong_trinh_dao_tao": {
+        "precision": 0.875,
+        "recall": 0.7777777777777778,
+        "f1-score": 0.8235294117647058,
+        "support": 9.0
+      },
+      "diem_chuan": {
+        "precision": 1.0,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9411764705882353,
+        "support": 9.0
+      },
+      "hoc_bong": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 9.0
+      },
+      "hoc_phi": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 9.0
+      },
+      "ky_tuc_xa": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 9.0
+      },
+      "lo_trinh_hoc_tap": {
+        "precision": 0.8888888888888888,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.8888888888888888,
+        "support": 9.0
+      },
+      "thu_tuc_nhap_hoc": {
+        "precision": 1.0,
+        "recall": 0.5555555555555556,
+        "f1-score": 0.7142857142857143,
+        "support": 9.0
+      },
+      "to_hop_xet_tuyen": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 9.0
+      },
+      "tu_van_chon_nganh": {
+        "precision": 0.8888888888888888,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.8888888888888888,
+        "support": 9.0
+      },
+      "viec_lam": {
+        "precision": 0.5,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.64,
+        "support": 9.0
+      },
+      "accuracy": 0.8888888888888888,
+      "macro avg": {
+        "precision": 0.922979797979798,
+        "recall": 0.888888888888889,
+        "f1-score": 0.8943587131822427,
+        "support": 99.0
+      },
+      "weighted avg": {
+        "precision": 0.922979797979798,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.8943587131822427,
+        "support": 99.0
+      }
+    }
+  },
+  "threshold_table": [
+    {
+      "Mô hình": "NaiveBayes",
+      "τ": 0.16,
+      "Val: đúng": 0.7172,
+      "Val: chặn OOS": 0.8537,
+      "Val: cân bằng": 0.7795,
+      "Test: đúng": 0.7172,
+      "Test: chặn OOS": 0.6829,
+      "Test: cân bằng": 0.6996,
+      "Test: độ chính xác câu trả lời": 0.7553
+    },
+    {
+      "Mô hình": "LSTM",
+      "τ": 0.77,
+      "Val: đúng": 0.6667,
+      "Val: chặn OOS": 0.7317,
+      "Val: cân bằng": 0.6977,
+      "Test: đúng": 0.5859,
+      "Test: chặn OOS": 0.561,
+      "Test: cân bằng": 0.5731,
+      "Test: độ chính xác câu trả lời": 0.6744
+    },
+    {
+      "Mô hình": "LSTM_v2",
+      "τ": 0.87,
+      "Val: đúng": 0.7172,
+      "Val: chặn OOS": 0.8293,
+      "Val: cân bằng": 0.7692,
+      "Test: đúng": 0.7475,
+      "Test: chặn OOS": 0.8049,
+      "Test: cân bằng": 0.7751,
+      "Test: độ chính xác câu trả lời": 0.881
+    },
+    {
+      "Mô hình": "Conv1D",
+      "τ": 0.92,
+      "Val: đúng": 0.8081,
+      "Val: chặn OOS": 0.9268,
+      "Val: cân bằng": 0.8634,
+      "Test: đúng": 0.7879,
+      "Test: chặn OOS": 0.7561,
+      "Test: cân bằng": 0.7717,
+      "Test: độ chính xác câu trả lời": 0.8864
+    }
+  ],
+  "best_model": "Conv1D"
+}
