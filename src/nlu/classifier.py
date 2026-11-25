@@ -101,9 +101,47 @@ def pad(seqs: list[list[int]], max_len: int, padding: str = "post", truncating: 
     return x
 
 
+def _bo_khoa_rong(obj, khoa: str):
+    """Xóa đệ quy các khóa `khoa` có giá trị None trong config của mô hình."""
+    if isinstance(obj, dict):
+        return {k: _bo_khoa_rong(v, khoa) for k, v in obj.items() if not (k == khoa and v is None)}
+    if isinstance(obj, list):
+        return [_bo_khoa_rong(v, khoa) for v in obj]
+    return obj
+
+
+def load_keras_model(path: Path):
+    """Nạp file .keras; tương thích Keras 3.12 (Python 3.10).
+
+    Mô hình được lưu bằng Keras mới (Colab), config có thêm `"quantization_config": null` mà Keras 3.12
+    không nhận. Khi gặp lỗi đó: bỏ các khóa rỗng này trên MỘT BẢN SAO TẠM rồi nạp lại – file gốc và
+    trọng số giữ nguyên, kết quả dự đoán không đổi.
+    """
+    import tempfile
+    import zipfile
+
+    import tensorflow as tf
+
+    try:
+        return tf.keras.models.load_model(path, compile=False)
+    except (TypeError, ValueError) as exc:
+        if "quantization_config" not in str(exc):
+            raise
+    with zipfile.ZipFile(path) as z:
+        files = {n: z.read(n) for n in z.namelist()}
+    cfg = _bo_khoa_rong(json.loads(files["config.json"]), "quantization_config")
+    files["config.json"] = json.dumps(cfg).encode("utf-8")
+    with tempfile.TemporaryDirectory() as d:
+        tam = Path(d) / Path(path).name
+        with zipfile.ZipFile(tam, "w") as z:
+            for n, b in files.items():
+                z.writestr(n, b)
+        return tf.keras.models.load_model(tam, compile=False)
+
+
 class KerasIntentModel:
     def __init__(self, models_dir: Path = MODELS_DIR, cfg: dict | None = None):
-        import tensorflow as tf  # nạp muộn: app vẫn chạy (bằng NB) khi chưa cài TensorFlow
+        import tensorflow  # noqa: F401  nạp muộn: app vẫn chạy (bằng NB) khi chưa cài TensorFlow
 
         models_dir = Path(models_dir)
         cfg = cfg if cfg is not None else read_config(models_dir)
@@ -114,8 +152,7 @@ class KerasIntentModel:
         self.name = f"keras ({self.arch})"
         self.default_threshold = float(cfg.get("threshold", DEFAULT_THRESHOLD))
         self.tokenizer = KerasTokenizerLite(models_dir / "tokenizer.json")
-        self.model = tf.keras.models.load_model(models_dir / cfg.get("model_file", "intent_model.keras"),
-                                                compile=False)
+        self.model = load_keras_model(models_dir / cfg.get("model_file", "intent_model.keras"))
         n_out = self.model.output_shape[-1]
         if n_out != len(self.labels):
             raise ValueError(f"Mô hình có {n_out} lớp nhưng labels.json có {len(self.labels)} nhãn")
