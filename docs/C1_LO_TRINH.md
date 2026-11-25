@@ -21,7 +21,7 @@ Kết nối với chatbot (file của Chức năng 4, phần dành cho Chức n�
 | `src/chatbot/engine.py` | `make_plan()`: kiểm tra dữ liệu nhập, gọi `dieu_phoi.lap_lo_trinh()`, in bảng lộ trình + nguồn + giả định |
 | `src/chatbot/flows.py` | Luồng hỏi `lo_trinh`: học kỳ sắp đăng ký → học phần đã đạt → bị rớt → có học vượt |
 | `src/chatbot/entities.py` | Nhận học phần theo mã hoặc tên, hiểu "hk1" |
-| `app.py` | Form "🗓️ Lộ trình học (Chức năng 1)" ở thanh bên |
+| `app.py`, `templates/index.html` | Biểu mẫu "Lập lộ trình đăng ký học phần" ở thanh bên web (`/api/lo-trinh`) |
 
 Ba file thuật toán **chỉ import từ `model.py`**, không phụ thuộc nhau, nên mỗi thành viên commit file
 của mình độc lập. Bộ điều phối import thẳng A\* và nhánh cận, nên hai file này phải có trước khi
@@ -85,4 +85,5 @@ trong repo để giảng viên kiểm tra và để so sánh 3 thuật toán tro
   → bảng lộ trình theo học kỳ (môn học lại, kỳ Trường xếp) + nguồn QĐ 2619 + giả định
 ```
 
-Cũng có thể lập lộ trình bằng form "Lộ trình học" ở thanh bên của app (`streamlit run app.py`).
+Cũng có thể lập lộ trình bằng biểu mẫu "Lập lộ trình đăng ký học phần" ở thanh bên của web (`python app.py`).
+Chạy 3 thuật toán trên 3 tình huống mẫu, in lộ trình, chi phí, số nút: `python demo.py c1`.

@@ -1,192 +1,302 @@
-"""Chức năng 4 – Giao diện chatbot tư vấn tuyển sinh (Streamlit).
+"""Chức năng 4 – Chatbot tư vấn tuyển sinh Khoa CNTT (web Flask + HTML/CSS/JS).
 
-    streamlit run app.py
+    python app.py                 → mở http://127.0.0.1:5000
+    python app.py --port 8000     → đổi cổng
+    python app.py --nb            → dùng baseline Naive Bayes (máy không cài được TensorFlow)
 
-Người dùng không chọn thuật toán lập lộ trình: chatbot gọi bộ điều phối của Chức năng 1.
+Web chỉ là giao diện: mọi xử lý nằm trong mã Python của nhóm
+  câu hỏi → src/nlu (C3, mô hình Keras models/intent_model.keras) → src/chatbot/engine.py
+          → trả lời từ data/knowledge_base.json (kèm nguồn + năm áp dụng)
+          → hoặc gọi src/advisor (C2, suy diễn tiến/lùi) / src/planner (C1, A* + nhánh cận).
+Không dùng dịch vụ ngoài, không cần khóa API.
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import datetime as dt
 import json
+import os
+import threading
+import uuid
+from pathlib import Path
 
-import streamlit as st
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 
-from src.chatbot.engine import LOG_DIR, ChatEngine, module_status
-from src.advisor.tham_so import MON_HB2, TEN_MON, tu_ma_kb
-from src.chatbot.entities import DINH_HUONG, SO_THICH, TEN_DINH_HUONG, TEN_SO_THICH
-from src.chatbot.kb import KnowledgeBase
-from src.chatbot.schema import BotReply, DialogueState
-from src.nlu.classifier import KeywordClassifier, load_classifier, load_threshold
+from flask import Flask, abort, jsonify, render_template, request  # noqa: E402
 
-st.set_page_config(page_title="Tư vấn tuyển sinh – Khoa CNTT", layout="wide")
+from src.advisor.tham_so import MON, MON_HB2, NAM, TEN_MON, tu_ma_kb  # noqa: E402
+from src.chatbot.engine import LOG_DIR, ChatEngine, module_status  # noqa: E402
+from src.chatbot.entities import DINH_HUONG, SO_THICH, TEN_DINH_HUONG, TEN_SO_THICH  # noqa: E402
+from src.chatbot.kb import KnowledgeBase  # noqa: E402
+from src.chatbot.schema import BotReply, DialogueState  # noqa: E402
+from src.nlu.classifier import load_classifier, load_threshold  # noqa: E402
+from src.web.markdown_lite import to_html  # noqa: E402
 
+ROOT = Path(__file__).resolve().parent
 
-@st.cache_resource  # nạp mô hình Keras MỘT lần, không nạp lại mỗi lượt chat (mục 7.10)
-def get_resources():
-    clf = load_classifier()
-    return KnowledgeBase(), clf, load_threshold(classifier=clf)
+# Câu gợi ý / câu hỏi thường gặp: chỉ giữ câu đã kiểm tra chatbot trả lời được (tests/test_web.py).
+GOI_Y = [
+    "Điểm chuẩn ngành Công nghệ Thông tin năm gần nhất?",
+    "Các phương thức xét tuyển năm 2026",
+    "Học phí và học bổng Khoa CNTT",
+    "Em nên chọn ngành nào của Khoa?",
+    "Lập lộ trình học cho tân sinh viên",
+]
+CAU_HOI_THUONG_GAP = [
+    ("Ngành CNTT khác Sư phạm Tin học chỗ nào?", "CNTT khác Sư phạm Tin học chỗ nào?"),
+    ("Sư phạm Tin học có được hỗ trợ học phí?", "Sư phạm Tin học có được hỗ trợ học phí?"),
+    ("Cơ hội việc làm sau khi tốt nghiệp", "Cơ hội việc làm sau khi tốt nghiệp"),
+    ("Thời gian đào tạo và văn bằng", "Thời gian đào tạo và văn bằng"),
+    ("Thi THPT Toán 8, Anh 7, Lý 7 có đủ điều kiện vào CNTT?",
+     "Em thi THPT Toán 8, Anh 7, Lý 7, KV2 có đủ điều kiện vào CNTT không?"),
+]
 
-
-kb, classifier, default_tau = get_resources()
-engine = ChatEngine(kb, classifier, default_tau)
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []          # [{"role", "content", "meta"}]
-    st.session_state.dialog = DialogueState()
-
-
-def log_turn(user_text: str, reply: BotReply) -> None:
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    with open(LOG_DIR / "conversations.jsonl", "a", encoding="utf-8") as f:
-        f.write(json.dumps({"t": dt.datetime.now().isoformat(timespec="seconds"), "user": user_text,
-                            "intent": reply.intent, "conf": round(reply.confidence, 3),
-                            "top_k": [[i, round(p, 3)] for i, p in reply.top_k],
-                            "nguon_y_dinh": reply.debug.get("nguon_y_dinh"),
-                            "ms": reply.debug.get("thoi_gian_ms"),
-                            "handoff": reply.handoff}, ensure_ascii=False) + "\n")
-
-
-def log_feedback(question: str, msg: dict, value: int) -> None:
-    """Nút 👍/👎 → logs/feedback.csv (mục 7.7) – dữ liệu để đánh giá người dùng và bổ sung tập huấn luyện."""
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    path = LOG_DIR / "feedback.csv"
-    new = not path.exists()
-    meta = msg.get("meta") or {}
-    with open(path, "a", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        if new:
-            w.writerow(["thoi_gian", "cau_hoi", "y_dinh", "do_tin_cay", "chuyen_can_bo", "danh_gia"])
-        w.writerow([dt.datetime.now().isoformat(timespec="seconds"), question, meta.get("intent"),
-                    f"{meta.get('confidence', 0):.3f}", meta.get("handoff"), "tot" if value == 1 else "chua_tot"])
+MAX_HOI_THOAI = 30          # mỗi trình duyệt giữ tối đa 30 cuộc hội thoại (bộ nhớ của máy chủ)
+MAX_KHACH = 1000
 
 
-def push_bot(reply: BotReply) -> None:
-    st.session_state.messages.append({"role": "assistant", "content": reply.text, "meta": {
-        "intent": reply.intent, "confidence": reply.confidence, "top_k": reply.top_k,
-        "handoff": reply.handoff, "debug": reply.debug}})
+class KhoHoiThoai:
+    """Lưu hội thoại trong bộ nhớ theo client_id (trình duyệt tự sinh, lưu ở localStorage)."""
+
+    def __init__(self):
+        self._data: dict[str, dict[str, dict]] = {}
+        self.lock = threading.RLock()
+
+    def danh_sach(self, client: str) -> list[dict]:
+        with self.lock:
+            hs = sorted(self._data.get(client, {}).values(), key=lambda h: h["updated"], reverse=True)
+            return [{"id": h["id"], "title": h["title"], "updated": h["updated"]} for h in hs if h["messages"]]
+
+    def lay(self, client: str, cid: str | None, tao_moi: bool = True) -> dict | None:
+        with self.lock:
+            kho = self._data.get(client)
+            if kho is None:
+                if len(self._data) >= MAX_KHACH:
+                    self._data.pop(next(iter(self._data)))
+                kho = self._data[client] = {}
+            if cid and cid in kho:
+                return kho[cid]
+            if not tao_moi:
+                return None
+            if len(kho) >= MAX_HOI_THOAI:
+                kho.pop(min(kho, key=lambda k: kho[k]["updated"]))
+            now = dt.datetime.now().isoformat(timespec="seconds")
+            h = {"id": uuid.uuid4().hex[:12], "title": "Cuộc hội thoại mới", "created": now, "updated": now,
+                 "messages": [], "state": DialogueState()}
+            kho[h["id"]] = h
+            return h
 
 
-def hp_label(m: str) -> str:
-    return f"{m} – {engine.courses[m].ten}"
+def _gio() -> str:
+    return dt.datetime.now().strftime("%H:%M")
 
 
-# ================================================================== sidebar
-with st.sidebar:
-    st.header("Cấu hình")
-    st.caption(f"Bộ phân loại ý định: **{classifier.name}**")
-    if isinstance(classifier, KeywordClassifier):
-        st.warning("Đang dùng **phân loại từ khóa tạm thời**. Huấn luyện mô hình Keras (Chức năng 3) "
-                   "→ `models/intent_model.keras` để thay thế.")
-    for w in getattr(classifier, "warnings", []):
-        st.warning(w)
-    engine.threshold = st.slider("Ngưỡng tin cậy τ", 0.0, 1.0, float(default_tau), 0.01,
-                                 help=f"Độ tin cậy < τ → chuyển cán bộ tư vấn thay vì trả lời bừa. "
-                                      f"Giá trị mặc định {default_tau:.2f} được chọn khi huấn luyện "
-                                      "(models/config.json).")
-    debug = st.toggle("Chế độ debug (ý định, thực thể, thuật toán)", value=False,
-                      help="Hiện ý định, độ tin cậy, thực thể; với lộ trình học: thuật toán đã dùng "
-                           "và số nút")
-    engine.debug = debug
-
-    with st.expander("Trạng thái mô-đun"):
-        st.write(module_status(classifier, kb))
-
-    with st.expander("Tư vấn chọn ngành (Chức năng 2)"):
-        with st.form("advisor"):
-            pt = st.radio("Phương thức xét tuyển", ["THPT", "DGNL"], horizontal=True)
-            kv = st.selectbox("Khu vực ưu tiên", ["KV1", "KV2-NT", "KV2", "KV3"], index=3)
-            st.caption("**THPT** – điểm thi các môn (để trống nếu không thi)")
-            diem = {m: st.number_input(ten, 0.0, 10.0, value=None, step=0.05, key=f"d_{m}")
-                    for m, ten in TEN_MON.items()}
-            st.caption("**ĐGNL** – điểm ĐGNL môn Toán và học bạ lớp 12")
-            dgnl = st.number_input("Điểm ĐGNL môn Toán (thang 10)", 0.0, 10.0, value=None, step=0.05)
-            hb1 = st.number_input("Học bạ Tiếng Anh", 0.0, 10.0, value=None, step=0.05)
-            mon_hb2 = st.selectbox("Môn học bạ thứ hai", list(MON_HB2), format_func=TEN_MON.get)
-            hb2 = st.number_input("Học bạ môn thứ hai", 0.0, 10.0, value=None, step=0.05)
-            so_thich = st.multiselect("Sở thích", list(SO_THICH), format_func=TEN_SO_THICH.get)
-            dinh_huong = st.multiselect("Định hướng nghề nghiệp", list(DINH_HUONG), format_func=TEN_DINH_HUONG.get)
-            check = st.selectbox("Kiểm tra đủ điều kiện ngành (suy diễn lùi)", ["(không)"] + list(kb.majors),
-                                 format_func=lambda c: kb.major_name(c) if c in kb.majors else c)
-            if st.form_submit_button("Tư vấn"):
-                user = {"phuong_thuc": pt, "khu_vuc": kv,
-                        **{k: k in so_thich for k in SO_THICH}, **{k: k in dinh_huong for k in DINH_HUONG}}
-                if pt == "THPT":
-                    user |= {f"diem_{m}": v for m, v in diem.items()}
-                else:
-                    user |= {"diem_dgnl": dgnl, "HB_mon1": hb1, "HB_mon2": hb2, "mon_hb2": mon_hb2}
-                st.session_state.pending_form = ("advisor", user, check)
-
-    with st.expander("Lộ trình học (Chức năng 1)"):
-        with st.form("planner"):
-            ids = sorted(engine.course_ids, key=lambda m: engine.courses[m].stt)
-            ky = st.number_input("Học kỳ sắp đăng ký (1 = năm nhất)", 1, 16, 1)
-            done = st.multiselect("Học phần đã đạt", ids, format_func=hp_label)
-            rot = st.multiselect("Học phần bị rớt (chưa học lại đạt)", ids, format_func=hp_label)
-            hoc_vuot = st.checkbox("Em muốn học vượt (tối đa 22 TC/kỳ)")
-            if st.form_submit_button("Lập lộ trình"):
-                st.session_state.pending_form = ("planner", {"da_dat": set(done), "rot": set(rot),
-                                                             "ky": int(ky), "hoc_vuot": hoc_vuot}, None)
-
-    if st.button("Xóa hội thoại"):
-        st.session_state.messages = []
-        st.session_state.dialog = DialogueState()
-        st.rerun()
+def _json_reply(reply: BotReply, state: DialogueState, index: int) -> dict:
+    return {"role": "bot", "index": index, "time": _gio(), "html": to_html(reply.text),
+            "intent": reply.intent, "confidence": round(float(reply.confidence or 0), 4),
+            "top_k": [[i, round(float(p), 4)] for i, p in reply.top_k], "handoff": reply.handoff,
+            "has_source": bool(reply.sources), "flow": state.active_flow,
+            "debug": {k: v for k, v in reply.debug.items() if k in
+                      ("nguon_y_dinh", "y_dinh_mo_hinh", "thoi_gian_ms", "entities", "threshold",
+                       "thuat_toan", "so_ky", "ket_luan")}}
 
 
-# ================================================================== trang chatbot
-def trang_chatbot():
-    st.title("Chatbot tư vấn tuyển sinh – Khoa CNTT")
-    st.caption(f"{kb.meta.get('truong', '')} · Mọi số liệu đều kèm nguồn và năm áp dụng · "
-               "Không dùng API mô hình ngôn ngữ lớn")
-
-    suggestions = ["Điểm chuẩn ngành CNTT năm ngoái bao nhiêu?", "CNTT khác Sư phạm Tin học chỗ nào?",
-                   "Em thi THPT Toán 8, Anh 7, Lý 7, KV2 có đủ điều kiện vào CNTT không?",
-                   "Em là tân sinh viên, lộ trình học thế nào?"]
-    if not st.session_state.messages:
-        push_bot(engine.greet("chào"))
-    if len(st.session_state.messages) == 1:          # chỉ hiện gợi ý khi chưa hỏi gì
-        for c, s in zip(st.columns(len(suggestions)), suggestions):
-            if c.button(s, use_container_width=True):
-                st.session_state.quick = s
-
-    if form := st.session_state.pop("pending_form", None):
-        kind, data, extra = form
-        if kind == "advisor":
-            st.session_state.messages.append({"role": "user", "content": "[Form tư vấn chọn ngành]"})
-            push_bot(engine.advise(data))
-            if extra in kb.majors and tu_ma_kb(extra):
-                push_bot(engine.check_eligibility(extra, data))
-        else:
-            st.session_state.messages.append({"role": "user", "content": "[Form lập lộ trình học]"})
-            push_bot(engine.make_plan(**data))
-
-    prompt = st.chat_input("Nhập câu hỏi của em…") or st.session_state.pop("quick", None)
-    if prompt:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        reply = engine.respond(prompt, st.session_state.dialog)
-        push_bot(reply)
-        log_turn(prompt, reply)
-
-    msgs = st.session_state.messages
-    for idx, msg in enumerate(msgs):
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-            meta = msg.get("meta")
-            if debug and meta and meta.get("intent"):
-                top = ", ".join(f"{i}: {p:.2f}" for i, p in meta.get("top_k", []))
-                dbg = meta.get("debug", {})
-                st.caption(f"Ý định: `{meta['intent']}` · tin cậy {meta['confidence']:.2f} · top-k: {top}"
-                           + (f" · quyết định bởi: `{dbg['nguon_y_dinh']}`" if dbg.get("nguon_y_dinh") else "")
-                           + (f" · {dbg['thoi_gian_ms']} ms" if dbg.get("thoi_gian_ms") else "")
-                           + (" · đã chuyển cán bộ" if meta.get("handoff") else ""))
-                if dbg.get("entities"):
-                    st.caption(f"thực thể: `{dbg['entities']}`")
-            if msg["role"] == "assistant" and meta and idx > 0 and msgs[idx - 1]["role"] == "user":
-                fb = st.feedback("thumbs", key=f"fb_{idx}")
-                if fb is not None and msg.get("fb") != fb:
-                    msg["fb"] = fb
-                    log_feedback(msgs[idx - 1]["content"], msg, fb)
+def _so(v, ten: str, lo: float = 0.0, hi: float = 10.0) -> float | None:
+    if v in (None, ""):
+        return None
+    try:
+        x = float(str(v).replace(",", "."))
+    except ValueError:
+        raise ValueError(f"{ten} phải là số") from None
+    if not lo <= x <= hi:
+        raise ValueError(f"{ten} phải từ {lo:g} đến {hi:g}")
+    return x
 
 
-trang_chatbot()
+def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
+    app = Flask(__name__, template_folder=str(ROOT / "templates"), static_folder=str(ROOT / "static"))
+    app.json.ensure_ascii = False
+    clf = classifier or load_classifier()
+    kb = KnowledgeBase()
+    tau_mac_dinh = load_threshold(classifier=clf)
+    engine = ChatEngine(kb, clf, tau_mac_dinh, log_dir=log_dir)
+    kho = KhoHoiThoai()
+    engine_lock = threading.Lock()           # engine.debug / engine.threshold dùng chung giữa các request
+    app.config.update(ENGINE=engine, KHO=kho, TAU=tau_mac_dinh)
+
+    def ghi_log(file: str, row: dict) -> None:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        with open(log_dir / file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+    def tham_so_chung(body: dict) -> tuple[str, dict, bool, float]:
+        client = str(body.get("client_id") or "")[:64]
+        if not client:
+            abort(400, "thiếu client_id")
+        h = kho.lay(client, body.get("conversation_id"))
+        debug = bool(body.get("debug"))
+        tau = tau_mac_dinh
+        if body.get("tau") not in (None, ""):
+            tau = _so(body["tau"], "Ngưỡng τ", 0.0, 1.0)
+        return client, h, debug, tau
+
+    def them(h: dict, user_text: str, reply: BotReply) -> dict:
+        with kho.lock:
+            h["messages"].append({"role": "user", "text": user_text, "time": _gio()})
+            out = _json_reply(reply, h["state"], len(h["messages"]))
+            h["messages"].append(out)
+            if h["title"] == "Cuộc hội thoại mới":
+                h["title"] = user_text if len(user_text) <= 48 else user_text[:45].rstrip() + "…"
+            h["updated"] = dt.datetime.now().isoformat(timespec="seconds")
+        ghi_log("conversations.jsonl", {"t": h["updated"], "hoi_thoai": h["id"], "user": user_text,
+                                        "intent": reply.intent, "conf": out["confidence"], "top_k": out["top_k"],
+                                        "nguon_y_dinh": reply.debug.get("nguon_y_dinh"),
+                                        "ms": reply.debug.get("thoi_gian_ms"), "handoff": reply.handoff})
+        return {"conversation": {"id": h["id"], "title": h["title"], "updated": h["updated"]},
+                "user": h["messages"][-2], "reply": out}
+
+    @app.get("/")
+    def trang_chu():
+        lh = kb.meta.get("lien_he_tu_van", {})
+        lien_he = [(nhan, lh[k]) for k, nhan in (("dia_chi", "Địa chỉ"), ("email", "Email"),
+                                                 ("dien_thoai", "Điện thoại"), ("fanpage", "Fanpage"))
+                   if lh.get(k) and not str(lh[k]).startswith("<")]
+        ds_hp = sorted(engine.courses.values(), key=lambda h: h.stt)
+        return render_template(
+            "index.html", nam=NAM, khoa=kb.meta.get("khoa", "Khoa Công nghệ Thông tin"),
+            truong=kb.meta.get("truong", ""), goi_y=GOI_Y, faq=CAU_HOI_THUONG_GAP, lien_he=lien_he,
+            hom_nay=dt.date.today().strftime("%d/%m/%Y"), tau=tau_mac_dinh, ten_mo_hinh=clf.name,
+            mon=[(m, TEN_MON[m]) for m in MON], mon_hb2=[(m, TEN_MON[m]) for m in MON_HB2],
+            so_thich=[(k, TEN_SO_THICH[k]) for k in SO_THICH], dinh_huong=[(k, TEN_DINH_HUONG[k]) for k in DINH_HUONG],
+            nganh=[(c, m["ten"]) for c, m in kb.majors.items() if tu_ma_kb(c)],
+            hoc_phan=[(h.ma, h.ten, h.tin_chi) for h in ds_hp],
+            hk1=sorted(engine.hk1, key=lambda m: engine.courses[m].stt))
+
+    @app.post("/api/chat")
+    def chat():
+        body = request.get_json(silent=True) or {}
+        text = str(body.get("message") or "").strip()[:1000]
+        if not text:
+            return jsonify(error="Câu hỏi trống"), 400
+        _, h, debug, tau = tham_so_chung(body)
+        with engine_lock:
+            engine.debug, engine.threshold = debug, tau
+            reply = engine.respond(text, h["state"])
+        return jsonify(them(h, text, reply))
+
+    @app.post("/api/tu-van")
+    def tu_van():
+        """Biểu mẫu Chức năng 2: suy diễn tiến (gợi ý ngành) + suy diễn lùi (nếu chọn ngành cần kiểm tra)."""
+        body = request.get_json(silent=True) or {}
+        _, h, debug, _ = tham_so_chung(body)
+        try:
+            pt = body.get("phuong_thuc")
+            if pt not in ("THPT", "DGNL"):
+                raise ValueError("Chọn phương thức THPT hoặc ĐGNL")
+            kv = body.get("khu_vuc")
+            if kv not in ("KV1", "KV2-NT", "KV2", "KV3"):
+                raise ValueError("Chọn khu vực ưu tiên")
+            user = {"phuong_thuc": pt, "khu_vuc": kv,
+                    **{k: k in (body.get("so_thich") or []) for k in SO_THICH},
+                    **{k: k in (body.get("dinh_huong") or []) for k in DINH_HUONG}}
+            if pt == "THPT":
+                diem = body.get("diem") or {}
+                user |= {f"diem_{m}": _so(diem.get(m), f"Điểm {TEN_MON[m]}") for m in MON}
+            else:
+                if body.get("mon_hb2") not in MON_HB2:
+                    raise ValueError("Chọn môn học bạ thứ hai")
+                user |= {"diem_dgnl": _so(body.get("diem_dgnl"), "Điểm ĐGNL"),
+                         "HB_mon1": _so(body.get("hb1"), "Học bạ Tiếng Anh"),
+                         "mon_hb2": body["mon_hb2"], "HB_mon2": _so(body.get("hb2"), "Học bạ môn thứ hai")}
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+        nganh = body.get("kiem_tra_nganh") or ""
+        with engine_lock:
+            engine.debug = debug
+            replies = [engine.advise(user)]
+            if nganh in kb.majors and tu_ma_kb(nganh):
+                replies.append(engine.check_eligibility(nganh, user))
+        out = [them(h, "[Biểu mẫu] Tư vấn chọn ngành", replies[0])]
+        if len(replies) > 1:
+            out.append(them(h, f"[Biểu mẫu] Kiểm tra đủ điều kiện ngành {kb.major_name(nganh)}", replies[1]))
+        return jsonify(out)
+
+    @app.post("/api/lo-trinh")
+    def lo_trinh():
+        """Biểu mẫu Chức năng 1: lập lộ trình (bộ điều phối tự chọn A* / nhánh cận)."""
+        body = request.get_json(silent=True) or {}
+        _, h, debug, _ = tham_so_chung(body)
+        try:
+            ky = int(body.get("hoc_ky") or 1)
+        except (TypeError, ValueError):
+            return jsonify(error="Học kỳ phải là số nguyên"), 400
+        da_dat = {str(m) for m in body.get("da_dat") or []}
+        rot = {str(m) for m in body.get("rot") or []}
+        with engine_lock:
+            engine.debug = debug
+            reply = engine.make_plan(da_dat=da_dat, rot=rot, ky=ky, hoc_vuot=bool(body.get("hoc_vuot")))
+        return jsonify(them(h, f"[Biểu mẫu] Lập lộ trình học từ học kỳ {ky}", reply))
+
+    @app.get("/api/hoi-thoai")
+    def ds_hoi_thoai():
+        return jsonify(kho.danh_sach(str(request.args.get("client_id") or "")))
+
+    @app.get("/api/hoi-thoai/<cid>")
+    def mot_hoi_thoai(cid: str):
+        h = kho.lay(str(request.args.get("client_id") or ""), cid, tao_moi=False)
+        if h is None:
+            return jsonify(error="Không tìm thấy hội thoại"), 404
+        return jsonify({"id": h["id"], "title": h["title"], "messages": h["messages"]})
+
+    @app.post("/api/danh-gia")
+    def danh_gia():
+        """Nút Hữu ích / Chưa đúng dưới mỗi câu trả lời → logs/feedback.csv."""
+        body = request.get_json(silent=True) or {}
+        h = kho.lay(str(body.get("client_id") or ""), body.get("conversation_id"), tao_moi=False)
+        try:
+            i = int(body.get("index"))
+            msg = h["messages"][i]
+            assert msg["role"] == "bot" and body.get("value") in ("tot", "chua_tot")
+        except (TypeError, ValueError, IndexError, AssertionError, KeyError):
+            return jsonify(error="Đánh giá không hợp lệ"), 400
+        log_dir.mkdir(parents=True, exist_ok=True)
+        path = log_dir / "feedback.csv"
+        moi = not path.exists()
+        with open(path, "a", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            if moi:
+                w.writerow(["thoi_gian", "cau_hoi", "y_dinh", "do_tin_cay", "chuyen_can_bo", "danh_gia"])
+            w.writerow([dt.datetime.now().isoformat(timespec="seconds"), h["messages"][i - 1]["text"],
+                        msg["intent"], msg["confidence"], msg["handoff"], body["value"]])
+        msg["feedback"] = body["value"]
+        return jsonify(ok=True)
+
+    @app.get("/api/trang-thai")
+    def trang_thai():
+        return jsonify(mo_hinh=clf.name, tau=tau_mac_dinh, canh_bao=getattr(clf, "warnings", []),
+                       mo_dun=module_status(clf, kb))
+
+    @app.errorhandler(400)
+    def loi_400(e):
+        return jsonify(error=getattr(e, "description", "Yêu cầu không hợp lệ")), 400
+
+    return app
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description="Chatbot tư vấn tuyển sinh Khoa CNTT – HCMUE")
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--port", type=int, default=5000)
+    ap.add_argument("--nb", action="store_true", help="dùng baseline Naive Bayes thay cho mô hình Keras")
+    args = ap.parse_args()
+    print("Đang nạp mô hình phân loại ý định (lần đầu có thể mất 10–30 giây)…", flush=True)
+    app = create_app(load_classifier(backend="nb") if args.nb else None)
+    print(f"Bộ phân loại: {app.config['ENGINE'].classifier.name} · τ = {app.config['TAU']}")
+    print(f"Mở trình duyệt tại: http://{args.host}:{args.port}", flush=True)
+    app.run(host=args.host, port=args.port, debug=False, threaded=True)
+
+
+if __name__ == "__main__":
+    main()

@@ -2,15 +2,19 @@
 
 ```bash
 pip install -r requirements.txt
-streamlit run app.py                       # giao diện
-pytest -q                                  # 39 test (unit + kịch bản end-to-end)
+python app.py                              # giao diện web → http://127.0.0.1:5000
+pytest -q                                  # 51 test (unit + web + kịch bản end-to-end + demo)
 python -m src.chatbot.danh_gia --out docs/C4_DANH_GIA.md   # đánh giá end-to-end, ghi báo cáo
 ```
 
 ## 1. Kiến trúc
 
 ```
-app.py (Streamlit) ──► ChatEngine.respond()            src/chatbot/engine.py
+trình duyệt (templates/index.html, static/js/app.js)
+   │  POST /api/chat · /api/tu-van (C2) · /api/lo-trinh (C1) · /api/danh-gia
+   ▼
+app.py (Flask) ──► ChatEngine.respond()                src/chatbot/engine.py
+   ▲                      │
                           │
    đang trong luồng? ─có─► flows.continue_flow()        src/chatbot/flows.py   (gõ "hủy" để thoát)
                           │ không
@@ -27,10 +31,23 @@ app.py (Streamlit) ──► ChatEngine.respond()            src/chatbot/engine.
    _route(): KB (8 ý định) · chào hỏi · C2 (suy diễn tiến/lùi) · C1 (lộ trình, A* + nhánh cận)
 ```
 
-Bộ phân loại được nạp **một lần** (`@st.cache_resource`) theo thứ tự: Keras (`models/intent_model.keras`,
+Bộ phân loại được nạp **một lần** khi khởi động `app.py` (không nạp lại mỗi lượt chat) theo thứ tự: Keras (`models/intent_model.keras`,
 cần TensorFlow) → Naive Bayes (`models/nb_pipeline.pkl`) → phân loại từ khóa (chỉ để phát triển). τ lấy
 theo đúng mô hình đang dùng từ `models/config.json` (Conv1D 0.92, NB 0.16). Nếu máy chạy không có
-underthesea mà mô hình được huấn luyện với underthesea, sidebar hiện cảnh báo (lỗi 7.10).
+underthesea mà mô hình được huấn luyện với underthesea, `/api/trang-thai` và demo.py in cảnh báo (lỗi 7.10).
+
+### Giao diện web (theo mockup Figma "HCMUE FIT Chat")
+
+| Vùng | Nội dung |
+|---|---|
+| Header | logo Trường + Khoa, "HCMUE FIT Chat", trạng thái "Đang hoạt động" |
+| Thanh bên | Cuộc hội thoại mới · GẦN ĐÂY (hội thoại của trình duyệt này) · CÂU HỎI THƯỜNG GẶP · CÔNG CỤ TƯ VẤN (biểu mẫu C2, C1) · Chế độ kiểm tra (ý định, độ tin cậy, top-3, thực thể, ai quyết định; chỉnh τ) · Liên hệ Khoa |
+| Vùng chat | tin nhắn bot (nền xanh nhạt) / người dùng (nền #124874), dòng **Nguồn … – năm áp dụng …** tách riêng dưới mỗi số liệu, nút Hữu ích / Chưa đúng |
+| Ô nhập | câu hỏi gợi ý (chỉ giữ câu đã kiểm thử trả lời được), Enter để gửi |
+| Điện thoại (≤ 900px) | header 2 hàng + nút Menu mở thanh bên, chip cuộn ngang |
+
+Giao diện chỉ hiển thị: HTML câu trả lời do `src/web/markdown_lite.py` tạo từ văn bản của engine, mọi
+nội dung người dùng được escape. Hội thoại lưu trong bộ nhớ máy chủ theo `client_id` của trình duyệt.
 
 ## 2. Định tuyến (mục 7.2)
 
@@ -61,7 +78,7 @@ Chế độ debug hiện **ý định, độ tin cậy, top-3, thực thể, ai 
 - `logs/handoff.csv`: thời gian, câu hỏi, ý định dự đoán, độ tin cậy, top-3, lý do
   (`duoi_nguong`, `nganh_khac`, `truong_khac`, `thieu_du_lieu`) – hàng đợi cho cán bộ và dữ liệu bổ
   sung tập huấn luyện vòng sau.
-- `logs/feedback.csv`: nút 👍/👎 dưới mỗi câu trả lời.
+- `logs/feedback.csv`: nút Hữu ích / Chưa đúng dưới mỗi câu trả lời (thiết kế không dùng icon).
 - `logs/conversations.jsonl`: mọi lượt (ý định, độ tin cậy, top-3, nguồn ý định, thời gian).
 - Kênh liên hệ lấy từ `meta.lien_he_tu_van` trong `knowledge_base.json`; giá trị còn để mẫu `<…>` không
   được hiển thị.
@@ -84,7 +101,7 @@ ngữ cảnh nhiều lượt, 3 luồng C1/C2, hủy luồng, ngoài phạm vi, 
 Hai lượt sai của Keras là lỗi mô hình (giữ nguyên để báo cáo trung thực): "nhập học cần mang theo những
 giấy tờ gì" (0.76 < τ → chuyển cán bộ thừa) và "CNTT với sư phạm tin khác nhau ở điểm nào" (`diem_chuan` 1.00).
 
-Còn lại cho nhóm: thử với 3–5 người dùng thật (dùng nút 👍/👎 + `logs/feedback.csv`) → mục "Đánh giá
+Còn lại cho nhóm: thử với 3–5 người dùng thật (dùng nút Hữu ích / Chưa đúng + `logs/feedback.csv`) → mục "Đánh giá
 người dùng" trong báo cáo.
 
 ## 6. Việc nhóm cần làm trước khi nộp
@@ -96,3 +113,9 @@ người dùng" trong báo cáo.
 - [ ] C3: quy trình gán nhãn + kappa; thêm câu "đủ điều kiện vào ngành X", câu ngắn, câu `viec_lam`,
   `thu_tuc_nhap_hoc`; huấn luyện lại bằng notebook rồi chép `models.zip` vào `models/` và chạy `pytest -q`.
 - [ ] Thử với người dùng thật, quay video demo.
+
+## 7. Hình giao diện (cho báo cáo)
+
+`docs/hinh/c4/`: `web_trang_chu.png` (màn hình đầu), `web_diem_chuan_co_nguon.png` (số liệu kèm nguồn + năm),
+`web_c2_suy_dien_lui.png` (kiểm tra đủ điều kiện – chuỗi luật), `web_c1_lo_trinh.png` (biểu mẫu lộ trình,
+có môn học lại), `web_chuyen_can_bo.png` (ngành khác → chuyển cán bộ), `web_dien_thoai.png` (bản điện thoại).

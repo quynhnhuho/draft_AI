@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HCMUE FIT Chat – Trợ lý Tuyển sinh Khoa CNTT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <img class="logo-hcmue" src="{{ url_for('static', filename='img/logo_hcmue.png') }}"
+         alt="Logo Trường Đại học Sư phạm TP. Hồ Chí Minh">
+    <span class="divider-v"></span>
+    <img class="logo-khoa" src="{{ url_for('static', filename='img/logo_khoa_cntt.png') }}"
+         alt="Logo Khoa Công nghệ Thông tin">
+    <div class="brand-text">
+      <p class="brand-title">{{ khoa }}</p>
+      <p class="brand-sub">{{ truong }}</p>
+    </div>
+  </div>
+  <div class="bot-name">
+    <p class="bot-title">HCMUE FIT Chat</p>
+    <p class="bot-sub">Trợ lý Tuyển sinh Khoa CNTT</p>
+  </div>
+  <div class="status">
+    <p class="status-note">Hỗ trợ 24/7</p>
+    <span class="divider-v short"></span>
+    <p class="online"><span class="status-dot"></span>Đang hoạt động</p>
+  </div>
+  <button class="btn btn-ghost menu-btn" id="menu-btn" type="button" aria-controls="sidebar"
+          aria-expanded="false">Menu</button>
+</header>
+
+<div class="app-body">
+  <div class="backdrop" id="backdrop" hidden></div>
+  <aside class="sidebar" id="sidebar" aria-label="Thanh bên">
+    <button class="btn btn-secondary btn-block" type="button" data-action="new">Cuộc hội thoại mới</button>
+
+    <section class="side-section">
+      <p class="section-label">GẦN ĐÂY</p>
+      <div id="recent" class="recent-list">
+        <p class="empty-note">Chưa có cuộc hội thoại nào.</p>
+      </div>
+    </section>
+
+    <hr class="divider-h">
+
+    <section class="side-section">
+      <p class="section-label">CÂU HỎI THƯỜNG GẶP</p>
+      {% for nhan, cau in faq %}
+      <button class="faq-item" type="button" data-query="{{ cau }}">{{ nhan }}</button>
+      {% endfor %}
+    </section>
+
+    <hr class="divider-h">
+
+    <section class="side-section">
+      <p class="section-label">CÔNG CỤ TƯ VẤN</p>
+      <button class="faq-item" type="button" data-dialog="dlg-tu-van">Tư vấn chọn ngành theo điểm và sở thích</button>
+      <button class="faq-item" type="button" data-dialog="dlg-lo-trinh">Lập lộ trình đăng ký học phần</button>
+    </section>
+
+    <div class="spacer"></div>
+
+    <details class="check-mode">
+      <summary>Chế độ kiểm tra</summary>
+      <label class="check-row"><input type="checkbox" id="debug"> Hiện ý định, độ tin cậy, thực thể</label>
+      <label class="check-row">Ngưỡng tin cậy τ
+        <input type="number" id="tau" min="0" max="1" step="0.01" value="{{ '%.2f' % tau }}">
+      </label>
+      <p class="check-note">Bộ phân loại: {{ ten_mo_hinh }} · τ mặc định {{ '%.2f' % tau }} (models/config.json)</p>
+    </details>
+
+    <div class="contact">
+      <p class="section-label tight">LIÊN HỆ KHOA CNTT</p>
+      {% for nhan, gia_tri in lien_he %}
+      <div class="contact-item">
+        <p class="contact-label">{{ nhan }}</p>
+        <p class="contact-value">{{ gia_tri }}</p>
+      </div>
+      {% else %}
+      <p class="contact-value muted">Đang cập nhật kênh liên hệ chính thức của Khoa.</p>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <main class="chat" id="chat">
+    <div class="chat-toolbar">
+      <div class="chat-title">
+        <p class="title">Tư vấn tuyển sinh năm {{ nam }}</p>
+        <p class="subtitle">Thông tin tham khảo theo đề án tuyển sinh của Trường Đại học Sư phạm TP. Hồ Chí Minh</p>
+      </div>
+      <button class="btn btn-ghost" type="button" data-action="new">Làm mới hội thoại</button>
+    </div>
+
+    <div class="messages" id="messages" aria-live="polite">
+      <div class="message-column" id="message-column">
+        <div class="date-sep"><span></span><p>Hôm nay, {{ hom_nay }}</p><span></span></div>
+        <template id="welcome">
+          <p class="lead"><strong>Xin chào!</strong> Mình là Trợ lý Tuyển sinh của {{ khoa }} – {{ truong }}.</p>
+          <p>Mình có thể hỗ trợ em:</p>
+          <ul>
+            <li>Điểm chuẩn, tổ hợp xét tuyển các năm của ngành Công nghệ Thông tin, Sư phạm Tin học, Công nghệ giáo dục</li>
+            <li>Học phí, học bổng, ký túc xá và thủ tục nhập học</li>
+            <li>Chương trình đào tạo và cơ hội việc làm sau tốt nghiệp</li>
+            <li>Tư vấn chọn ngành và kiểm tra em có đủ điều kiện xét tuyển không</li>
+            <li>Gợi ý lộ trình đăng ký học phần để ra trường đúng hạn</li>
+          </ul>
+          <p>Mỗi số liệu tuyển sinh đều kèm nguồn và năm áp dụng. Câu hỏi ngoài phạm vi sẽ được chuyển đến cán bộ tư vấn.</p>
+        </template>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="suggest">
+        <p class="suggest-label">Gợi ý câu hỏi</p>
+        <div class="chips">
+          {% for cau in goi_y %}
+          <button class="chip" type="button" data-query="{{ cau }}">{{ cau }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      <form class="input-box" id="composer-form" autocomplete="off">
+        <label class="sr-only" for="input">Câu hỏi</label>
+        <textarea id="input" rows="1" maxlength="1000"
+                  placeholder="Nhập câu hỏi của bạn về tuyển sinh…"></textarea>
+        <button class="btn btn-primary" type="submit" id="send">Gửi</button>
+      </form>
+      <p class="disclaimer">Thông tin chỉ mang tính tham khảo.<span class="desktop-only"> Vui lòng đối chiếu với
+        thông báo tuyển sinh chính thức của Trường.</span></p>
+    </div>
+  </main>
+</div>
+
+<dialog id="dlg-tu-van" class="dialog">
+  <form method="dialog" class="dialog-form" id="form-tu-van">
+    <div class="dialog-head">
+      <p class="dialog-title">Tư vấn chọn ngành</p>
+      <p class="dialog-sub">Chức năng 2 – suy diễn tiến gợi ý ngành; chọn thêm một ngành để kiểm tra đủ điều kiện bằng suy diễn lùi.</p>
+    </div>
+    <fieldset class="field">
+      <legend>Phương thức xét tuyển</legend>
+      <label class="choice"><input type="radio" name="phuong_thuc" value="THPT" checked> Điểm thi tốt nghiệp THPT</label>
+      <label class="choice"><input type="radio" name="phuong_thuc" value="DGNL"> Học bạ + ĐGNL chuyên biệt</label>
+    </fieldset>
+    <div class="field">
+      <label for="khu_vuc">Khu vực ưu tiên</label>
+      <select id="khu_vuc" name="khu_vuc">
+        <option value="KV1">KV1</option><option value="KV2-NT">KV2-NT</option>
+        <option value="KV2">KV2</option><option value="KV3" selected>KV3</option>
+      </select>
+    </div>
+    <div class="field" data-pt="THPT">
+      <p class="field-label">Điểm thi THPT (thang 10, để trống môn không thi)</p>
+      <div class="grid-3">
+        {% for m, ten in mon %}
+        <label class="mini">{{ ten }}<input type="number" name="diem_{{ m }}" min="0" max="10" step="0.05"></label>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="field" data-pt="DGNL" hidden>
+      <p class="field-label">ĐGNL môn Toán và học bạ lớp 12 (thang 10)</p>
+      <div class="grid-3">
+        <label class="mini">ĐGNL Toán<input type="number" name="diem_dgnl" min="0" max="10" step="0.05"></label>
+        <label class="mini">Học bạ Tiếng Anh<input type="number" name="hb1" min="0" max="10" step="0.05"></label>
+        <label class="mini">Môn học bạ thứ hai
+          <select name="mon_hb2">{% for m, ten in mon_hb2 %}<option value="{{ m }}">{{ ten }}</option>{% endfor %}</select>
+        </label>
+        <label class="mini">Điểm môn thứ hai<input type="number" name="hb2" min="0" max="10" step="0.05"></label>
+      </div>
+    </div>
+    <fieldset class="field">
+      <legend>Sở thích</legend>
+      {% for k, ten in so_thich %}<label class="choice"><input type="checkbox" name="so_thich" value="{{ k }}"> {{ ten }}</label>{% endfor %}
+    </fieldset>
+    <fieldset class="field">
+      <legend>Định hướng nghề nghiệp</legend>
+      {% for k, ten in dinh_huong %}<label class="choice"><input type="checkbox" name="dinh_huong" value="{{ k }}"> {{ ten }}</label>{% endfor %}
+    </fieldset>
+    <div class="field">
+      <label for="kiem_tra_nganh">Kiểm tra đủ điều kiện ngành (suy diễn lùi)</label>
+      <select id="kiem_tra_nganh" name="kiem_tra_nganh">
+        <option value="">(không kiểm tra)</option>
+        {% for c, ten in nganh %}<option value="{{ c }}">{{ ten }}</option>{% endfor %}
+      </select>
+    </div>
+    <p class="form-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" value="cancel" formnovalidate>Đóng</button>
+      <button class="btn btn-primary" type="submit" data-submit>Tư vấn</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-lo-trinh" class="dialog wide">
+  <form method="dialog" class="dialog-form" id="form-lo-trinh">
+    <div class="dialog-head">
+      <p class="dialog-title">Lập lộ trình đăng ký học phần</p>
+      <p class="dialog-sub">Chức năng 1 – hệ thống tự chọn thuật toán (A*, dự phòng quay lui – nhánh cận) để tìm lộ trình ít học kỳ nhất.</p>
+    </div>
+    <div class="grid-2">
+      <label class="mini">Học kỳ sắp đăng ký (1 = năm nhất)<input type="number" name="hoc_ky" min="1" max="16" value="1" required></label>
+      <label class="choice inline"><input type="checkbox" name="hoc_vuot"> Học vượt (tối đa 22 TC/kỳ)</label>
+    </div>
+    <div class="field">
+      <div class="field-row">
+        <p class="field-label">Tình trạng từng học phần</p>
+        <button class="btn-link" type="button" data-hk1>Đánh dấu đã đạt toàn bộ HK1</button>
+      </div>
+      <div class="course-table">
+        {% for ma, ten, tc in hoc_phan %}
+        <label class="course-row">
+          <span class="course-name"><span class="course-code">{{ ma }}</span> {{ ten }} · {{ tc }} TC</span>
+          <select name="hp" data-ma="{{ ma }}">
+            <option value="">Chưa học</option><option value="dat">Đã đạt</option><option value="rot">Bị rớt</option>
+          </select>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    <p class="form-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" value="cancel" formnovalidate>Đóng</button>
+      <button class="btn btn-primary" type="submit" data-submit>Lập lộ trình</button>
+    </div>
+  </form>
+</dialog>
+
+<script>window.HK1 = {{ hk1 | tojson }};</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

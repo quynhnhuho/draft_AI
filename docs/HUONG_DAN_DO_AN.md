@@ -11,7 +11,7 @@
 
 ```
                     ┌──────────────────────────────────────────────────────────┐
-  Người dùng  ───►  │  app.py  (Streamlit: khung chat + sidebar form + debug)  │
+  Người dùng  ───►  │  app.py  (Flask + HTML/CSS/JS: chat + biểu mẫu + debug)  │
                     └──────────────────────────┬───────────────────────────────┘
                                                │ text, DialogueState
                                                ▼
@@ -47,7 +47,7 @@ chỉ *gọi* các hàm đó, không chứa logic thuật toán.
 
 ```
 draft_AI/
-├── app.py                         # C4 – giao diện Streamlit
+├── app.py                         # C4 – giao diện web Flask (templates/, static/)
 ├── requirements.txt
 ├── data/
 │   ├── knowledge_base.json        # C4 – cơ sở tri thức (mỗi số liệu có nguồn + năm)
@@ -233,8 +233,11 @@ Khung đã có trong repo: `app.py` + `src/chatbot/`. Chạy được ngay kể 
 
 ```bash
 pip install -r requirements.txt
-streamlit run app.py
+python app.py
 ```
+
+> Giảng viên cho phép dùng Flask + HTML/CSS/JS thay cho Streamlit: các chức năng 1–3 vẫn là mã Python của
+> nhóm, web chỉ là giao diện tích hợp. Chi tiết: [`docs/C4_CHATBOT.md`](C4_CHATBOT.md).
 
 ### 7.1 Luồng xử lý một lượt
 
@@ -296,7 +299,7 @@ Mỗi "fact" là một bản ghi có nguồn:
 - `last_major`, `last_year`: nhớ ngữ cảnh → "Thế học phí ngành đó?" dùng lại ngành vừa nói.
 - `active_flow` + `slots`: luồng nhiều lượt (slot filling). Mỗi slot có câu hỏi, hàm phân tích câu
   trả lời, và hỏi lại khi không hiểu. Gõ "hủy"/"thoát" để thoát luồng.
-- Streamlit: lưu state trong `st.session_state` để không mất khi trang chạy lại.
+- Web: `DialogueState` của từng hội thoại lưu ở máy chủ theo `client_id` (trình duyệt tự sinh).
 
 ### 7.6 Tích hợp C1 và C2 — hai cách song song
 
@@ -314,7 +317,7 @@ bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, nguồn CTĐT v
 - Câu bị chặn: trả lời lịch sự + kênh liên hệ thật (email/điện thoại/fanpage Khoa) + ghi
   `logs/handoff.csv` (thời gian, câu hỏi, top-3 ý định, độ tin cậy). File này vừa là "hàng đợi" cho cán
   bộ, vừa là dữ liệu để bổ sung tập huấn luyện vòng sau → nêu trong báo cáo như vòng cải tiến.
-- Nút 👍/👎 sau mỗi câu trả lời → `logs/feedback.csv` (tùy chọn, ghi điểm cộng).
+- Nút đánh giá (Hữu ích / Chưa đúng) sau mỗi câu trả lời → `logs/feedback.csv` (tùy chọn, ghi điểm cộng).
 
 ### 7.8 Giao diện
 
@@ -335,7 +338,7 @@ bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, nguồn CTĐT v
 
 - Tiền xử lý lúc chạy khác lúc huấn luyện → độ chính xác demo tụt mạnh.
 - Câu trả lời số liệu thiếu năm/nguồn (bị trừ điểm theo yêu cầu đề).
-- Load model Keras mỗi lượt chat → chậm; dùng `@st.cache_resource`.
+- Load model Keras mỗi lượt chat → chậm; nạp một lần khi khởi động `app.py`.
 - Trả lời bừa khi câu ngoài phạm vi → phải có τ và tập out-of-scope để chứng minh.
 - Thuật toán C1 bùng nổ tổ hợp khi demo → giới hạn số học phần liên quan, dùng tập tối đại, có timeout.
 

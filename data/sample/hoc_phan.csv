@@ -1,0 +1,29 @@
+ma,ten,tin_chi,hoc_truoc,hoc_ky_mo
+POLI2001,Triết học Mác - Lênin,3,,Lẻ
+POLI1903,Pháp luật đại cương,2,,Lẻ
+PSYC1001,Tâm lý học đại cương,2,,Lẻ
+COMP1800,Cơ sở Toán trong Công nghệ thông tin,4,,Lẻ
+COMP1010,Lập trình cơ bản,3,,Lẻ
+COMP1802,Thiết kế Web,2,,Lẻ
+COMP1801,Toán rời rạc và ứng dụng,2,,Lẻ
+POLI2002,Kinh tế chính trị Mác - Lênin,2,POLI2001,Chẵn
+POLI2003,Chủ nghĩa xã hội khoa học,2,POLI2001,Chẵn
+COMP1017,Lập trình hướng đối tượng,3,COMP1010,Chẵn
+COMP1013,Lập trình nâng cao,3,COMP1010,Chẵn
+PSYC2804,Phương pháp nghiên cứu khoa học,2,,Chẵn
+POLI2005,Tư tưởng Hồ Chí Minh,2,POLI2003,Lẻ
+COMP1016,Cấu trúc dữ liệu,3,COMP1010,Chẵn
+COMP1018,Cơ sở dữ liệu,3,COMP1010,Lẻ
+COMP1701,Lý thuyết đồ thị và ứng dụng,3,,Lẻ
+COMP1501,Xác suất thống kê và ứng dụng,3,,Lẻ
+COMP1011,Kiến trúc máy tính và hợp ngữ,3,,Chẵn
+POLI2004,Lịch sử Đảng cộng sản Việt Nam,2,POLI2005,Chẵn
+COMP1829,Quản lý công việc hiệu quả theo Agile,2,,Chẵn
+COMP1332,Hệ điều hành,3,,Lẻ
+COMP1401,Phân tích thiết kế và giải thuật,3,COMP1010,Chẵn
+COMP1015,Nhập môn mạng máy tính,3,,Chẵn
+COMP1502,Quy hoạch tuyến tính và ứng dụng,3,COMP1800,Chẵn
+COMP1314,Trí tuệ nhân tạo,3,COMP1701,Lẻ
+COMP1044,Nhập môn công nghệ phần mềm,3,COMP1017,Lẻ
+COMP1019,Lập trình trên Windows,3,COMP1017,Lẻ
+COMP1803,Lập trình PHP,3,COMP1013,Chẵn
