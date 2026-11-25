@@ -1,0 +1,46 @@
+{
+  "_mo_ta": "Dữ liệu đầu vào mẫu cho demo.py. Mỗi tình huống do nhóm tự đặt (không phải dữ liệu thật của sinh viên/thí sinh).",
+  "lo_trinh": [
+    {
+      "ten": "TH1 – Tân sinh viên, học bình thường (18 TC/kỳ)",
+      "hoc_ky": 1, "da_dat": [], "rot": [], "hoc_vuot": false
+    },
+    {
+      "ten": "TH2 – Sau HK1, rớt Cơ sở Toán trong CNTT (COMP1800)",
+      "hoc_ky": 2,
+      "da_dat": ["POLI2001", "POLI1903", "PSYC1001", "COMP1010", "COMP1802", "COMP1801"],
+      "rot": ["COMP1800"], "hoc_vuot": false
+    },
+    {
+      "ten": "TH3 – Sau HK1, đạt hết, muốn học vượt (22 TC/kỳ)",
+      "hoc_ky": 2,
+      "da_dat": ["POLI2001", "POLI1903", "PSYC1001", "COMP1800", "COMP1010", "COMP1802", "COMP1801"],
+      "rot": [], "hoc_vuot": true
+    }
+  ],
+  "tu_van_nganh": [
+    {
+      "ten": "Suy diễn tiến – ĐGNL, thích lập trình và thiết kế học liệu, muốn làm EdTech",
+      "user": {
+        "phuong_thuc": "DGNL", "khu_vuc": "KV2", "diem_dgnl": 8.0,
+        "HB_mon1": 8.5, "mon_hb2": "Tin", "HB_mon2": 9.0,
+        "thich_lap_trinh": true, "thich_du_lieu": false, "thich_thiet_ke_hoc_lieu": true, "thich_day_hoc": false,
+        "lap_trinh_vien": false, "phan_tich_du_lieu": false, "giao_vien": false, "chuyen_vien_edtech": true
+      }
+    }
+  ],
+  "kiem_tra_dieu_kien": [
+    {
+      "ten": "Suy diễn lùi – THPT Toán 8, Anh 7, Lý 7, KV3 → ngành CNTT",
+      "nganh": "CNTT",
+      "user": {"phuong_thuc": "THPT", "khu_vuc": "KV3", "diem_Toan": 8.0, "diem_Anh": 7.0, "diem_Ly": 7.0,
+               "diem_Hoa": null, "diem_Sinh": null, "diem_Tin": null}
+    },
+    {
+      "ten": "Suy diễn lùi – THPT Toán 7, Anh 6.2, Lý 6, KV1 → ngành Sư phạm Tin học",
+      "nganh": "SPTH",
+      "user": {"phuong_thuc": "THPT", "khu_vuc": "KV1", "diem_Toan": 7.0, "diem_Anh": 6.2, "diem_Ly": 6.0,
+               "diem_Hoa": null, "diem_Sinh": null, "diem_Tin": null}
+    }
+  ]
+}
