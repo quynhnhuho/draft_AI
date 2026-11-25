@@ -59,8 +59,9 @@ nội dung người dùng được escape. Hội thoại lưu trong bộ nhớ m
 | tu_van_chon_nganh | có ngành + "đủ điều kiện/đậu/vào được" → **suy diễn lùi**; ngược lại → **suy diễn tiến**; thiếu thông tin → luồng hỏi tiếp | C2 |
 | lo_trinh_hoc_tap | luồng hỏi: học kỳ → môn đã đạt → môn rớt → học vượt → `dieu_phoi.lap_lo_trinh()` | C1 |
 
-Mọi câu trả lời có số liệu in `Nguồn: … – năm áp dụng …`; số liệu chưa đối chiếu nguồn chính thức
-(`da_kiem_chung=false`) có thêm dòng cảnh báo.
+Mọi câu trả lời có số liệu in `Nguồn: … – năm áp dụng …`. Điểm chuẩn, tổ hợp lấy từ fanpage tuyển sinh của
+Trường được nhóm xác nhận là nguồn chính thức (`da_kiem_chung=true`, không hiện cảnh báo); các mục còn là
+mẫu (`da_kiem_chung=false`) có thêm dòng "Lưu ý: số liệu mẫu, nhóm chưa cập nhật nguồn chính thức".
 
 ## 3. Ba cơ chế bổ sung cho mô hình (và lý do)
 

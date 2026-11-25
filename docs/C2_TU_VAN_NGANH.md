@@ -46,6 +46,6 @@ số điểm còn thiếu) / Chưa đủ thông tin (dữ kiện cần hỏi –
 
 ## 5. Việc còn lại
 
-- Thay nguồn trong `data/tuyen_sinh_2026.json` bằng Đề án tuyển sinh 2026 chính thức, đặt `da_kiem_chung: true`.
+- Nguồn `data/tuyen_sinh_2026.json`: fanpage tuyển sinh của Trường (Trường không ban hành công văn riêng) – nhóm xác nhận, `da_kiem_chung: true`.
 - Điểm chuẩn và tổ hợp 2024–2026 trong `data/knowledge_base.json` đã khớp với `data/tuyen_sinh_2026.json`
   (có test kiểm tra); khi đổi nguồn chính thức cần sửa cả hai file.

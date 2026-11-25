@@ -182,7 +182,7 @@
       {% for k, ten in dinh_huong %}<label class="choice"><input type="checkbox" name="dinh_huong" value="{{ k }}"> {{ ten }}</label>{% endfor %}
     </fieldset>
     <div class="field">
-      <label for="kiem_tra_nganh">Kiểm tra đủ điều kiện ngành (suy diễn lùi)</label>
+      <label for="kiem_tra_nganh">Kiểm tra đủ điều kiện ngành</label>
       <select id="kiem_tra_nganh" name="kiem_tra_nganh">
         <option value="">(không kiểm tra)</option>
         {% for c, ten in nganh %}<option value="{{ c }}">{{ ten }}</option>{% endfor %}
