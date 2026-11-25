@@ -66,5 +66,5 @@ python -B -c "from src.planner.model import doc_du_lieu, tao_bai_toan; from src.
 
 → `A* 5 kỳ` (BFS không được bộ điều phối dùng; `bfs.py` chỉ để giảng viên kiểm tra và so sánh trong báo cáo)
 
-Sau bước 5: `streamlit run app.py` → hỏi "em là tân sinh viên, lộ trình học thế nào" → trả lời "không"
+Sau bước 5: `python app.py` (mở http://127.0.0.1:5000) → hỏi "em là tân sinh viên, lộ trình học thế nào" → trả lời "không"
 → chatbot trả về lộ trình 5 học kỳ kèm nguồn.

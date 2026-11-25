@@ -5,7 +5,6 @@
 train_nb.py - Baseline Naive Bayes (TF-IDF + MultinomialNB) cho bai toan phan loai y dinh.
 
 Chay:
-    cd d:/N31_Nhap
     python src/nlu/train_nb.py
 """
 
@@ -34,7 +33,7 @@ from sklearn.pipeline import Pipeline
 # ── Thêm thư mục gốc dự án vào sys.path để import được src.nlu.preprocess ──
 import sys
 
-ROOT = Path(__file__).resolve().parents[2]  # d:\N31_Nhap
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from src.nlu.preprocess import preprocess
 

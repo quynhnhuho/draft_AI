@@ -19,7 +19,7 @@ from sklearn.preprocessing import LabelEncoder
 # ── Thêm gốc dự án vào sys.path ─────────────────────────────────────────
 import sys
 
-ROOT = Path(__file__).resolve().parents[2]  # d:\N31_Nhap
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from src.nlu.preprocess import preprocess
 

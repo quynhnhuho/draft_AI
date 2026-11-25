@@ -20,3 +20,8 @@ images/
 venv/
 env/
 .ipynb_checkpoints/
+.conda/
+.env
+*.egg-info/
+.DS_Store
+Thumbs.db
