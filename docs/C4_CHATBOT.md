@@ -41,7 +41,7 @@ underthesea mà mô hình được huấn luyện với underthesea, `/api/trang
 | Vùng | Nội dung |
 |---|---|
 | Header | logo Trường + Khoa, "HCMUE FIT Chat", trạng thái "Đang hoạt động" |
-| Thanh bên | Cuộc hội thoại mới · GẦN ĐÂY (hội thoại của trình duyệt này) · CÂU HỎI THƯỜNG GẶP · CÔNG CỤ TƯ VẤN (biểu mẫu C2, C1) · Chế độ kiểm tra (ý định, độ tin cậy, top-3, thực thể, ai quyết định; chỉnh τ) · Liên hệ Khoa |
+| Thanh bên | Cuộc hội thoại mới · CÔNG CỤ TƯ VẤN (biểu mẫu tư vấn chọn ngành – C2, lập lộ trình học – C1) · GẦN ĐÂY (hội thoại của trình duyệt này) · Chế độ kiểm tra (ý định, độ tin cậy, top-3, thực thể, ai quyết định; chỉnh τ) · Liên hệ Khoa CNTT và Tư vấn tuyển sinh của Trường |
 | Vùng chat | tin nhắn bot (nền xanh nhạt) / người dùng (nền #124874), dòng **Nguồn … – năm áp dụng …** tách riêng dưới mỗi số liệu, nút Hữu ích / Chưa đúng |
 | Ô nhập | câu hỏi gợi ý (chỉ giữ câu đã kiểm thử trả lời được), Enter để gửi |
 | Điện thoại (≤ 900px) | header 2 hàng + nút Menu mở thanh bên, chip cuộn ngang |
@@ -81,8 +81,9 @@ Chế độ debug hiện **ý định, độ tin cậy, top-3, thực thể, ai 
   sung tập huấn luyện vòng sau.
 - `logs/feedback.csv`: nút Hữu ích / Chưa đúng dưới mỗi câu trả lời (thiết kế không dùng icon).
 - `logs/conversations.jsonl`: mọi lượt (ý định, độ tin cậy, top-3, nguồn ý định, thời gian).
-- Kênh liên hệ lấy từ `meta.lien_he_tu_van` trong `knowledge_base.json`; giá trị còn để mẫu `<…>` không
-  được hiển thị.
+- Kênh liên hệ lấy từ `meta.lien_he_tu_van` (Khoa CNTT – phòng B.507) và `meta.lien_he_tuyen_sinh` (Trang Thông
+  tin Tuyển sinh của Trường – phòng A.101) trong `knowledge_base.json`; hiển thị ở thanh bên và trong mọi câu
+  chuyển cán bộ. Giá trị còn để mẫu `<…>` không được hiển thị.
 
 ## 5. Đánh giá end-to-end (mục 7.9)
 
@@ -107,7 +108,8 @@ người dùng" trong báo cáo.
 
 ## 6. Việc nhóm cần làm trước khi nộp
 
-- [ ] `data/knowledge_base.json`: điền **kênh liên hệ thật** của Khoa (`meta.lien_he_tu_van`); thay số liệu
+- [x] Kênh liên hệ thật của Khoa và Trường trong `data/knowledge_base.json`.
+- [ ] `data/knowledge_base.json`: thay số liệu
   mẫu (học phí, học bổng, ký túc xá, CTĐT, việc làm, thủ tục) bằng nguồn chính thức + url + ngày truy cập
   rồi đặt `da_kiem_chung: true`; bổ sung học phí / việc làm / CTĐT ngành **Công nghệ giáo dục** (hiện chưa có
   → bot chuyển cán bộ với lý do `thieu_du_lieu`).

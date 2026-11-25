@@ -193,7 +193,7 @@ class ChatEngine:
                         code])
         msg = reason or "Câu hỏi này nằm ngoài phạm vi mình chắc chắn trả lời được."
         return BotReply(f"{msg} Mình đã **chuyển câu hỏi đến cán bộ tư vấn** của Khoa. "
-                        f"Em có thể liên hệ trực tiếp:\n{self.kb.contact_text()}",
+                        f"Em có thể liên hệ trực tiếp:\n\n{self.kb.contact_text()}",
                         intent="chuyen_can_bo", handoff=True)
 
     @staticmethod

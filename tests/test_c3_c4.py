@@ -187,8 +187,15 @@ def test_so_sanh_hai_nganh_khong_mo_luong(tmp_path, kb):
     assert s.active_flow is None and "Sư phạm Tin học" in r.text and "Công nghệ thông tin" in r.text
 
 
-def test_lien_he_bo_qua_gia_tri_mau(kb):
-    assert "<" not in kb.contact_text()
+def test_lien_he_khoa_va_truong(kb):
+    t = kb.contact_text()
+    assert "<" not in t and "khoacntt@hcmue.edu.vn" in t and "tuvantuyensinh@hcmue.edu.vn" in t
+    assert [ten for ten, _ in kb.lien_he()][0] == "Khoa Công nghệ thông tin"
+
+
+def test_chuyen_can_bo_co_lien_he(engine):
+    r = engine.respond("hôm nay trời có mưa không", DialogueState())
+    assert r.handoff and "028 38352020" in r.text and "028 38355077" in r.text
 
 
 def test_module_status(kb):

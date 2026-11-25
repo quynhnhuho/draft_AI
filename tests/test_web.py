@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from app import CAU_HOI_THUONG_GAP, GOI_Y, create_app
+from app import GOI_Y, create_app
 from src.nlu.classifier import KeywordClassifier, load_classifier
 from src.web.markdown_lite import to_html
 
@@ -28,10 +28,12 @@ def _chat(c, text, cid=None, client_id="test"):
 def test_trang_chu_theo_figma(client):
     html = client.get("/").get_data(as_text=True)
     for s in ["HCMUE FIT Chat", "Trợ lý Tuyển sinh Khoa CNTT", "Cuộc hội thoại mới", "GẦN ĐÂY",
-              "CÂU HỎI THƯỜNG GẶP", "LIÊN HỆ KHOA CNTT", "Gợi ý câu hỏi", "Làm mới hội thoại", "Gửi",
+              "CÔNG CỤ TƯ VẤN", "LIÊN HỆ KHOA CNTT", "khoacntt@hcmue.edu.vn",
+              "TƯ VẤN TUYỂN SINH – TRƯỜNG", "tuvantuyensinh@hcmue.edu.vn", "Gợi ý câu hỏi", "Làm mới hội thoại", "Gửi",
               "logo_hcmue.png", "logo_khoa_cntt.png"]:
         assert s in html
-    assert "<script>alert" not in html
+    assert "<script>alert" not in html and "CÂU HỎI THƯỜNG GẶP" not in html
+    assert html.index("CÔNG CỤ TƯ VẤN") < html.index("GẦN ĐÂY")      # công cụ tư vấn ở đầu thanh bên
 
 
 def test_chat_so_lieu_co_nguon_va_nam(client):
@@ -100,11 +102,11 @@ def test_trang_thai(client):
 
 @pytest.mark.skipif(not (ROOT / "models" / "intent_model.keras").exists(), reason="chưa có mô hình")
 def test_cau_goi_y_tren_giao_dien_deu_tra_loi_duoc(tmp_path):
-    """Mọi câu gợi ý / câu hỏi thường gặp hiển thị trên giao diện phải được trả lời bằng mô hình Keras."""
+    """Mọi câu hỏi gợi ý hiển thị trên giao diện phải được trả lời bằng mô hình Keras."""
     pytest.importorskip("tensorflow")
     pytest.importorskip("underthesea")
     c = create_app(load_classifier(backend="keras"), log_dir=tmp_path).test_client()
-    for cau in GOI_Y + [q for _, q in CAU_HOI_THUONG_GAP]:
+    for cau in GOI_Y:
         j = _chat(c, cau, client_id=cau)
         assert not j["reply"]["handoff"], cau
 

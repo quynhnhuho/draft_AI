@@ -5,9 +5,16 @@
     "phien_ban": "0.1",
     "ghi_chu": "Điểm chuẩn và tổ hợp xét tuyển 2024–2026 lấy từ tài liệu Thông tin tuyển sinh của nhóm (trùng với data/tuyen_sinh_2026.json), nhóm xác nhận nguồn là fanpage tuyển sinh chính thức của Trường (Trường không ban hành công văn riêng) nên đặt da_kiem_chung=true. Các mục còn lại (học phí, học bổng, ký túc xá, chương trình đào tạo, việc làm, thủ tục) vẫn là MẪU: thay bằng số liệu chính thức, điền nguon + url + ngay_truy_cap, rồi đặt da_kiem_chung=true.",
     "lien_he_tu_van": {
-      "email": "<email tư vấn tuyển sinh của Khoa>",
-      "dien_thoai": "<số điện thoại>",
-      "fanpage": "<link fanpage Khoa>"
+      "ten": "Khoa Công nghệ thông tin",
+      "dia_chi": "Phòng B.507, 280 An Dương Vương, Phường Chợ Quán, TP. Hồ Chí Minh",
+      "dien_thoai": "028 38352020 - Ext: 209, 210",
+      "email": "khoacntt@hcmue.edu.vn"
+    },
+    "lien_he_tuyen_sinh": {
+      "ten": "Trang Thông tin Tuyển sinh – Trường Đại học Sư phạm TP. Hồ Chí Minh",
+      "dia_chi": "Phòng A.101, 280 An Dương Vương, Phường Chợ Quán, TP. Hồ Chí Minh",
+      "dien_thoai": "028 38355077",
+      "email": "tuvantuyensinh@hcmue.edu.vn"
     }
   },
   "nganh": {

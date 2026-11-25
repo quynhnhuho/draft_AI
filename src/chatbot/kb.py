@@ -49,13 +49,26 @@ class KnowledgeBase:
         res.facts = [f for group in latest.values() for f in group]
         return res
 
+    def lien_he(self) -> list[tuple[str, list[tuple[str, str]]]]:
+        """Các kênh liên hệ (Khoa, tuyển sinh của Trường): [(tên đơn vị, [(nhãn, giá trị), …]), …].
+
+        Bỏ qua giá trị còn để mẫu dạng "<...>". Dùng chung cho thanh bên web và câu chuyển cán bộ.
+        """
+        out = []
+        for khoa, mac_dinh in (("lien_he_tu_van", self.meta.get("khoa", "Khoa")),
+                               ("lien_he_tuyen_sinh", "Tư vấn tuyển sinh của Trường")):
+            c = self.meta.get(khoa, {})
+            dong = [(nhan, str(c[k])) for k, nhan in (("dia_chi", "Địa chỉ"), ("dien_thoai", "Điện thoại"),
+                                                      ("email", "Email"), ("fanpage", "Fanpage"))
+                    if c.get(k) and not str(c[k]).startswith("<")]
+            if dong:
+                out.append((c.get("ten") or mac_dinh, dong))
+        return out
+
     def contact_text(self) -> str:
-        """Kênh liên hệ thật của Khoa; bỏ qua giá trị còn để mẫu dạng "<...>" trong knowledge_base.json."""
-        c = self.meta.get("lien_he_tu_van", {})
-        dong = [f"- {nhan}: {c[k]}" for k, nhan in (("email", "Email"), ("dien_thoai", "Điện thoại"),
-                                                    ("fanpage", "Fanpage"))
-                if c.get(k) and not str(c[k]).startswith("<")]
-        return "\n".join(dong) or "- (Nhóm chưa cập nhật kênh liên hệ của Khoa trong data/knowledge_base.json)"
+        """Kênh liên hệ dạng markdown cho câu trả lời chuyển cán bộ."""
+        nhom = [f"**{ten}**\n" + "\n".join(f"- {nhan}: {gt}" for nhan, gt in dong) for ten, dong in self.lien_he()]
+        return "\n\n".join(nhom) or "- (Nhóm chưa cập nhật kênh liên hệ trong data/knowledge_base.json)"
 
 
 def cite(fact: dict) -> str:

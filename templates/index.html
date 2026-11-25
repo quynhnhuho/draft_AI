@@ -41,27 +41,24 @@
     <button class="btn btn-secondary btn-block" type="button" data-action="new">Cuộc hội thoại mới</button>
 
     <section class="side-section">
+      <p class="section-label">CÔNG CỤ TƯ VẤN</p>
+      <button class="tool-btn" type="button" data-dialog="dlg-tu-van">
+        <span class="tool-title">Tư vấn chọn ngành</span>
+        <span class="tool-sub">Theo điểm, sở thích và định hướng nghề nghiệp</span>
+      </button>
+      <button class="tool-btn" type="button" data-dialog="dlg-lo-trinh">
+        <span class="tool-title">Lập lộ trình học</span>
+        <span class="tool-sub">Gợi ý đăng ký học phần để ra trường đúng hạn</span>
+      </button>
+    </section>
+
+    <hr class="divider-h">
+
+    <section class="side-section">
       <p class="section-label">GẦN ĐÂY</p>
       <div id="recent" class="recent-list">
         <p class="empty-note">Chưa có cuộc hội thoại nào.</p>
       </div>
-    </section>
-
-    <hr class="divider-h">
-
-    <section class="side-section">
-      <p class="section-label">CÂU HỎI THƯỜNG GẶP</p>
-      {% for nhan, cau in faq %}
-      <button class="faq-item" type="button" data-query="{{ cau }}">{{ nhan }}</button>
-      {% endfor %}
-    </section>
-
-    <hr class="divider-h">
-
-    <section class="side-section">
-      <p class="section-label">CÔNG CỤ TƯ VẤN</p>
-      <button class="faq-item" type="button" data-dialog="dlg-tu-van">Tư vấn chọn ngành theo điểm và sở thích</button>
-      <button class="faq-item" type="button" data-dialog="dlg-lo-trinh">Lập lộ trình đăng ký học phần</button>
     </section>
 
     <div class="spacer"></div>
@@ -76,13 +73,18 @@
     </details>
 
     <div class="contact">
-      <p class="section-label tight">LIÊN HỆ KHOA CNTT</p>
-      {% for nhan, gia_tri in lien_he %}
+      {% for ten, dong in lien_he %}
+      {% if not loop.first %}<hr class="divider-h">{% endif %}
+      <p class="section-label tight">{{ 'LIÊN HỆ KHOA CNTT' if loop.first else 'TƯ VẤN TUYỂN SINH – TRƯỜNG' }}</p>
+      {% if not loop.first %}<p class="contact-org">{{ ten }}</p>{% endif %}
+      {% for nhan, gia_tri in dong %}
       <div class="contact-item">
         <p class="contact-label">{{ nhan }}</p>
         <p class="contact-value">{{ gia_tri }}</p>
       </div>
+      {% endfor %}
       {% else %}
+      <p class="section-label tight">LIÊN HỆ KHOA CNTT</p>
       <p class="contact-value muted">Đang cập nhật kênh liên hệ chính thức của Khoa.</p>
       {% endfor %}
     </div>
@@ -140,7 +142,7 @@
   <form method="dialog" class="dialog-form" id="form-tu-van">
     <div class="dialog-head">
       <p class="dialog-title">Tư vấn chọn ngành</p>
-      <p class="dialog-sub">Chức năng 2 – suy diễn tiến gợi ý ngành; chọn thêm một ngành để kiểm tra đủ điều kiện bằng suy diễn lùi.</p>
+      <p class="dialog-sub">Nhập điểm, sở thích và định hướng nghề nghiệp để nhận gợi ý ngành phù hợp; có thể chọn thêm một ngành để kiểm tra em có đủ điều kiện xét tuyển không.</p>
     </div>
     <fieldset class="field">
       <legend>Phương thức xét tuyển</legend>
@@ -200,7 +202,7 @@
   <form method="dialog" class="dialog-form" id="form-lo-trinh">
     <div class="dialog-head">
       <p class="dialog-title">Lập lộ trình đăng ký học phần</p>
-      <p class="dialog-sub">Chức năng 1 – hệ thống tự chọn thuật toán (A*, dự phòng quay lui – nhánh cận) để tìm lộ trình ít học kỳ nhất.</p>
+      <p class="dialog-sub">Chọn học kỳ sắp đăng ký và tình trạng từng học phần; hệ thống tìm lộ trình ít học kỳ nhất để hoàn thành chương trình.</p>
     </div>
     <div class="grid-2">
       <label class="mini">Học kỳ sắp đăng ký (1 = năm nhất)<input type="number" name="hoc_ky" min="1" max="16" value="1" required></label>
