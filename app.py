@@ -36,21 +36,13 @@ from src.web.markdown_lite import to_html  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 
-# Câu gợi ý / câu hỏi thường gặp: chỉ giữ câu đã kiểm tra chatbot trả lời được (tests/test_web.py).
+# Câu hỏi gợi ý: chỉ giữ câu đã kiểm tra chatbot trả lời được (tests/test_web.py).
 GOI_Y = [
     "Điểm chuẩn ngành Công nghệ Thông tin năm gần nhất?",
     "Các phương thức xét tuyển năm 2026",
     "Học phí và học bổng Khoa CNTT",
     "Em nên chọn ngành nào của Khoa?",
     "Lập lộ trình học cho tân sinh viên",
-]
-CAU_HOI_THUONG_GAP = [
-    ("Ngành CNTT khác Sư phạm Tin học chỗ nào?", "CNTT khác Sư phạm Tin học chỗ nào?"),
-    ("Sư phạm Tin học có được hỗ trợ học phí?", "Sư phạm Tin học có được hỗ trợ học phí?"),
-    ("Cơ hội việc làm sau khi tốt nghiệp", "Cơ hội việc làm sau khi tốt nghiệp"),
-    ("Thời gian đào tạo và văn bằng", "Thời gian đào tạo và văn bằng"),
-    ("Thi THPT Toán 8, Anh 7, Lý 7 có đủ điều kiện vào CNTT?",
-     "Em thi THPT Toán 8, Anh 7, Lý 7, KV2 có đủ điều kiện vào CNTT không?"),
 ]
 
 MAX_HOI_THOAI = 30          # mỗi trình duyệt giữ tối đa 30 cuộc hội thoại (bộ nhớ của máy chủ)
@@ -159,14 +151,10 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
 
     @app.get("/")
     def trang_chu():
-        lh = kb.meta.get("lien_he_tu_van", {})
-        lien_he = [(nhan, lh[k]) for k, nhan in (("dia_chi", "Địa chỉ"), ("email", "Email"),
-                                                 ("dien_thoai", "Điện thoại"), ("fanpage", "Fanpage"))
-                   if lh.get(k) and not str(lh[k]).startswith("<")]
         ds_hp = sorted(engine.courses.values(), key=lambda h: h.stt)
         return render_template(
             "index.html", nam=NAM, khoa=kb.meta.get("khoa", "Khoa Công nghệ Thông tin"),
-            truong=kb.meta.get("truong", ""), goi_y=GOI_Y, faq=CAU_HOI_THUONG_GAP, lien_he=lien_he,
+            truong=kb.meta.get("truong", ""), goi_y=GOI_Y, lien_he=kb.lien_he(),
             hom_nay=dt.date.today().strftime("%d/%m/%Y"), tau=tau_mac_dinh, ten_mo_hinh=clf.name,
             mon=[(m, TEN_MON[m]) for m in MON], mon_hb2=[(m, TEN_MON[m]) for m in MON_HB2],
             so_thich=[(k, TEN_SO_THICH[k]) for k in SO_THICH], dinh_huong=[(k, TEN_DINH_HUONG[k]) for k in DINH_HUONG],

@@ -99,11 +99,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .conv-item .conv-time { font-size: 12px; line-height: 16px; color: var(--text-tertiary); }
 .conv-item.active { background: var(--primary-subtle); border-color: var(--primary-border); }
 .conv-item.active .conv-title { font-weight: 600; color: var(--primary); }
-.faq-item {
-  display: block; width: 100%; text-align: left; padding: 8px 12px; border-radius: 6px; border: 0; background: none;
-  font-size: 14px; line-height: 20px; color: var(--text-secondary); cursor: pointer;
-}
-.faq-item:hover { background: var(--primary-subtle); color: var(--primary); }
 .spacer { flex: 1 0 0; min-height: 0; }
 .check-mode { font-size: 13px; color: var(--text-secondary); padding: 0 12px; }
 .check-mode summary { cursor: pointer; font-weight: 500; color: var(--text-tertiary); }
@@ -296,3 +291,15 @@ fieldset.field { display: block; }
 fieldset.field legend { margin-bottom: 4px; }
 fieldset.field .choice { margin: 6px 18px 0 0; }
 .bubble th, .bubble td { min-width: 2.6em; }
+
+/* Công cụ tư vấn: nút rõ ràng ở đầu thanh bên */
+.tool-btn {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; cursor: pointer;
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--primary-border); background: var(--surface);
+}
+.tool-btn + .tool-btn { margin-top: 6px; }
+.tool-btn:hover { background: var(--primary-subtle); border-color: var(--primary); }
+.tool-title { font-weight: 600; font-size: 14px; line-height: 20px; color: var(--primary); }
+.tool-sub { font-size: 12px; line-height: 16px; color: var(--text-secondary); }
+.contact-org { font-size: 12px; line-height: 16px; color: var(--text-secondary); font-weight: 500; }
+.bubble ul + p { margin-top: 10px; }
