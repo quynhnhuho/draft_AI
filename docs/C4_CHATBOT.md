@@ -113,3 +113,9 @@ người dùng" trong báo cáo.
 - [ ] C3: quy trình gán nhãn + kappa; thêm câu "đủ điều kiện vào ngành X", câu ngắn, câu `viec_lam`,
   `thu_tuc_nhap_hoc`; huấn luyện lại bằng notebook rồi chép `models.zip` vào `models/` và chạy `pytest -q`.
 - [ ] Thử với người dùng thật, quay video demo.
+
+## 7. Hình giao diện (cho báo cáo)
+
+`docs/hinh/c4/`: `web_trang_chu.png` (màn hình đầu), `web_diem_chuan_co_nguon.png` (số liệu kèm nguồn + năm),
+`web_c2_suy_dien_lui.png` (kiểm tra đủ điều kiện – chuỗi luật), `web_c1_lo_trinh.png` (biểu mẫu lộ trình,
+có môn học lại), `web_chuyen_can_bo.png` (ngành khác → chuyển cán bộ), `web_dien_thoai.png` (bản điện thoại).
