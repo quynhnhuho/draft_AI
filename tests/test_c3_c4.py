@@ -217,3 +217,26 @@ def test_kich_ban_end_to_end():
     assert th["chuyen_dung"] == th["chuyen_can"]                            # không trả lời bừa câu ngoài phạm vi
     dung, tong = th["dung_y_dinh"]
     assert dung / tong >= 0.85
+
+
+# ---------------------------------------------------------------- học phí (QĐ 2465, QĐ 2849, NĐ 116)
+@pytest.mark.parametrize("nganh,nam,gia_tri", [
+    ("cntt", 2024, 19680000), ("cntt", 2025, 22200000), ("cntt", 2026, 25080000),
+    ("sp_tin", 2024, 14100000), ("sp_tin", 2025, 15900000), ("sp_tin", 2026, 17900000),
+    ("cngd", 2025, 15900000), ("cngd", 2026, 17900000),
+])
+def test_hoc_phi_theo_quyet_dinh(kb, nganh, nam, gia_tri):
+    facts = [f for f in kb.query("hoc_phi", nganh, nam).facts if f.get("ap_dung_tu_nam") is None]
+    assert [f["gia_tri"] for f in facts] == [gia_tri] and facts[0]["da_kiem_chung"]
+
+
+def test_nghi_dinh_116_kem_hoc_phi_su_pham_moi_nam(kb):
+    for nam in (None, 2024, 2026):
+        ids = [f["id"] for f in kb.query("hoc_phi", "sp_tin", nam).facts]
+        assert "hotro_sptin_nd116" in ids
+    assert "hotro_sptin_nd116" not in [f["id"] for f in kb.query("hoc_phi", "cntt").facts]
+
+
+def test_nam_khong_co_du_lieu_lay_nam_gan_nhat(kb):
+    r = kb.query("hoc_phi", "cngd", 2024)
+    assert r.year_fallback and {f["nam"] for f in r.facts} == {2025}

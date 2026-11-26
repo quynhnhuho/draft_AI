@@ -171,7 +171,7 @@ class ChatEngine:
                                 + (f" ngành {self.kb.major_name(nganh)}" if nganh else "") + ".")
         head = ""
         if res.year_fallback:
-            years = sorted({f["nam"] for f in res.facts})
+            years = sorted({f["nam"] for f in res.facts if f.get("ap_dung_tu_nam") is None})
             head = (f"Mình chưa có số liệu năm {res.requested_year}; dưới đây là số liệu năm gần nhất "
                     f"({', '.join(map(str, years))}).\n\n")
         elif e.nam is None and intent in ("diem_chuan", "hoc_phi", "to_hop_xet_tuyen"):

@@ -218,16 +218,75 @@
       "da_kiem_chung": true
     },
     {
+      "id": "hp_cntt_2024", "loai": "hoc_phi", "nganh": "cntt", "nam": 2024,
+      "noi_dung": "Học phí ngành Công nghệ thông tin (đại học chính quy) năm học 2024–2025: 19.680.000 đồng/năm học (627.000 đồng/tín chỉ).",
+      "gia_tri": 19680000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 627000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
       "id": "hp_cntt_2025", "loai": "hoc_phi", "nganh": "cntt", "nam": 2025,
-      "noi_dung": "Học phí dự kiến ngành Công nghệ thông tin năm học 2025–2026: khoảng ... đồng/tín chỉ (MẪU – cần điền).",
-      "nguon": "MẪU – thay bằng Quyết định học phí năm học 2025–2026", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "noi_dung": "Học phí ngành Công nghệ thông tin (đại học chính quy) năm học 2025–2026: 22.200.000 đồng/năm học (736.000 đồng/tín chỉ).",
+      "gia_tri": 22200000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 736000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hp_cntt_2026", "loai": "hoc_phi", "nganh": "cntt", "nam": 2026,
+      "noi_dung": "Học phí ngành Công nghệ thông tin (đại học chính quy) năm học 2026–2027: 25.080.000 đồng/năm học (829.000 đồng/tín chỉ).",
+      "gia_tri": 25080000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 829000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hp_sptin_2024", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2024,
+      "noi_dung": "Học phí ngành Sư phạm Tin học (đại học chính quy) năm học 2024–2025: 14.100.000 đồng/năm học (428.000 đồng/tín chỉ).",
+      "gia_tri": 14100000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 428000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
       "id": "hp_sptin_2025", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2025,
-      "noi_dung": "Sinh viên Sư phạm Tin học thuộc diện được hỗ trợ học phí và chi phí sinh hoạt theo Nghị định 116/2020/NĐ-CP (kiểm tra văn bản sửa đổi, bổ sung hiện hành) (MẪU).",
-      "nguon": "MẪU – Nghị định 116/2020/NĐ-CP; kiểm tra văn bản hiện hành", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "noi_dung": "Học phí ngành Sư phạm Tin học (đại học chính quy) năm học 2025–2026: 15.900.000 đồng/năm học (492.000 đồng/tín chỉ).",
+      "gia_tri": 15900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 492000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hp_sptin_2026", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2026,
+      "noi_dung": "Học phí ngành Sư phạm Tin học (đại học chính quy) năm học 2026–2027: 17.900.000 đồng/năm học (551.000 đồng/tín chỉ).",
+      "gia_tri": 17900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 551000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hp_cngd_2025", "loai": "hoc_phi", "nganh": "cngd", "nam": 2025,
+      "noi_dung": "Học phí ngành Công nghệ giáo dục (đại học chính quy) năm học 2025–2026: 15.900.000 đồng/năm học (478.000 đồng/tín chỉ).",
+      "gia_tri": 15900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 478000,
+      "nguon": "Quyết định số 2849/QĐ-ĐHSP ngày 08/08/2025 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí ngành Công nghệ giáo dục và Toán ứng dụng",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hp_cngd_2026", "loai": "hoc_phi", "nganh": "cngd", "nam": 2026,
+      "noi_dung": "Học phí ngành Công nghệ giáo dục (đại học chính quy) năm học 2026–2027: 17.900.000 đồng/năm học (536.000 đồng/tín chỉ).",
+      "gia_tri": 17900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 536000,
+      "nguon": "Quyết định số 2849/QĐ-ĐHSP ngày 08/08/2025 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí ngành Công nghệ giáo dục và Toán ứng dụng",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hotro_sptin_nd116", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2021, "ap_dung_tu_nam": 2021,
+      "noi_dung": "Sinh viên Sư phạm Tin học (ngành đào tạo giáo viên, hệ chính quy) được Nhà nước hỗ trợ tiền đóng học phí bằng mức thu học phí của Trường và 3,63 triệu đồng/tháng chi phí sinh hoạt, tối đa 10 tháng/năm học. Đăng ký trong 30 ngày kể từ khi nhận thông báo trúng tuyển (đơn đề nghị hưởng và cam kết bồi hoàn – Mẫu số 01). Phải bồi hoàn nếu sau 2 năm kể từ khi tốt nghiệp không công tác trong ngành giáo dục, công tác không đủ thời gian quy định (tối thiểu gấp đôi thời gian đào tạo), hoặc chuyển ngành, thôi học trong thời gian đào tạo.",
+      "nguon": "Nghị định số 116/2020/NĐ-CP ngày 25/09/2020 của Chính phủ về chính sách hỗ trợ tiền đóng học phí, chi phí sinh hoạt đối với sinh viên sư phạm (Điều 1, 4, 6, 7, 15)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
       "id": "hb_2025", "loai": "hoc_bong", "nganh": null, "nam": 2025,

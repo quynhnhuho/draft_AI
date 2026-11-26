@@ -109,10 +109,12 @@ người dùng" trong báo cáo.
 ## 6. Việc nhóm cần làm trước khi nộp
 
 - [x] Kênh liên hệ thật của Khoa và Trường trong `data/knowledge_base.json`.
-- [ ] `data/knowledge_base.json`: thay số liệu
-  mẫu (học phí, học bổng, ký túc xá, CTĐT, việc làm, thủ tục) bằng nguồn chính thức + url + ngày truy cập
-  rồi đặt `da_kiem_chung: true`; bổ sung học phí / việc làm / CTĐT ngành **Công nghệ giáo dục** (hiện chưa có
-  → bot chuyển cán bộ với lý do `thieu_du_lieu`).
+- [x] Học phí CNTT, SP Tin học (QĐ 2465/QĐ-ĐHSP), Công nghệ giáo dục (QĐ 2849/QĐ-ĐHSP) cho các năm học
+  2024–2027; hỗ trợ học phí + sinh hoạt phí sinh viên sư phạm (Nghị định 116/2020/NĐ-CP, trường `ap_dung_tu_nam`:
+  luôn kèm theo học phí SP Tin học của mọi năm).
+- [ ] `data/knowledge_base.json`: thay 7 mục còn là mẫu (học bổng, ký túc xá, CTĐT, việc làm, thủ tục nhập học)
+  bằng nguồn chính thức + url + ngày truy cập rồi đặt `da_kiem_chung: true`; bổ sung CTĐT / việc làm ngành
+  **Công nghệ giáo dục** (hiện chưa có → bot chuyển cán bộ với lý do `thieu_du_lieu`).
 - [ ] C3: quy trình gán nhãn + kappa; thêm câu "đủ điều kiện vào ngành X", câu ngắn, câu `viec_lam`,
   `thu_tuc_nhap_hoc`; huấn luyện lại bằng notebook rồi chép `models.zip` vào `models/` và chạy `pytest -q`.
 - [ ] Thử với người dùng thật, quay video demo.
