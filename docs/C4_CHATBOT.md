@@ -111,8 +111,10 @@ người dùng" trong báo cáo.
 - [x] Kênh liên hệ thật của Khoa và Trường trong `data/knowledge_base.json`.
 - [x] Học phí CNTT, SP Tin học (QĐ 2465/QĐ-ĐHSP), Công nghệ giáo dục (QĐ 2849/QĐ-ĐHSP) cho các năm học
   2024–2027; hỗ trợ học phí + sinh hoạt phí sinh viên sư phạm (Nghị định 116/2020/NĐ-CP, trường `ap_dung_tu_nam`:
-  luôn kèm theo học phí SP Tin học của mọi năm).
-- [ ] `data/knowledge_base.json`: thay 7 mục còn là mẫu (học bổng, ký túc xá, CTĐT, việc làm, thủ tục nhập học)
+  luôn kèm theo học phí SP Tin học của mọi năm); Công nghệ giáo dục không thuộc diện NĐ 116.
+- [x] Ký túc xá: mức thu (QĐ 2892/QĐ-ĐHSP ngày 13/08/2025) và gia hạn hợp đồng, đóng tiền năm học 2025–2026
+  (thông báo của Ký túc xá ngày 13/08/2025).
+- [ ] `data/knowledge_base.json`: thay 6 mục còn là mẫu (học bổng, CTĐT, việc làm, thủ tục nhập học)
   bằng nguồn chính thức + url + ngày truy cập rồi đặt `da_kiem_chung: true`; bổ sung CTĐT / việc làm ngành
   **Công nghệ giáo dục** (hiện chưa có → bot chuyển cán bộ với lý do `thieu_du_lieu`).
 - [ ] C3: quy trình gán nhãn + kappa; thêm câu "đủ điều kiện vào ngành X", câu ngắn, câu `viec_lam`,

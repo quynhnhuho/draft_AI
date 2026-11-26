@@ -247,3 +247,10 @@ def test_cngd_khong_thuoc_nghi_dinh_116(kb, engine):
     assert "cs_cngd_khong_nd116" in ids and "hotro_sptin_nd116" not in ids
     r = engine.respond("học phí ngành công nghệ giáo dục năm 2025", DialogueState())
     assert "15.900.000" in r.text and "không thuộc diện" in r.text and "2849/QĐ-ĐHSP" in r.text
+
+
+def test_ky_tuc_xa_theo_quyet_dinh_2892(kb, engine):
+    ids = [f["id"] for f in kb.query("ky_tuc_xa").facts]
+    assert ids == ["ktx_muc_thu_2025", "ktx_gia_han_2025"]
+    r = engine.respond("ký túc xá giá phòng bao nhiêu", DialogueState())
+    assert "400.000" in r.text and "700.000" in r.text and "2892/QĐ-ĐHSP" in r.text and "Lưu ý" not in r.text

@@ -302,10 +302,19 @@
       "da_kiem_chung": false
     },
     {
-      "id": "ktx_2025", "loai": "ky_tuc_xa", "nganh": null, "nam": 2025,
-      "noi_dung": "Ký túc xá ưu tiên tân sinh viên ở xa; đăng ký trực tuyến khi làm thủ tục nhập học (MẪU – cần điền giá phòng).",
-      "nguon": "MẪU – thay bằng Thông báo của Trung tâm/Ban quản lý KTX", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "id": "ktx_muc_thu_2025", "loai": "ky_tuc_xa", "nganh": null, "nam": 2025,
+      "noi_dung": "Mức thu tiền nội trú Ký túc xá từ năm học 2025–2026 (áp dụng cho sinh viên được xét vào nội trú): phòng 8 sinh viên 400.000 đồng/sinh viên/tháng; phòng 6 sinh viên 700.000 đồng/sinh viên/tháng.",
+      "gia_tri": 400000, "don_vi": "đồng/sinh viên/tháng (phòng 8 sinh viên)",
+      "nguon": "Quyết định số 2892/QĐ-ĐHSP ngày 13/08/2025 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu tiền nội trú Ký túc xá của sinh viên từ năm học 2025–2026",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "ktx_gia_han_2025", "loai": "ky_tuc_xa", "nganh": null, "nam": 2025,
+      "noi_dung": "Năm học 2025–2026, hợp đồng ở Ký túc xá kéo dài từ tháng 9/2025 đến tháng 6/2026, đăng ký ở và đóng tiền theo từng học kỳ. Sinh viên đã ở năm học 2024–2025 (năm 1, 2, 3) gia hạn trực tuyến qua link của Tổ Quản lý sinh viên đến hết 25/8/2025; sinh viên vi phạm quy định nội trú không được gia hạn. Học kỳ I thu 5 tháng (9/2025–1/2026): phòng 8 sinh viên 2.000.000 đồng, phòng 6 sinh viên 3.500.000 đồng, đóng trực tuyến từ 16/8 đến 26/8/2025 tại [tracuu.hcmue.edu.vn/ktx](https://tracuu.hcmue.edu.vn/ktx).",
+      "nguon": "Thông báo của Ký túc xá Trường ĐHSP TP.HCM ngày 13/08/2025 về gia hạn hợp đồng ở sinh viên nội trú năm học 2025–2026",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
       "id": "ctdt_cntt", "loai": "chuong_trinh_dao_tao", "nganh": "cntt", "nam": 2025,
