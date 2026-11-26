@@ -47,7 +47,7 @@ GIA_DINH = [
     "Điều kiện học trước: chỉ cần ĐÃ HỌC học phần trước (đạt hoặc rớt đều được); học phần rớt phải học lại.",
     f"Tối đa {MAX_TC_BINH_THUONG} TC/kỳ; {MAX_TC_HOC_VUOT} TC/kỳ khi học vượt.",
     "Mọi học phần đăng ký trong lộ trình được giả định là đạt.",
-    "Học kỳ mở (Lẻ/Chẵn) của từng học phần lấy theo cột hoc_ky_mo trong data/hoc_phan.csv.",
+    "Học kỳ mở (Lẻ/Chẵn) của từng học phần là dữ liệu mô phỏng (cột hoc_ky_mo trong data/hoc_phan.csv).",
 ]
 
 

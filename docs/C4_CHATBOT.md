@@ -69,7 +69,7 @@ mẫu (`da_kiem_chung=false`) có thêm dòng "Lưu ý: số liệu mẫu, nhóm
 |---|---|---|---|
 | **Chặn phạm vi** (`pham_vi.py`) | câu nhắc "ngành X" không thuộc Khoa, hoặc tên trường khác | mô hình tự tin ~1.0 cho "điểm chuẩn ngành Sư phạm Toán" → nếu không chặn, bot trả số liệu CNTT (sai) | 0/660 câu trong `intents.csv` bị chặn nhầm; chặn 10/82 câu `out_of_scope.csv` |
 | **Luật ưu tiên** đủ điều kiện | ngành của Khoa + cụm "đủ điều kiện vào/đủ điểm vào/có đậu/vào được…" | dữ liệu C3 chưa có câu loại này, mô hình đoán `viec_lam` | trùng 2/660 câu (đều là "em được 27đ có đủ điểm vào CNTT không") |
-| **Luật bổ trợ** | conf < τ, ý định C1/C2 nằm trong top-3 và câu có cụm đặc trưng ("lộ trình", "rớt môn", "nên chọn ngành nào"…) | hai ý định này chỉ mở luồng hỏi thêm, không đưa số liệu → rủi ro thấp | ghi `nguon_y_dinh = luat_bo_tro` để thống kê |
+| **Luật bổ trợ** (`RULE_CUES`, `RULE_CUES_RO` trong `engine.py`) | conf < τ, ý định nằm trong top-3 và câu có cụm đặc trưng: "lộ trình", "rớt môn", "nên chọn ngành nào" (C1/C2); "học phí", "tín chỉ", "việc làm", "ra trường làm"… (học phí, CTĐT, việc làm). Cụm rất rõ "sinh hoạt phí", "nghị định 116", "hỗ trợ/miễn học phí" được nhận kể cả ngoài top-3 | dữ liệu C3 ít câu về ngành CNGD, sinh hoạt phí, số tín chỉ nên mô hình hay dưới τ ở các câu này; luật không thay mô hình, chỉ xác nhận | 10/10 câu thử về thông tin mới được trả lời (trước đó 6/10); 99 câu test không đổi; 0 câu ngoài phạm vi bị trả lời nhầm do luật |
 
 Chế độ debug hiện **ý định, độ tin cậy, top-3, thực thể, ai quyết định ý định** (`mo_hinh`,
 `luat_uu_tien`, `luat_bo_tro`, `chan_pham_vi`, `duoi_nguong`) và thời gian xử lý.
@@ -109,10 +109,15 @@ người dùng" trong báo cáo.
 ## 6. Việc nhóm cần làm trước khi nộp
 
 - [x] Kênh liên hệ thật của Khoa và Trường trong `data/knowledge_base.json`.
-- [ ] `data/knowledge_base.json`: thay số liệu
-  mẫu (học phí, học bổng, ký túc xá, CTĐT, việc làm, thủ tục) bằng nguồn chính thức + url + ngày truy cập
-  rồi đặt `da_kiem_chung: true`; bổ sung học phí / việc làm / CTĐT ngành **Công nghệ giáo dục** (hiện chưa có
-  → bot chuyển cán bộ với lý do `thieu_du_lieu`).
+- [x] Học phí CNTT, SP Tin học (QĐ 2465/QĐ-ĐHSP), Công nghệ giáo dục (QĐ 2849/QĐ-ĐHSP) cho các năm học
+  2024–2027; hỗ trợ học phí + sinh hoạt phí sinh viên sư phạm (Nghị định 116/2020/NĐ-CP, trường `ap_dung_tu_nam`:
+  luôn kèm theo học phí SP Tin học của mọi năm); Công nghệ giáo dục không thuộc diện NĐ 116.
+- [x] Ký túc xá: mức thu (QĐ 2892/QĐ-ĐHSP ngày 13/08/2025) và gia hạn hợp đồng, đóng tiền năm học 2025–2026
+  (thông báo của Ký túc xá ngày 13/08/2025).
+- [x] Học bổng (Quy trình xét HBKKHT 2023), CTĐT + việc làm 3 ngành (CTĐT CNTT – QĐ 2619/QĐ-ĐHSP; Cẩm nang
+  tuyển sinh 2025 của Khoa), thủ tục nhập học 2026 và đăng ký KTX cho tân sinh viên (KH 539/KH-ĐHSP) – không còn mục mẫu.
+- [ ] Bổ sung nếu có: mức tiền và điều kiện điểm của học bổng KKHT; số tín chỉ CTĐT Sư phạm Tin học và Công nghệ
+  giáo dục; nội dung sửa đổi của Nghị định 60/2025/NĐ-CP (KH 539 nhắc tới) đối với mức hỗ trợ của NĐ 116.
 - [ ] C3: quy trình gán nhãn + kappa; thêm câu "đủ điều kiện vào ngành X", câu ngắn, câu `viec_lam`,
   `thu_tuc_nhap_hoc`; huấn luyện lại bằng notebook rồi chép `models.zip` vào `models/` và chạy `pytest -q`.
 - [ ] Thử với người dùng thật, quay video demo.

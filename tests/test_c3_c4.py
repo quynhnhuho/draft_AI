@@ -217,3 +217,91 @@ def test_kich_ban_end_to_end():
     assert th["chuyen_dung"] == th["chuyen_can"]                            # không trả lời bừa câu ngoài phạm vi
     dung, tong = th["dung_y_dinh"]
     assert dung / tong >= 0.85
+
+
+# ---------------------------------------------------------------- học phí (QĐ 2465, QĐ 2849, NĐ 116)
+@pytest.mark.parametrize("nganh,nam,gia_tri", [
+    ("cntt", 2024, 19680000), ("cntt", 2025, 22200000), ("cntt", 2026, 25080000),
+    ("sp_tin", 2024, 14100000), ("sp_tin", 2025, 15900000), ("sp_tin", 2026, 17900000),
+    ("cngd", 2025, 15900000), ("cngd", 2026, 17900000),
+])
+def test_hoc_phi_theo_quyet_dinh(kb, nganh, nam, gia_tri):
+    facts = [f for f in kb.query("hoc_phi", nganh, nam).facts if f.get("ap_dung_tu_nam") is None]
+    assert [f["gia_tri"] for f in facts] == [gia_tri] and facts[0]["da_kiem_chung"]
+
+
+def test_nghi_dinh_116_kem_hoc_phi_su_pham_moi_nam(kb):
+    for nam in (None, 2024, 2026):
+        ids = [f["id"] for f in kb.query("hoc_phi", "sp_tin", nam).facts]
+        assert "hotro_sptin_nd116" in ids
+    assert "hotro_sptin_nd116" not in [f["id"] for f in kb.query("hoc_phi", "cntt").facts]
+
+
+def test_nam_khong_co_du_lieu_lay_nam_gan_nhat(kb):
+    r = kb.query("hoc_phi", "cngd", 2024)
+    assert r.year_fallback and {f["nam"] for f in r.facts} == {2025}
+
+
+def test_cngd_khong_thuoc_nghi_dinh_116(kb, engine):
+    ids = [f["id"] for f in kb.query("hoc_phi", "cngd").facts]
+    assert "cs_cngd_khong_nd116" in ids and "hotro_sptin_nd116" not in ids
+    r = engine.respond("học phí ngành công nghệ giáo dục năm 2025", DialogueState())
+    assert "15.900.000" in r.text and "không thuộc diện" in r.text and "2849/QĐ-ĐHSP" in r.text
+
+
+def test_ky_tuc_xa_theo_quyet_dinh_2892(kb, engine):
+    assert [f["id"] for f in kb.query("ky_tuc_xa", nam=2025).facts] == ["ktx_gia_han_2025", "ktx_muc_thu_2025"]
+    # không nêu năm: hướng dẫn tân sinh viên 2026 + mức thu (áp dụng từ năm học 2025–2026)
+    assert [f["id"] for f in kb.query("ky_tuc_xa").facts] == ["ktx_tan_sinh_vien_2026", "ktx_muc_thu_2025"]
+    r = engine.respond("ký túc xá giá phòng bao nhiêu", DialogueState())
+    assert "400.000" in r.text and "700.000" in r.text and "2892/QĐ-ĐHSP" in r.text and "Lưu ý" not in r.text
+
+
+def test_khong_con_du_lieu_mau(kb):
+    assert [f["id"] for f in kb.facts if not f.get("da_kiem_chung")] == []
+    assert all("MẪU" not in f["noi_dung"] and "..." not in f["noi_dung"] for f in kb.facts)
+
+
+@pytest.mark.parametrize("loai", ["chuong_trinh_dao_tao", "viec_lam"])
+def test_du_ba_nganh(kb, loai):
+    assert {f["nganh"] for f in kb.facts if f["loai"] == loai} == {"cntt", "sp_tin", "cngd"}
+
+
+def test_nhap_hoc_2026(engine):
+    r = engine.respond("thủ tục nhập học cần chuẩn bị giấy tờ gì", DialogueState())
+    assert "nhaphoc.hcmue.edu.vn" in r.text and "10/9/2026" in r.text and "539/KH-ĐHSP" in r.text
+
+
+# ---------------------------------------------------------------- luật bổ trợ cho học phí, việc làm, CTĐT
+class _MoHinhGia:
+    name = "gia"
+
+    def __init__(self, top):
+        self.top = top
+
+    def predict(self, text, k=3):
+        return Prediction(self.top[0][0], self.top[0][1], self.top)
+
+
+@pytest.mark.parametrize("cau,top,ky_vong", [
+    ("Học phí ngành công nghệ giáo dục năm 2026", [("tu_van_chon_nganh", 0.55), ("hoc_phi", 0.3)], "hoc_phi"),
+    ("Ngành CNTT học bao nhiêu tín chỉ?", [("chuong_trinh_dao_tao", 0.74)], "chuong_trinh_dao_tao"),
+    ("Công nghệ giáo dục ra trường làm công việc gì?", [("viec_lam", 0.53)], "viec_lam"),
+    # cụm từ "rõ": nhận cả khi hoc_phi không nằm trong top-3
+    ("Sinh viên sư phạm tin được hỗ trợ sinh hoạt phí bao nhiêu?", [("viec_lam", 0.42), ("chao_hoi", 0.2)], "hoc_phi"),
+])
+def test_luat_bo_tro_hoc_phi_viec_lam_ctdt(tmp_path, kb, cau, top, ky_vong):
+    r = ChatEngine(kb, _MoHinhGia(top), 0.92, log_dir=tmp_path).respond(cau, DialogueState())
+    assert r.intent == ky_vong and not r.handoff and r.sources and r.debug["nguon_y_dinh"] == "luat_bo_tro"
+
+
+def test_luat_bo_tro_khong_cuu_khi_khong_co_trong_top3(tmp_path, kb):
+    r = ChatEngine(kb, _MoHinhGia([("chao_hoi", 0.5), ("ky_tuc_xa", 0.2)]), 0.92, log_dir=tmp_path) \
+        .respond("Ngành CNTT học bao nhiêu tín chỉ?", DialogueState())
+    assert r.handoff
+
+
+def test_luat_bo_tro_khong_tra_loi_nganh_khac(tmp_path, kb):
+    r = ChatEngine(kb, _MoHinhGia([("chuong_trinh_dao_tao", 0.6)]), 0.92, log_dir=tmp_path) \
+        .respond("Sinh viên ngành Tâm lý học được học những môn chuyên ngành nào?", DialogueState())
+    assert r.handoff

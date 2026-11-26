@@ -3,12 +3,13 @@
     "truong": "Trường Đại học Sư phạm Thành phố Hồ Chí Minh",
     "khoa": "Khoa Công nghệ thông tin",
     "phien_ban": "0.1",
-    "ghi_chu": "Điểm chuẩn và tổ hợp xét tuyển 2024–2026 lấy từ tài liệu Thông tin tuyển sinh của nhóm (trùng với data/tuyen_sinh_2026.json), nhóm xác nhận nguồn là fanpage tuyển sinh chính thức của Trường (Trường không ban hành công văn riêng) nên đặt da_kiem_chung=true. Các mục còn lại (học phí, học bổng, ký túc xá, chương trình đào tạo, việc làm, thủ tục) vẫn là MẪU: thay bằng số liệu chính thức, điền nguon + url + ngay_truy_cap, rồi đặt da_kiem_chung=true.",
+    "ghi_chu": "Mọi mục đều có nguồn chính thức (da_kiem_chung=true): điểm chuẩn, tổ hợp – fanpage tuyển sinh/Cổng Chính phủ; học phí – QĐ 2465, QĐ 2849; hỗ trợ sinh viên sư phạm – NĐ 116/2020; ký túc xá – QĐ 2892, thông báo KTX, KH 539; nhập học – KH 539/KH-ĐHSP (2026); học bổng – Quy trình xét HBKKHT (2023); CTĐT, việc làm – CTĐT CNTT (QĐ 2619/QĐ-ĐHSP) và Cẩm nang tuyển sinh 2025 của Khoa. Mục có ap_dung_tu_nam là chính sách áp dụng nhiều năm.",
     "lien_he_tu_van": {
       "ten": "Khoa Công nghệ thông tin",
       "dia_chi": "Phòng B.507, 280 An Dương Vương, Phường Chợ Quán, TP. Hồ Chí Minh",
       "dien_thoai": "028 38352020 - Ext: 209, 210",
-      "email": "khoacntt@hcmue.edu.vn"
+      "email": "khoacntt@hcmue.edu.vn",
+      "website": "fit.hcmue.edu.vn"
     },
     "lien_he_tuyen_sinh": {
       "ten": "Trang Thông tin Tuyển sinh – Trường Đại học Sư phạm TP. Hồ Chí Minh",
@@ -218,58 +219,167 @@
       "da_kiem_chung": true
     },
     {
+      "id": "hp_cntt_2024", "loai": "hoc_phi", "nganh": "cntt", "nam": 2024,
+      "noi_dung": "Học phí ngành Công nghệ thông tin (đại học chính quy) năm học 2024–2025: 19.680.000 đồng/năm học (627.000 đồng/tín chỉ).",
+      "gia_tri": 19680000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 627000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
       "id": "hp_cntt_2025", "loai": "hoc_phi", "nganh": "cntt", "nam": 2025,
-      "noi_dung": "Học phí dự kiến ngành Công nghệ thông tin năm học 2025–2026: khoảng ... đồng/tín chỉ (MẪU – cần điền).",
-      "nguon": "MẪU – thay bằng Quyết định học phí năm học 2025–2026", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "noi_dung": "Học phí ngành Công nghệ thông tin (đại học chính quy) năm học 2025–2026: 22.200.000 đồng/năm học (736.000 đồng/tín chỉ).",
+      "gia_tri": 22200000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 736000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hp_cntt_2026", "loai": "hoc_phi", "nganh": "cntt", "nam": 2026,
+      "noi_dung": "Học phí ngành Công nghệ thông tin (đại học chính quy) năm học 2026–2027: 25.080.000 đồng/năm học (829.000 đồng/tín chỉ).",
+      "gia_tri": 25080000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 829000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hp_sptin_2024", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2024,
+      "noi_dung": "Học phí ngành Sư phạm Tin học (đại học chính quy) năm học 2024–2025: 14.100.000 đồng/năm học (428.000 đồng/tín chỉ).",
+      "gia_tri": 14100000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 428000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
       "id": "hp_sptin_2025", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2025,
-      "noi_dung": "Sinh viên Sư phạm Tin học thuộc diện được hỗ trợ học phí và chi phí sinh hoạt theo Nghị định 116/2020/NĐ-CP (kiểm tra văn bản sửa đổi, bổ sung hiện hành) (MẪU).",
-      "nguon": "MẪU – Nghị định 116/2020/NĐ-CP; kiểm tra văn bản hiện hành", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "noi_dung": "Học phí ngành Sư phạm Tin học (đại học chính quy) năm học 2025–2026: 15.900.000 đồng/năm học (492.000 đồng/tín chỉ).",
+      "gia_tri": 15900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 492000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
-      "id": "hb_2025", "loai": "hoc_bong", "nganh": null, "nam": 2025,
-      "noi_dung": "Học bổng khuyến khích học tập xét theo điểm trung bình học kỳ và điểm rèn luyện (MẪU – cần điền mức cụ thể).",
-      "nguon": "MẪU – thay bằng Quy định học bổng của Trường", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "id": "hp_sptin_2026", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2026,
+      "noi_dung": "Học phí ngành Sư phạm Tin học (đại học chính quy) năm học 2026–2027: 17.900.000 đồng/năm học (551.000 đồng/tín chỉ).",
+      "gia_tri": 17900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 551000,
+      "nguon": "Quyết định số 2465/QĐ-ĐHSP ngày 20/08/2024 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí từ năm học 2024–2025 đến 2026–2027 (Phụ lục 1, Phụ lục 4)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
-      "id": "ktx_2025", "loai": "ky_tuc_xa", "nganh": null, "nam": 2025,
-      "noi_dung": "Ký túc xá ưu tiên tân sinh viên ở xa; đăng ký trực tuyến khi làm thủ tục nhập học (MẪU – cần điền giá phòng).",
-      "nguon": "MẪU – thay bằng Thông báo của Trung tâm/Ban quản lý KTX", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "id": "hp_cngd_2025", "loai": "hoc_phi", "nganh": "cngd", "nam": 2025,
+      "noi_dung": "Học phí ngành Công nghệ giáo dục (đại học chính quy) năm học 2025–2026: 15.900.000 đồng/năm học (478.000 đồng/tín chỉ).",
+      "gia_tri": 15900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 478000,
+      "nguon": "Quyết định số 2849/QĐ-ĐHSP ngày 08/08/2025 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí ngành Công nghệ giáo dục và Toán ứng dụng",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
-      "id": "ctdt_cntt", "loai": "chuong_trinh_dao_tao", "nganh": "cntt", "nam": 2025,
-      "noi_dung": "Chương trình đào tạo ngành CNTT gồm khoảng ... tín chỉ, thời gian đào tạo ... năm (MẪU – cần điền).",
-      "nguon": "MẪU – thay bằng Chương trình đào tạo ngành CNTT khóa 2025", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "id": "hp_cngd_2026", "loai": "hoc_phi", "nganh": "cngd", "nam": 2026,
+      "noi_dung": "Học phí ngành Công nghệ giáo dục (đại học chính quy) năm học 2026–2027: 17.900.000 đồng/năm học (536.000 đồng/tín chỉ).",
+      "gia_tri": 17900000, "don_vi": "đồng/năm học", "gia_tri_tin_chi": 536000,
+      "nguon": "Quyết định số 2849/QĐ-ĐHSP ngày 08/08/2025 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu học phí ngành Công nghệ giáo dục và Toán ứng dụng",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "cs_cngd_khong_nd116", "loai": "hoc_phi", "nganh": "cngd", "nam": 2025, "ap_dung_tu_nam": 2025,
+      "noi_dung": "Công nghệ giáo dục không phải ngành đào tạo giáo viên (sư phạm), nên sinh viên ngành này không thuộc diện được hỗ trợ tiền đóng học phí và chi phí sinh hoạt theo Nghị định 116/2020/NĐ-CP; học phí đóng theo mức thu tại Quyết định số 2849/QĐ-ĐHSP.",
+      "nguon": "Nghị định số 116/2020/NĐ-CP ngày 25/09/2020 của Chính phủ (Điều 1 – chỉ áp dụng cho sinh viên các ngành đào tạo giáo viên); Quyết định số 2849/QĐ-ĐHSP ngày 08/08/2025 của Hiệu trưởng Trường ĐHSP TP.HCM",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hotro_sptin_nd116", "loai": "hoc_phi", "nganh": "sp_tin", "nam": 2021, "ap_dung_tu_nam": 2021,
+      "noi_dung": "Sinh viên Sư phạm Tin học (ngành đào tạo giáo viên, hệ chính quy) được Nhà nước hỗ trợ tiền đóng học phí bằng mức thu học phí của Trường và 3,63 triệu đồng/tháng chi phí sinh hoạt, tối đa 10 tháng/năm học. Đăng ký trong 30 ngày kể từ khi nhận thông báo trúng tuyển (đơn đề nghị hưởng và cam kết bồi hoàn – Mẫu số 01). Phải bồi hoàn nếu sau 2 năm kể từ khi tốt nghiệp không công tác trong ngành giáo dục, công tác không đủ thời gian quy định (tối thiểu gấp đôi thời gian đào tạo), hoặc chuyển ngành, thôi học trong thời gian đào tạo.",
+      "nguon": "Nghị định số 116/2020/NĐ-CP ngày 25/09/2020 của Chính phủ về chính sách hỗ trợ tiền đóng học phí, chi phí sinh hoạt đối với sinh viên sư phạm (Điều 1, 4, 6, 7, 15)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "hb_kkht", "loai": "hoc_bong", "nganh": null, "nam": 2023,
+      "noi_dung": "Học bổng khuyến khích học tập dành cho sinh viên đại học hình thức chính quy đang học tại Trường, xét sau mỗi học kỳ dựa vào kết quả học tập và kết quả rèn luyện. Mức học bổng do Hiệu trưởng phê duyệt tương ứng với từng ngành theo quy định học phí của từng năm học. Phòng Công tác chính trị và Học sinh, sinh viên thông báo kết quả dự kiến 2 lần (sinh viên phản hồi trong 07 ngày và 04 ngày) trước khi Hiệu trưởng ra quyết định; học bổng được chuyển vào tài khoản ngân hàng của sinh viên.",
+      "nguon": "Quy trình xét học bổng khuyến khích học tập (ban hành lần 01, hiệu lực từ ngày 06/02/2023) – Phòng Công tác chính trị và Học sinh, sinh viên, Trường ĐHSP TP.HCM",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "ktx_muc_thu_2025", "loai": "ky_tuc_xa", "nganh": null, "nam": 2025, "ap_dung_tu_nam": 2025,
+      "noi_dung": "Mức thu tiền nội trú Ký túc xá từ năm học 2025–2026 (áp dụng cho sinh viên được xét vào nội trú): phòng 8 sinh viên 400.000 đồng/sinh viên/tháng; phòng 6 sinh viên 700.000 đồng/sinh viên/tháng.",
+      "gia_tri": 400000, "don_vi": "đồng/sinh viên/tháng (phòng 8 sinh viên)",
+      "nguon": "Quyết định số 2892/QĐ-ĐHSP ngày 13/08/2025 của Hiệu trưởng Trường ĐHSP TP.HCM về mức thu tiền nội trú Ký túc xá của sinh viên từ năm học 2025–2026",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "ktx_gia_han_2025", "loai": "ky_tuc_xa", "nganh": null, "nam": 2025,
+      "noi_dung": "Năm học 2025–2026, hợp đồng ở Ký túc xá kéo dài từ tháng 9/2025 đến tháng 6/2026, đăng ký ở và đóng tiền theo từng học kỳ. Sinh viên đã ở năm học 2024–2025 (năm 1, 2, 3) gia hạn trực tuyến qua link của Tổ Quản lý sinh viên đến hết 25/8/2025; sinh viên vi phạm quy định nội trú không được gia hạn. Học kỳ I thu 5 tháng (9/2025–1/2026): phòng 8 sinh viên 2.000.000 đồng, phòng 6 sinh viên 3.500.000 đồng, đóng trực tuyến từ 16/8 đến 26/8/2025 tại [tracuu.hcmue.edu.vn/ktx](https://tracuu.hcmue.edu.vn/ktx).",
+      "nguon": "Thông báo của Ký túc xá Trường ĐHSP TP.HCM ngày 13/08/2025 về gia hạn hợp đồng ở sinh viên nội trú năm học 2025–2026",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "ctdt_cntt", "loai": "chuong_trinh_dao_tao", "nganh": "cntt", "nam": 2024,
+      "noi_dung": "Chương trình Cử nhân Công nghệ thông tin (mã ngành 7480201, chính quy) gồm 124 tín chỉ (chưa kể Giáo dục thể chất, Giáo dục quốc phòng), thời gian thiết kế 4 năm (8 học kỳ chính): học phần nền tảng 76 TC, học phần nghiệp vụ 32 TC, thực hành – thực tập nghề nghiệp 10 TC, tốt nghiệp 6 TC (khóa luận tốt nghiệp, hoặc hồ sơ tốt nghiệp kèm sản phẩm nghiên cứu). Tối đa 30% khối lượng có thể học trực tuyến. Sinh viên sau tốt nghiệp có thể học tiếp các ngành Khoa học máy tính, Công nghệ phần mềm, Hệ thống thông tin và truyền thông.",
+      "nguon": "Chương trình giáo dục đại học ngành Công nghệ thông tin ban hành kèm Quyết định số 2619/QĐ-ĐHSP ngày 04/09/2024 của Hiệu trưởng Trường ĐHSP TP.HCM",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
       "id": "ctdt_sptin", "loai": "chuong_trinh_dao_tao", "nganh": "sp_tin", "nam": 2025,
-      "noi_dung": "Chương trình đào tạo ngành Sư phạm Tin học gồm khoảng ... tín chỉ, có học phần thực tập sư phạm (MẪU – cần điền).",
-      "nguon": "MẪU – thay bằng Chương trình đào tạo ngành SP Tin học khóa 2025", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "noi_dung": "Ngành Sư phạm Tin học (mã ngành 7140210) kết hợp giáo dục và công nghệ thông tin, đào tạo giáo viên có khả năng giảng dạy tin học và ứng dụng công nghệ thông tin vào dạy học; chương trình kết hợp nghiệp vụ sư phạm với công nghệ hiện đại, trang bị kỹ năng lập trình, thiết kế bài giảng điện tử và ứng dụng CNTT vào giáo dục.",
+      "nguon": "Cẩm nang tuyển sinh 2025 của Khoa Công nghệ thông tin – Trường ĐHSP TP.HCM (fit.hcmue.edu.vn)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
       "id": "vl_cntt", "loai": "viec_lam", "nganh": "cntt", "nam": 2025,
-      "noi_dung": "Vị trí việc làm: lập trình viên, kiểm thử phần mềm, quản trị hệ thống/mạng, phân tích dữ liệu (MẪU – lấy từ chuẩn đầu ra CTĐT).",
-      "nguon": "MẪU – Chuẩn đầu ra CTĐT ngành CNTT", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "noi_dung": "Sau tốt nghiệp ngành Công nghệ thông tin có thể làm việc tại các công ty sản xuất, gia công và kiểm thử phần mềm, nội dung số; vị trí: lập trình viên (ứng dụng, game, web), phân tích viên, thiết kế chương trình và dữ liệu, quản trị cơ sở dữ liệu, chuyên viên phân tích dữ liệu (Big Data, Machine Learning), triển khai giải pháp và quản trị CNTT, quản trị hệ thống – bảo mật, quản trị và thiết kế mạng, thiết kế đồ họa – UX/UI, nghiên cứu viên.",
+      "nguon": "Chương trình giáo dục đại học ngành Công nghệ thông tin ban hành kèm Quyết định số 2619/QĐ-ĐHSP ngày 04/09/2024 của Hiệu trưởng Trường ĐHSP TP.HCM (mục 1.3); Cẩm nang tuyển sinh 2025 của Khoa Công nghệ thông tin – Trường ĐHSP TP.HCM (fit.hcmue.edu.vn)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
       "id": "vl_sptin", "loai": "viec_lam", "nganh": "sp_tin", "nam": 2025,
-      "noi_dung": "Vị trí việc làm: giáo viên Tin học THCS/THPT, giảng dạy tại trung tâm tin học, cán bộ CNTT trong cơ sở giáo dục (MẪU).",
-      "nguon": "MẪU – Chuẩn đầu ra CTĐT ngành SP Tin học", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "noi_dung": "Sau tốt nghiệp ngành Sư phạm Tin học có thể làm giáo viên Tin học tại các trường phổ thông; chuyên viên đào tạo và thiết kế khóa học E-Learning, hướng dẫn công nghệ, tư vấn giáo dục số, phát triển giải pháp CNTT; quản lý, tư vấn và phát triển chương trình đào tạo tin học tại các cơ sở giáo dục; hoặc làm việc tại doanh nghiệp, tổ chức CNTT (phân tích, thiết kế, lập trình, quản trị hệ thống).",
+      "nguon": "Cẩm nang tuyển sinh 2025 của Khoa Công nghệ thông tin – Trường ĐHSP TP.HCM (fit.hcmue.edu.vn)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     },
     {
-      "id": "nh_2025", "loai": "thu_tuc_nhap_hoc", "nganh": null, "nam": 2025,
-      "noi_dung": "Thủ tục nhập học: xác nhận nhập học trên hệ thống của Bộ, nộp hồ sơ (giấy báo trúng tuyển, học bạ, bằng/giấy chứng nhận tốt nghiệp…) theo hướng dẫn của Trường (MẪU).",
-      "nguon": "MẪU – thay bằng Hướng dẫn nhập học năm 2025", "url": "", "ngay_truy_cap": "",
-      "da_kiem_chung": false
+      "id": "nh_2026_truc_tuyen", "loai": "thu_tuc_nhap_hoc", "nganh": null, "nam": 2026,
+      "noi_dung": "Nhập học năm 2026 (Khóa 52) gồm 2 bước. Bước 1 – trực tuyến tại [nhaphoc.hcmue.edu.vn](https://nhaphoc.hcmue.edu.vn) từ 9g00 ngày 20/8/2026 đến trước 17g00 ngày 28/8/2026 (sau khi đã xác nhận nhập học trên hệ thống của Bộ GD&ĐT); đăng nhập bằng mã số sinh viên, mật khẩu là ngày sinh dạng ddmmyyyy. Chuẩn bị bản scan PDF: giấy khai sinh, học bạ THPT, giấy chứng nhận kết quả thi tốt nghiệp THPT 2026 (hoặc bằng tốt nghiệp nếu tốt nghiệp từ 2025 trở về trước), giấy chứng nhận đăng ký nghĩa vụ quân sự (nam), căn cước/CCCD, giấy cam kết phòng chống ma túy – an ninh trật tự – an toàn giao thông (tải tại tracuu.hcmue.edu.vn/PCMT-ANTT-ATGT), giấy chứng nhận đối tượng chính sách (nếu có). Sinh viên ngành sư phạm đăng ký hưởng hỗ trợ theo Nghị định 116 ở bước khai báo. Học phí nộp trực tuyến tại [e-bills.vn/pay/hcmue](https://e-bills.vn/pay/hcmue), qua ứng dụng Agribank E-Mobile Banking hoặc tại quầy Agribank (mã trường 1163).",
+      "nguon": "Kế hoạch số 539/KH-ĐHSP ngày 10/08/2026 của Hiệu trưởng Trường ĐHSP TP.HCM về tiếp nhận và làm thủ tục nhập học hình thức chính quy tuyển sinh năm 2026 – Khóa 52 (Phụ lục I, II, III)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "nh_2026_truc_tiep", "loai": "thu_tuc_nhap_hoc", "nganh": null, "nam": 2026,
+      "noi_dung": "Bước 2 – nhập học trực tiếp: các ngành Công nghệ thông tin, Sư phạm Tin học, Công nghệ giáo dục làm thủ tục buổi sáng ngày 10/9/2026 tại lầu 1 dãy B, cơ sở 280 An Dương Vương, phường Chợ Quán, TP. Hồ Chí Minh. Mang bản chính giấy khai sinh, học bạ, giấy chứng nhận kết quả thi/bằng tốt nghiệp THPT, căn cước, giấy tờ nghĩa vụ quân sự (nam), giấy tờ đối tượng chính sách (nếu có); ký xác nhận lý lịch sinh viên tại chỗ và đăng ký tài khoản ngân hàng chính chủ để nhận hỗ trợ, học bổng. Khoa Công nghệ thông tin gặp gỡ tân sinh viên lúc 8g00 ngày 12/9/2026 tại Hội trường B.",
+      "nguon": "Kế hoạch số 539/KH-ĐHSP ngày 10/08/2026 của Hiệu trưởng Trường ĐHSP TP.HCM về tiếp nhận và làm thủ tục nhập học hình thức chính quy tuyển sinh năm 2026 – Khóa 52 (Phụ lục I, II, III)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "ktx_tan_sinh_vien_2026", "loai": "ky_tuc_xa", "nganh": null, "nam": 2026,
+      "noi_dung": "Tân sinh viên năm 2026 có nhu cầu ở Ký túc xá nộp hồ sơ đăng ký trên hệ thống Dịch vụ công dành cho sinh viên sau khi nhập học trực tuyến thành công; Ký túc xá phối hợp Phòng Công tác chính trị và Học sinh, sinh viên xét duyệt, ưu tiên hồ sơ sinh viên diện chính sách.",
+      "nguon": "Kế hoạch số 539/KH-ĐHSP ngày 10/08/2026 của Hiệu trưởng Trường ĐHSP TP.HCM về tiếp nhận và làm thủ tục nhập học hình thức chính quy tuyển sinh năm 2026 – Khóa 52 (Phụ lục I, II, III)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "ctdt_cngd", "loai": "chuong_trinh_dao_tao", "nganh": "cngd", "nam": 2025,
+      "noi_dung": "Ngành Công nghệ giáo dục (EdTech, mã ngành 7140103) đào tạo nhân lực ứng dụng công nghệ – trí tuệ nhân tạo, dữ liệu lớn, thực tế ảo – vào lĩnh vực giáo dục: thiết kế, phát triển, quản lý và triển khai các sản phẩm công nghệ giáo dục, góp phần chuyển đổi số ngành giáo dục.",
+      "nguon": "Cẩm nang tuyển sinh 2025 của Khoa Công nghệ thông tin – Trường ĐHSP TP.HCM (fit.hcmue.edu.vn)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
+    },
+    {
+      "id": "vl_cngd", "loai": "viec_lam", "nganh": "cngd", "nam": 2025,
+      "noi_dung": "Sau tốt nghiệp ngành Công nghệ giáo dục có thể làm chuyên viên công nghệ (thiết kế khóa học trực tuyến, thiết kế đồ họa cho sản phẩm giáo dục, kỹ thuật viên ICT, biên tập nội dung và tài liệu học tập số, quản trị hệ thống đào tạo, phát triển sản phẩm giáo dục số) hoặc chuyên viên tư vấn và đào tạo (hướng dẫn sử dụng công nghệ và ICT, đào tạo E-Learning, bồi dưỡng công nghệ).",
+      "nguon": "Cẩm nang tuyển sinh 2025 của Khoa Công nghệ thông tin – Trường ĐHSP TP.HCM (fit.hcmue.edu.vn)",
+      "url": "", "ngay_truy_cap": "2026-11-26",
+      "da_kiem_chung": true
     }
   ]
 }

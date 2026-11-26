@@ -123,9 +123,9 @@ tests/                  pytest + kịch bản hội thoại tests/scenarios.yaml
 
 | File | Nội dung | Nguồn | Giấy phép / ghi chú |
 |---|---|---|---|
-| `data/hoc_phan.csv` | 28 học phần (75 TC) | Chương trình đào tạo ban hành kèm Quyết định 2619/QĐ-ĐHSP ngày 04/09/2024, Trường ĐHSP TP.HCM | Văn bản công khai của Trường; nhóm trích để học tập. Cột `hoc_ky_mo` cần ghi rõ lấy từ CTĐT hay mô phỏng |
+| `data/hoc_phan.csv` | 28 học phần (75 TC) | Chương trình đào tạo ban hành kèm Quyết định 2619/QĐ-ĐHSP ngày 04/09/2024, Trường ĐHSP TP.HCM | Văn bản công khai của Trường; nhóm trích để học tập. Mã, tên, tín chỉ, học phần học trước khớp CTĐT; cột `hoc_ky_mo` (Lẻ/Chẵn) là **mô phỏng** dựa trên kế hoạch đào tạo (2 học phần COMP1016, COMP1332 khác kế hoạch CTĐT) |
 | `data/tuyen_sinh_2026.json` | Tổ hợp, ngưỡng, điểm chuẩn 2026 (tham số C2) | Nhóm tổng hợp từ fanpage tuyển sinh của Trường (link trong file) | Trường không ban hành công văn riêng; nhóm xác nhận fanpage là nguồn chính thức (`da_kiem_chung: true`) |
-| `data/knowledge_base.json` | Cơ sở tri thức của chatbot (mỗi mục có `nguon`, `nam`) | Fanpage tuyển sinh, Cổng Chính phủ (điểm chuẩn, tổ hợp 2024–2026: đã kiểm chứng) | 9 mục học phí, học bổng, KTX, CTĐT, việc làm, thủ tục vẫn là **mẫu** – chatbot ghi "Lưu ý: số liệu mẫu" |
+| `data/knowledge_base.json` | Cơ sở tri thức của chatbot (44 mục, mỗi mục có `nguon`, `nam`) | Fanpage tuyển sinh, Cổng Chính phủ (điểm chuẩn, tổ hợp); QĐ 2465, QĐ 2849 (học phí); NĐ 116/2020 (hỗ trợ sinh viên sư phạm); QĐ 2892, thông báo KTX (ký túc xá); KH 539/KH-ĐHSP (nhập học 2026); Quy trình xét học bổng KKHT (2023); CTĐT CNTT (QĐ 2619) và Cẩm nang tuyển sinh 2025 của Khoa (CTĐT, việc làm) | Văn bản công khai của Trường/Chính phủ; mọi mục đã kiểm chứng |
 | `data/survey.csv` | 15 mẫu khảo sát, 4 thuộc tính (ID3) | Nhóm tự khảo sát | Dữ liệu ẩn danh của nhóm, dùng cho học tập |
 | `data/intents.csv` | 660 câu, 11 ý định | Nhóm tự viết / thu thập | Dữ liệu của nhóm, dùng cho học tập. Khai báo câu do LLM gợi ý (nếu có) trong báo cáo |
 | `data/out_of_scope.csv` | 82 câu ngoài phạm vi | Nhóm tự viết | Như trên |
