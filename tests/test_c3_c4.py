@@ -270,3 +270,38 @@ def test_du_ba_nganh(kb, loai):
 def test_nhap_hoc_2026(engine):
     r = engine.respond("thủ tục nhập học cần chuẩn bị giấy tờ gì", DialogueState())
     assert "nhaphoc.hcmue.edu.vn" in r.text and "10/9/2026" in r.text and "539/KH-ĐHSP" in r.text
+
+
+# ---------------------------------------------------------------- luật bổ trợ cho học phí, việc làm, CTĐT
+class _MoHinhGia:
+    name = "gia"
+
+    def __init__(self, top):
+        self.top = top
+
+    def predict(self, text, k=3):
+        return Prediction(self.top[0][0], self.top[0][1], self.top)
+
+
+@pytest.mark.parametrize("cau,top,ky_vong", [
+    ("Học phí ngành công nghệ giáo dục năm 2026", [("tu_van_chon_nganh", 0.55), ("hoc_phi", 0.3)], "hoc_phi"),
+    ("Ngành CNTT học bao nhiêu tín chỉ?", [("chuong_trinh_dao_tao", 0.74)], "chuong_trinh_dao_tao"),
+    ("Công nghệ giáo dục ra trường làm công việc gì?", [("viec_lam", 0.53)], "viec_lam"),
+    # cụm từ "rõ": nhận cả khi hoc_phi không nằm trong top-3
+    ("Sinh viên sư phạm tin được hỗ trợ sinh hoạt phí bao nhiêu?", [("viec_lam", 0.42), ("chao_hoi", 0.2)], "hoc_phi"),
+])
+def test_luat_bo_tro_hoc_phi_viec_lam_ctdt(tmp_path, kb, cau, top, ky_vong):
+    r = ChatEngine(kb, _MoHinhGia(top), 0.92, log_dir=tmp_path).respond(cau, DialogueState())
+    assert r.intent == ky_vong and not r.handoff and r.sources and r.debug["nguon_y_dinh"] == "luat_bo_tro"
+
+
+def test_luat_bo_tro_khong_cuu_khi_khong_co_trong_top3(tmp_path, kb):
+    r = ChatEngine(kb, _MoHinhGia([("chao_hoi", 0.5), ("ky_tuc_xa", 0.2)]), 0.92, log_dir=tmp_path) \
+        .respond("Ngành CNTT học bao nhiêu tín chỉ?", DialogueState())
+    assert r.handoff
+
+
+def test_luat_bo_tro_khong_tra_loi_nganh_khac(tmp_path, kb):
+    r = ChatEngine(kb, _MoHinhGia([("chuong_trinh_dao_tao", 0.6)]), 0.92, log_dir=tmp_path) \
+        .respond("Sinh viên ngành Tâm lý học được học những môn chuyên ngành nào?", DialogueState())
+    assert r.handoff

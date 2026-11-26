@@ -43,12 +43,25 @@ ELIGIBILITY_RULE = ("đủ điều kiện vào", "đủ điều kiện xét tuy�
                     "đủ điểm vào", "có đậu", "đậu không", "đỗ không", "có đỗ", "vào được")
 
 # LUẬT BỔ TRỢ: khi độ tin cậy < τ, chỉ XÁC NHẬN một ý định nằm trong top-3 của mô hình nếu câu chứa
-# cụm từ đặc trưng. Hai ý định này chỉ mở luồng hỏi thêm (không đưa ra số liệu) nên rủi ro thấp.
+# cụm từ đặc trưng (mô hình không bị thay thế, chỉ được "xác nhận" khi chưa đủ tự tin).
+# - tu_van_chon_nganh, lo_trinh_hoc_tap: chỉ mở luồng hỏi thêm (không đưa ra số liệu) nên rủi ro thấp.
+# - hoc_phi, viec_lam, chuong_trinh_dao_tao (bổ sung): dữ liệu huấn luyện ít câu về ngành Công nghệ giáo dục,
+#   sinh hoạt phí, số tín chỉ nên mô hình hay dưới ngưỡng ở các câu này. Đo trên 99 câu test: không đổi kết quả;
+#   câu ngoài phạm vi: 0 câu bị trả lời nhầm (câu về ngành khác đã bị pham_vi.py chặn trước).
 RULE_CUES = {
     "tu_van_chon_nganh": ("nên chọn ngành", "chọn ngành nào", "ngành nào phù hợp", "nên học ngành nào",
                           "tư vấn chọn ngành", "tư vấn ngành", "phân vân giữa"),
     "lo_trinh_hoc_tap": ("lộ trình", "đăng ký học phần", "học vượt", "ra trường đúng hạn", "kế hoạch học tập",
                          "học phần nào", "đăng ký môn", "học lại", "rớt môn", "nợ môn"),
+    "hoc_phi": ("học phí", "sinh hoạt phí", "hỗ trợ học phí", "miễn học phí", "đóng tiền học", "mức thu"),
+    "viec_lam": ("việc làm", "ra trường làm", "làm công việc", "cơ hội nghề", "vị trí việc", "xin việc"),
+    "chuong_trinh_dao_tao": ("tín chỉ", "chương trình đào tạo", "học mấy năm", "bao nhiêu năm", "khóa luận",
+                             "học những môn", "học môn gì"),
+}
+# Cụm từ chỉ có thể là câu hỏi học phí / hỗ trợ sinh viên sư phạm: xác nhận kể cả khi ý định không nằm trong
+# top-3 (mô hình chưa từng gặp các câu này trong dữ liệu huấn luyện).
+RULE_CUES_RO = {
+    "hoc_phi": ("sinh hoạt phí", "nghị định 116", "hỗ trợ học phí", "miễn học phí"),
 }
 COMPARE_CUES = ("khác", "so sánh", "giống", "khác biệt")
 
@@ -114,6 +127,9 @@ class ChatEngine:
         top = {i for i, _ in pred.top_k}
         for intent, cues in RULE_CUES.items():
             if intent in top and any(c in t for c in cues):
+                return intent
+        for intent, cues in RULE_CUES_RO.items():
+            if any(c in t for c in cues):
                 return intent
         return None
 

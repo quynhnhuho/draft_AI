@@ -69,7 +69,7 @@ mẫu (`da_kiem_chung=false`) có thêm dòng "Lưu ý: số liệu mẫu, nhóm
 |---|---|---|---|
 | **Chặn phạm vi** (`pham_vi.py`) | câu nhắc "ngành X" không thuộc Khoa, hoặc tên trường khác | mô hình tự tin ~1.0 cho "điểm chuẩn ngành Sư phạm Toán" → nếu không chặn, bot trả số liệu CNTT (sai) | 0/660 câu trong `intents.csv` bị chặn nhầm; chặn 10/82 câu `out_of_scope.csv` |
 | **Luật ưu tiên** đủ điều kiện | ngành của Khoa + cụm "đủ điều kiện vào/đủ điểm vào/có đậu/vào được…" | dữ liệu C3 chưa có câu loại này, mô hình đoán `viec_lam` | trùng 2/660 câu (đều là "em được 27đ có đủ điểm vào CNTT không") |
-| **Luật bổ trợ** | conf < τ, ý định C1/C2 nằm trong top-3 và câu có cụm đặc trưng ("lộ trình", "rớt môn", "nên chọn ngành nào"…) | hai ý định này chỉ mở luồng hỏi thêm, không đưa số liệu → rủi ro thấp | ghi `nguon_y_dinh = luat_bo_tro` để thống kê |
+| **Luật bổ trợ** (`RULE_CUES`, `RULE_CUES_RO` trong `engine.py`) | conf < τ, ý định nằm trong top-3 và câu có cụm đặc trưng: "lộ trình", "rớt môn", "nên chọn ngành nào" (C1/C2); "học phí", "tín chỉ", "việc làm", "ra trường làm"… (học phí, CTĐT, việc làm). Cụm rất rõ "sinh hoạt phí", "nghị định 116", "hỗ trợ/miễn học phí" được nhận kể cả ngoài top-3 | dữ liệu C3 ít câu về ngành CNGD, sinh hoạt phí, số tín chỉ nên mô hình hay dưới τ ở các câu này; luật không thay mô hình, chỉ xác nhận | 10/10 câu thử về thông tin mới được trả lời (trước đó 6/10); 99 câu test không đổi; 0 câu ngoài phạm vi bị trả lời nhầm do luật |
 
 Chế độ debug hiện **ý định, độ tin cậy, top-3, thực thể, ai quyết định ý định** (`mo_hinh`,
 `luat_uu_tien`, `luat_bo_tro`, `chan_pham_vi`, `duoi_nguong`) và thời gian xử lý.
