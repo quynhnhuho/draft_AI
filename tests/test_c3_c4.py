@@ -240,3 +240,10 @@ def test_nghi_dinh_116_kem_hoc_phi_su_pham_moi_nam(kb):
 def test_nam_khong_co_du_lieu_lay_nam_gan_nhat(kb):
     r = kb.query("hoc_phi", "cngd", 2024)
     assert r.year_fallback and {f["nam"] for f in r.facts} == {2025}
+
+
+def test_cngd_khong_thuoc_nghi_dinh_116(kb, engine):
+    ids = [f["id"] for f in kb.query("hoc_phi", "cngd").facts]
+    assert "cs_cngd_khong_nd116" in ids and "hotro_sptin_nd116" not in ids
+    r = engine.respond("học phí ngành công nghệ giáo dục năm 2025", DialogueState())
+    assert "15.900.000" in r.text and "không thuộc diện" in r.text and "2849/QĐ-ĐHSP" in r.text
