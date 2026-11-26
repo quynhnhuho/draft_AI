@@ -9,7 +9,7 @@ Bộ phân loại: **keras (Conv1D)** · τ = 0.92 · kịch bản: `tests/scena
 | Câu trả lời có số liệu kèm nguồn + năm (mọi lượt đưa ra fact) | 18/18 (100%) |
 | Chuyển cán bộ đúng (trên các câu cần chuyển) | 7/7 (100%) |
 | Chuyển cán bộ thừa (trên các câu không cần chuyển) | 1/24 (4%) |
-| Thời gian phản hồi trung bình / lớn nhất | 13 ms / 267 ms |
+| Thời gian phản hồi trung bình / lớn nhất | 12 ms / 254 ms |
 
 Ý định được quyết định bởi (các lượt không nằm giữa luồng nhiều lượt): `mo_hinh` 16, `luat_uu_tien` 2, `luat_bo_tro` 3, `chan_pham_vi` 3, `duoi_nguong` 5
 

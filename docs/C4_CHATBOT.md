@@ -114,9 +114,10 @@ người dùng" trong báo cáo.
   luôn kèm theo học phí SP Tin học của mọi năm); Công nghệ giáo dục không thuộc diện NĐ 116.
 - [x] Ký túc xá: mức thu (QĐ 2892/QĐ-ĐHSP ngày 13/08/2025) và gia hạn hợp đồng, đóng tiền năm học 2025–2026
   (thông báo của Ký túc xá ngày 13/08/2025).
-- [ ] `data/knowledge_base.json`: thay 6 mục còn là mẫu (học bổng, CTĐT, việc làm, thủ tục nhập học)
-  bằng nguồn chính thức + url + ngày truy cập rồi đặt `da_kiem_chung: true`; bổ sung CTĐT / việc làm ngành
-  **Công nghệ giáo dục** (hiện chưa có → bot chuyển cán bộ với lý do `thieu_du_lieu`).
+- [x] Học bổng (Quy trình xét HBKKHT 2023), CTĐT + việc làm 3 ngành (CTĐT CNTT – QĐ 2619/QĐ-ĐHSP; Cẩm nang
+  tuyển sinh 2025 của Khoa), thủ tục nhập học 2026 và đăng ký KTX cho tân sinh viên (KH 539/KH-ĐHSP) – không còn mục mẫu.
+- [ ] Bổ sung nếu có: mức tiền và điều kiện điểm của học bổng KKHT; số tín chỉ CTĐT Sư phạm Tin học và Công nghệ
+  giáo dục; nội dung sửa đổi của Nghị định 60/2025/NĐ-CP (KH 539 nhắc tới) đối với mức hỗ trợ của NĐ 116.
 - [ ] C3: quy trình gán nhãn + kappa; thêm câu "đủ điều kiện vào ngành X", câu ngắn, câu `viec_lam`,
   `thu_tuc_nhap_hoc`; huấn luyện lại bằng notebook rồi chép `models.zip` vào `models/` và chạy `pytest -q`.
 - [ ] Thử với người dùng thật, quay video demo.

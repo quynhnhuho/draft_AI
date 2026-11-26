@@ -69,7 +69,8 @@ class KnowledgeBase:
                                ("lien_he_tuyen_sinh", "Tư vấn tuyển sinh của Trường")):
             c = self.meta.get(khoa, {})
             dong = [(nhan, str(c[k])) for k, nhan in (("dia_chi", "Địa chỉ"), ("dien_thoai", "Điện thoại"),
-                                                      ("email", "Email"), ("fanpage", "Fanpage"))
+                                                      ("email", "Email"), ("website", "Website"),
+                                                      ("fanpage", "Fanpage"))
                     if c.get(k) and not str(c[k]).startswith("<")]
             if dong:
                 out.append((c.get("ten") or mac_dinh, dong))

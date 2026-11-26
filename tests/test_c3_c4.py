@@ -250,7 +250,23 @@ def test_cngd_khong_thuoc_nghi_dinh_116(kb, engine):
 
 
 def test_ky_tuc_xa_theo_quyet_dinh_2892(kb, engine):
-    ids = [f["id"] for f in kb.query("ky_tuc_xa").facts]
-    assert ids == ["ktx_muc_thu_2025", "ktx_gia_han_2025"]
+    assert [f["id"] for f in kb.query("ky_tuc_xa", nam=2025).facts] == ["ktx_gia_han_2025", "ktx_muc_thu_2025"]
+    # không nêu năm: hướng dẫn tân sinh viên 2026 + mức thu (áp dụng từ năm học 2025–2026)
+    assert [f["id"] for f in kb.query("ky_tuc_xa").facts] == ["ktx_tan_sinh_vien_2026", "ktx_muc_thu_2025"]
     r = engine.respond("ký túc xá giá phòng bao nhiêu", DialogueState())
     assert "400.000" in r.text and "700.000" in r.text and "2892/QĐ-ĐHSP" in r.text and "Lưu ý" not in r.text
+
+
+def test_khong_con_du_lieu_mau(kb):
+    assert [f["id"] for f in kb.facts if not f.get("da_kiem_chung")] == []
+    assert all("MẪU" not in f["noi_dung"] and "..." not in f["noi_dung"] for f in kb.facts)
+
+
+@pytest.mark.parametrize("loai", ["chuong_trinh_dao_tao", "viec_lam"])
+def test_du_ba_nganh(kb, loai):
+    assert {f["nganh"] for f in kb.facts if f["loai"] == loai} == {"cntt", "sp_tin", "cngd"}
+
+
+def test_nhap_hoc_2026(engine):
+    r = engine.respond("thủ tục nhập học cần chuẩn bị giấy tờ gì", DialogueState())
+    assert "nhaphoc.hcmue.edu.vn" in r.text and "10/9/2026" in r.text and "539/KH-ĐHSP" in r.text
