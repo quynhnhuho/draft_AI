@@ -39,7 +39,9 @@ Giả định nhóm thống nhất (`model.GIA_DINH`, chatbot hiển thị kèm 
 3. **Học trước = chỉ cần đã học** (đạt hoặc rớt đều được). Học phần rớt vẫn phải học lại.
 4. **Tối đa 18 TC/kỳ; 22 TC/kỳ khi học vượt.**
 5. Mọi học phần đăng ký trong lộ trình được giả định là đạt.
-6. Kỳ mở (Lẻ/Chẵn) lấy theo cột `hoc_ky_mo` (ghi rõ trong báo cáo lấy từ CTĐT hay mô phỏng).
+6. Kỳ mở (Lẻ/Chẵn) lấy theo cột `hoc_ky_mo` – **dữ liệu mô phỏng** dựa trên kế hoạch đào tạo của CTĐT (đối chiếu
+   CTĐT 2024: mã, tên, tín chỉ, học phần học trước của 28 học phần đều khớp; riêng COMP1016 và COMP1332 có kỳ mở
+   khác kế hoạch CTĐT, nhóm giữ nguyên vì đây là chương trình mô phỏng).
 
 ## 3. Mô hình hóa (mục 2.1)
 
