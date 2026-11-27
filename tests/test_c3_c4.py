@@ -96,6 +96,16 @@ def test_hop_dong_predict_va_nguong():
     assert load_threshold(MODELS, classifier=clf) == read_config(MODELS)["thresholds_per_model"]["NaiveBayes"]
 
 
+@co_mo_hinh
+@pytest.mark.parametrize("text", ["kí túc xá bao nhiêu tiền", "trường có kí túc xá không", "ky tuc xa bao nhieu"])
+def test_mo_hinh_nhan_ky_tuc_xa_moi_cach_viet(text):
+    """"kí"/"ký" và không dấu đều về "ký_túc_xá" (từ có trong tokenizer) → mô hình nhận đúng ý định."""
+    pytest.importorskip("tensorflow")
+    pytest.importorskip("underthesea")
+    p = load_classifier(MODELS, backend="keras").predict(preprocess(text))
+    assert p.intent == "ky_tuc_xa" and p.confidence >= 0.92
+
+
 def test_khong_co_mo_hinh_thi_dung_tu_khoa(tmp_path):
     clf = load_classifier(tmp_path)
     assert isinstance(clf, KeywordClassifier) and load_threshold(tmp_path, classifier=clf) == 0.5

@@ -18,6 +18,16 @@ def test_normalize_tone_and_teencode():
     assert normalize("Hòa ko đc") == "hoà không được"
 
 
+@pytest.mark.parametrize("text,ky_vong", [
+    ("Kí túc xá bao nhiêu", "ký túc xá bao nhiêu"),       # chính tả i/y → dạng có trong dữ liệu huấn luyện
+    ("học kì 2", "học kỳ 2"), ("vật lí", "vật lý"), ("kĩ năng", "kỹ năng"),
+    ("ki tuc xa", "ký túc xá"), ("ky tuc xa o dau", "ký túc xá o dau"),   # gõ không dấu
+    ("kiến thức lịch học", "kiến thức lịch học"),          # từ khác có chữ i không bị đổi
+])
+def test_normalize_chinh_ta_i_y(text, ky_vong):
+    assert normalize(text) == ky_vong
+
+
 def test_entities():
     kb = KnowledgeBase()
     e = extract("Em được 24.5 điểm khối A1, muốn vào CNTT năm 2025", kb.majors)
