@@ -24,7 +24,7 @@ from pathlib import Path
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
 os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 
-from flask import Flask, abort, jsonify, render_template, request  # noqa: E402
+from flask import Flask, abort, jsonify, render_template, request, send_from_directory  # noqa: E402
 
 from src.advisor.tham_so import MON, MON_HB2, NAM, TEN_MON, tu_ma_kb  # noqa: E402
 from src.chatbot.engine import LOG_DIR, ChatEngine, module_status  # noqa: E402
@@ -148,6 +148,11 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
                                         "ms": reply.debug.get("thoi_gian_ms"), "handoff": reply.handoff})
         return {"conversation": {"id": h["id"], "title": h["title"], "updated": h["updated"]},
                 "user": h["messages"][-2], "reply": out}
+
+    @app.get("/favicon.ico")
+    def favicon():
+        # biểu tượng tab = logo Khoa CNTT (static/favicon.ico, tạo từ static/img/logo_khoa_cntt.png)
+        return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/x-icon")
 
     @app.get("/")
     def trang_chu():

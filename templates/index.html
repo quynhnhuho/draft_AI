@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32.png') }}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/favicon-192.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon-180.png') }}">
 </head>
 <body>
 <header class="app-header">
@@ -16,19 +19,14 @@
          alt="Logo Trường Đại học Sư phạm TP. Hồ Chí Minh">
     <span class="divider-v"></span>
     <img class="logo-khoa" src="{{ url_for('static', filename='img/logo_khoa_cntt.png') }}"
-         alt="Logo Khoa Công nghệ Thông tin">
-    <div class="brand-text">
-      <p class="brand-title">{{ khoa }}</p>
-      <p class="brand-sub">{{ truong }}</p>
+         alt="Logo {{ khoa }}">
+    <div class="bot-name">
+      <p class="bot-title">HCMUE FIT Chat</p>
+      <p class="bot-sub">Trợ lý Tuyển sinh Khoa CNTT</p>
     </div>
-  </div>
-  <div class="bot-name">
-    <p class="bot-title">HCMUE FIT Chat</p>
-    <p class="bot-sub">Trợ lý Tuyển sinh Khoa CNTT</p>
   </div>
   <div class="status">
     <p class="status-note">Hỗ trợ 24/7</p>
-    <span class="divider-v short"></span>
     <p class="online"><span class="status-dot"></span>Đang hoạt động</p>
   </div>
   <button class="btn btn-ghost menu-btn" id="menu-btn" type="button" aria-controls="sidebar"
@@ -38,7 +36,7 @@
 <div class="app-body">
   <div class="backdrop" id="backdrop" hidden></div>
   <aside class="sidebar" id="sidebar" aria-label="Thanh bên">
-    <button class="btn btn-secondary btn-block" type="button" data-action="new">Cuộc hội thoại mới</button>
+    <button class="btn btn-primary btn-block new-chat" type="button" data-action="new">Cuộc hội thoại mới</button>
 
     <section class="side-section">
       <p class="section-label">CÔNG CỤ TƯ VẤN</p>
@@ -52,25 +50,14 @@
       </button>
     </section>
 
-    <hr class="divider-h">
-
     <section class="side-section">
       <p class="section-label">GẦN ĐÂY</p>
       <div id="recent" class="recent-list">
-        <p class="empty-note">Chưa có cuộc hội thoại nào.</p>
+        <p class="empty-note"><svg class="empty-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Chưa có cuộc hội thoại nào</p>
       </div>
     </section>
 
     <div class="spacer"></div>
-
-    <details class="check-mode">
-      <summary>Chế độ kiểm tra</summary>
-      <label class="check-row"><input type="checkbox" id="debug"> Hiện ý định, độ tin cậy, thực thể</label>
-      <label class="check-row">Ngưỡng tin cậy τ
-        <input type="number" id="tau" min="0" max="1" step="0.01" value="{{ '%.2f' % tau }}">
-      </label>
-      <p class="check-note">Bộ phân loại: {{ ten_mo_hinh }} · τ mặc định {{ '%.2f' % tau }} (models/config.json)</p>
-    </details>
 
     <div class="contact">
       {% for ten, dong in lien_he %}
@@ -87,6 +74,20 @@
       <p class="section-label tight">LIÊN HỆ KHOA CNTT</p>
       <p class="contact-value muted">Đang cập nhật kênh liên hệ chính thức của Khoa.</p>
       {% endfor %}
+    </div>
+
+    <div class="check-mode">
+      <label class="switch-row" title="Hiện ý định, độ tin cậy, top-3, thực thể và nguồn quyết định ý định">
+        <input type="checkbox" id="debug" role="switch">
+        <span class="switch" aria-hidden="true"></span>
+        Chế độ kiểm tra
+      </label>
+      <div class="check-extra" id="check-extra" hidden>
+        <label class="check-row">Ngưỡng τ
+          <input type="number" id="tau" min="0" max="1" step="0.01" value="{{ '%.2f' % tau }}">
+        </label>
+        <p class="check-note">{{ ten_mo_hinh }} · mặc định {{ '%.2f' % tau }}</p>
+      </div>
     </div>
   </aside>
 

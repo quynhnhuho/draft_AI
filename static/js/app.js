@@ -23,6 +23,12 @@
   const debugBox = $("#debug");
   const tauBox = $("#tau");
   const tauDefault = tauBox ? tauBox.value : "";
+  const recentBox = $("#recent");
+  const EMPTY_RECENT = recentBox.innerHTML;       // "Chưa có cuộc hội thoại nào" (kèm icon) trong template
+  const checkExtra = $("#check-extra");
+  if (debugBox && checkExtra) {
+    debugBox.addEventListener("change", () => { checkExtra.hidden = !debugBox.checked; });
+  }
 
   function now() {
     const d = new Date();
@@ -171,7 +177,7 @@
     const box = $("#recent");
     box.innerHTML = "";
     if (!list.length) {
-      box.innerHTML = '<p class="empty-note">Chưa có cuộc hội thoại nào.</p>';
+      box.innerHTML = EMPTY_RECENT;
       return;
     }
     list.slice(0, 8).forEach(c => {
@@ -223,6 +229,17 @@
   placeholder();
 
   $$("[data-query]").forEach(b => b.addEventListener("click", () => ask(b.dataset.query)));
+
+  // Dải câu hỏi gợi ý: lăn chuột dọc → cuộn ngang mượt
+  const chips = $(".chips");
+  if (chips) {
+    chips.addEventListener("wheel", e => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && chips.scrollWidth > chips.clientWidth) {
+        e.preventDefault();
+        chips.scrollBy({ left: e.deltaY, behavior: "smooth" });
+      }
+    }, { passive: false });
+  }
   $$('[data-action="new"]').forEach(b => b.addEventListener("click", newConversation));
 
   // ------------------------------------------------------------------ menu (điện thoại)

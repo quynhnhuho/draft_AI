@@ -27,7 +27,7 @@ và hiển thị kết quả. **Không dùng API mô hình ngôn ngữ lớn, kh
 
 | Hệ điều hành | Python | Kết quả |
 |---|---|---|
-| Ubuntu 24.04, chỉ CPU | 3.13.18 | `pytest` 51/51 · `python demo.py` ~5 giây (lần đầu nạp TensorFlow ~30 giây) · `python app.py` |
+| Ubuntu 24.04, chỉ CPU | 3.13.18 | `pytest` 75/75 · `python demo.py` ~5 giây (lần đầu nạp TensorFlow ~30 giây) · `python app.py` |
 | Ubuntu 24.04, chỉ CPU | 3.11.18 | như trên |
 | Ubuntu 24.04, chỉ CPU | 3.10.20 | như trên (Keras 3.12, nạp mô hình bằng chế độ tương thích – xem mục 7) |
 
@@ -130,7 +130,7 @@ tests/                  pytest + kịch bản hội thoại tests/scenarios.yaml
 | `data/intents.csv` | 660 câu, 11 ý định | Nhóm tự viết / thu thập | Dữ liệu của nhóm, dùng cho học tập. Khai báo câu do LLM gợi ý (nếu có) trong báo cáo |
 | `data/out_of_scope.csv` | 82 câu ngoài phạm vi | Nhóm tự viết | Như trên |
 | `data/sample/` | Dữ liệu mẫu cho `demo.py`: bản sao `hoc_phan.csv`, `survey.csv`; 99 câu test và 41 câu ngoài phạm vi **không dùng khi huấn luyện**; `tinh_huong.json` (hồ sơ mẫu do nhóm đặt) | Trích từ các file trên | Như trên |
-| `static/img/logo_*.png` | Logo Trường và Khoa | Bộ nhận diện HCMUE (qua mockup Figma của nhóm) | Thuộc sở hữu của Trường ĐHSP TP.HCM; chỉ dùng trong đồ án |
+| `static/img/logo_*.png`, `static/favicon.ico`, `static/img/favicon-*.png` | Logo Trường và Khoa (favicon thu nhỏ từ logo Khoa) | Bộ nhận diện HCMUE (qua mockup Figma của nhóm) | Thuộc sở hữu của Trường ĐHSP TP.HCM; chỉ dùng trong đồ án |
 
 Dữ liệu đầy đủ đều nhỏ (< 1 MB) nên được nộp kèm, không cần link tải. Font Inter (giấy phép SIL OFL) được
 tải từ Google Fonts; khi không có mạng, giao diện tự dùng font hệ thống.
