@@ -40,11 +40,11 @@ underthesea mà mô hình được huấn luyện với underthesea, `/api/trang
 
 | Vùng | Nội dung |
 |---|---|
-| Header | logo Trường + Khoa, "HCMUE FIT Chat", trạng thái "Đang hoạt động" |
-| Thanh bên | Cuộc hội thoại mới · CÔNG CỤ TƯ VẤN (biểu mẫu tư vấn chọn ngành – C2, lập lộ trình học – C1) · GẦN ĐÂY (hội thoại của trình duyệt này) · Chế độ kiểm tra (ý định, độ tin cậy, top-3, thực thể, ai quyết định; chỉnh τ) · Liên hệ Khoa CNTT và Tư vấn tuyển sinh của Trường |
-| Vùng chat | tin nhắn bot (nền xanh nhạt) / người dùng (nền #124874), dòng **Nguồn … – năm áp dụng …** tách riêng dưới mỗi số liệu, nút Hữu ích / Chưa đúng |
-| Ô nhập | câu hỏi gợi ý (chỉ giữ câu đã kiểm thử trả lời được), Enter để gửi |
-| Điện thoại (≤ 900px) | header 2 hàng + nút Menu mở thanh bên, chip cuộn ngang |
+| Header (60px, một hàng) | trái: logo Trường + logo Khoa + "HCMUE FIT Chat" (dưới là "Trợ lý Tuyển sinh Khoa CNTT"); phải: "Hỗ trợ 24/7" + nhãn "Đang hoạt động". Favicon là logo Khoa (`static/favicon.ico`, `static/img/favicon-*.png`) |
+| Thanh bên (256px, nền #F8FAFC) | nút chính **Cuộc hội thoại mới** · CÔNG CỤ TƯ VẤN (thẻ nhỏ: tư vấn chọn ngành – C2, lập lộ trình học – C1) · GẦN ĐÂY (hội thoại của trình duyệt này; khi trống hiện dòng chữ nhỏ kèm biểu tượng) · Liên hệ Khoa CNTT và Tư vấn tuyển sinh của Trường · công tắc **Chế độ kiểm tra** ở cuối (bật thì hiện ý định, độ tin cậy, top-3, thực thể, ai quyết định và ô chỉnh τ) |
+| Vùng chat (card trắng, bo 14px, bóng nhẹ) | tin nhắn bot (nền xanh nhạt) / người dùng (nền #124874), dòng **Nguồn … – năm áp dụng …** tách riêng dưới mỗi số liệu, nút Hữu ích / Chưa đúng |
+| Ô nhập (cố định ở đáy card) | câu hỏi gợi ý một hàng ngay trên ô nhập, cuộn ngang mượt (lăn chuột cũng cuộn ngang); chỉ giữ câu đã kiểm thử trả lời được; Enter để gửi |
+| Điện thoại (≤ 900px) | header 56px một hàng + nút Menu mở thanh bên dạng ngăn kéo, vùng chat tràn màn hình, chip cuộn ngang |
 
 Giao diện chỉ hiển thị: HTML câu trả lời do `src/web/markdown_lite.py` tạo từ văn bản của engine, mọi
 nội dung người dùng được escape. Hội thoại lưu trong bộ nhớ máy chủ theo `client_id` của trình duyệt.

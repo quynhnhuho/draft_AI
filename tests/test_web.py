@@ -34,6 +34,19 @@ def test_trang_chu_theo_figma(client):
         assert s in html
     assert "<script>alert" not in html and "CÂU HỎI THƯỜNG GẶP" not in html
     assert html.index("CÔNG CỤ TƯ VẤN") < html.index("GẦN ĐÂY")      # công cụ tư vấn ở đầu thanh bên
+    assert html.index("Cuộc hội thoại mới") < html.index("CÔNG CỤ TƯ VẤN")   # nút chính trên cùng
+    assert html.index("Chế độ kiểm tra") > html.index("LIÊN HỆ KHOA CNTT")   # công tắc ở cuối thanh bên
+    assert 'id="debug"' in html and 'role="switch"' in html
+
+
+def test_favicon_la_logo_khoa(client):
+    html = client.get("/").get_data(as_text=True)
+    assert 'rel="icon"' in html and "favicon-32.png" in html and "apple-touch-icon" in html
+    r = client.get("/favicon.ico")
+    assert r.status_code == 200 and r.mimetype == "image/x-icon" and r.data[:4] == b"\x00\x00\x01\x00"
+    for ten in ["favicon-32.png", "favicon-180.png", "favicon-192.png"]:
+        r = client.get(f"/static/img/{ten}")
+        assert r.status_code == 200 and r.data[:8] == b"\x89PNG\r\n\x1a\n"
 
 
 def test_chat_so_lieu_co_nguon_va_nam(client):
