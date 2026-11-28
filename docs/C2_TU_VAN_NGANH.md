@@ -14,7 +14,7 @@
 | `src/advisor/facts.py` | Kiểm tra đầu vào, dữ kiện → sự kiện, phân biệt chưa hỏi / không thi, `DuLieu` |
 | `src/advisor/rules.py` | Biểu diễn luật (biến `?T`, `Not`, điều kiện số), 33 luật, phân tầng |
 | `src/advisor/inference.py` | Tự cài đặt `forward_chaining()` và `backward_chaining()` |
-| `src/advisor/tu_van.py` | Điểm vào cho chatbot: `tu_van()`, `kiem_tra_dieu_kien()`, xếp hạng; `markdown_tu_van()` / `markdown_kiem_tra()` trình bày kết quả cho web bằng lời thường (xưng "bạn", không mã luật/vị từ: DXT → "Điểm xét tuyển", DXT_best → "Điểm xét tuyển cao nhất"); vết suy diễn và chuỗi luật vẫn in bởi `python demo.py c2` |
+| `src/advisor/tu_van.py` | Điểm vào cho chatbot: `tu_van()`, `kiem_tra_dieu_kien()`, xếp hạng; `markdown_tu_van()` / `markdown_kiem_tra()` trình bày kết quả cho web bằng lời thường (xưng "bạn", không mã luật/vị từ: DXT → "Điểm xét tuyển", DXT_best → "Điểm xét tuyển cao nhất"); vết suy diễn và chuỗi luật vẫn in bởi `python demo.py c2`. `nganh_theo_so_thich()` / `markdown_so_thich()`: suy diễn tiến chỉ với dữ kiện sở thích (R19–R24) để chatbot trả lời ngay "thích dạy học và lập trình thì chọn ngành gì" (Sư phạm Tin học – khớp mạnh R23; CNTT – R19) trước khi hỏi điểm |
 | `data/survey.csv` | 15 mẫu khảo sát, 4 thuộc tính A1–A4, nhãn Y |
 | `src/advisor/kiem_chung_sklearn.py` | IG hai tầng đầu (đối chiếu tính tay), cây scikit-learn, rút luật, lưu hình |
 

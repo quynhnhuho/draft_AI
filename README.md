@@ -27,7 +27,7 @@ và hiển thị kết quả. **Không dùng API mô hình ngôn ngữ lớn, kh
 
 | Hệ điều hành | Python | Kết quả |
 |---|---|---|
-| Ubuntu 24.04, chỉ CPU | 3.13.18 | `pytest` 94/94 · `python demo.py` ~5 giây (lần đầu nạp TensorFlow ~30 giây) · `python app.py` |
+| Ubuntu 24.04, chỉ CPU | 3.13.18 | `pytest` 99/99 · `python demo.py` ~5 giây (lần đầu nạp TensorFlow ~30 giây) · `python app.py` |
 | Ubuntu 24.04, chỉ CPU | 3.11.18 | như trên |
 | Ubuntu 24.04, chỉ CPU | 3.10.20 | như trên (Keras 3.12, nạp mô hình bằng chế độ tương thích – xem mục 7) |
 

@@ -137,3 +137,11 @@ def test_xung_ho_minh_ban(engine):
 def test_lo_trinh_khong_hien_gia_dinh(engine):
     t = engine.make_plan(set(), set(), 1).text
     assert "Giả định" not in t and "nút mở rộng" not in t and "Lộ trình đề xuất" in t
+
+
+def test_game_la_so_thich_lap_trinh():
+    kb = KnowledgeBase()
+    assert extract("em thích làm game", kb.majors).so_thich == ["thich_lap_trinh"]
+    from src.advisor.tu_van import nganh_theo_so_thich
+    ds = nganh_theo_so_thich({"thich_day_hoc": True, "thich_lap_trinh": True})
+    assert [(x, manh) for x, manh, _ in ds] == [("SPTH", True), ("CNTT", False)]   # R23 khớp mạnh trước R19

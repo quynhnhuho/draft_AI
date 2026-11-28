@@ -249,6 +249,30 @@ def markdown_tu_van(kq: KetQuaTuVan) -> str:
     return "\n\n".join(parts)
 
 
+def nganh_theo_so_thich(user: dict) -> list[tuple[str, bool, str]]:
+    """Suy diễn tiến chỉ với dữ kiện sở thích (luật R19–R24): [(ngành, khớp mạnh?, giải thích của luật)],
+    ngành khớp mạnh đứng trước. Dùng để trả lời ngay "thích X thì chọn ngành gì" trước khi hỏi điểm."""
+    fwd = forward_chaining(build_facts(user), DuLieu(user))
+    ds: dict[str, tuple[bool, str]] = {}
+    for lan in fwd.fired:
+        vi_tu = lan.ket_luan[0]
+        if vi_tu in ("nhom_nganh", "khop_manh"):
+            x, manh = lan.ket_luan[1], vi_tu == "khop_manh"
+            if x not in ds or manh:
+                ds[x] = (manh, lan.rule.giai_thich)
+    return sorted(((x, m, g) for x, (m, g) in ds.items()), key=lambda t: (not t[1], MA_NGANH.index(t[0])))
+
+
+def markdown_so_thich(user: dict, ten_so_thich: list[str]) -> str:
+    ds = nganh_theo_so_thich(user)
+    if not ds:
+        return ""
+    dong = [f"- **{ten_nganh(x)}** – {'phù hợp nhất' if manh else 'phù hợp'}: "
+            f"{g.replace('thì khớp mạnh', 'nên rất hợp').replace(' hợp ngành ', ' nên hợp ngành ')}."
+            for x, manh, g in ds]
+    return f"Với sở thích **{', '.join(ten_so_thich)}**, ngành phù hợp với bạn:\n" + "\n".join(dong)
+
+
 def markdown_kiem_tra(kq: KetQuaKiemTra) -> str:
     if kq.loi:
         return _loi(kq.loi)
