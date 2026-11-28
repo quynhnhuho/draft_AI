@@ -57,10 +57,19 @@ TEENCODE = {
     "đhsp": "đại học sư phạm", "dhsp": "đại học sư phạm",
     "tphcm": "thành phố hồ chí minh", "hcm": "thành phố hồ chí minh", "hn": "hà nội",
 }
+# Chính tả i/y sau k, l, m: đưa về dạng chữ y – dạng có trong dữ liệu huấn luyện
+# ("kí túc xá" → "ký túc xá", "học kì" → "học kỳ", "vật lí" → "vật lý", "kĩ năng" → "kỹ năng").
+CHINH_TA_IY = {"kí": "ký", "kì": "kỳ", "kỉ": "kỷ", "kĩ": "kỹ", "lí": "lý", "mĩ": "mỹ"}
+TEENCODE.update(CHINH_TA_IY)
 # Teencode hai từ (xét trước teencode một từ). "tp.hcm" sau khi bỏ dấu chấm thành "tp hcm".
 TEENCODE_2 = {
     "tp hcm": "thành phố hồ chí minh",
     "đh sp": "đại học sư phạm",
+}
+# Cụm ba từ gõ không dấu (xét trước cụm hai từ).
+TEENCODE_3 = {
+    "ky tuc xa": "ký túc xá",
+    "ki tuc xa": "ký túc xá",
 }
 
 _SPECIAL_RE = re.compile(r"[^\w\s]|_")  # giữ chữ (có dấu), số, khoảng trắng; bỏ cả "_" người dùng gõ
@@ -77,6 +86,12 @@ def normalize(text: str) -> str:
     tokens = text.split()
     out, i = [], 0
     while i < len(tokens):
+        if i + 2 < len(tokens):
+            three = " ".join(tokens[i:i + 3])
+            if three in TEENCODE_3:
+                out.append(TEENCODE_3[three])
+                i += 3
+                continue
         if i + 1 < len(tokens):
             two = tokens[i] + " " + tokens[i + 1]
             if two in TEENCODE_2:

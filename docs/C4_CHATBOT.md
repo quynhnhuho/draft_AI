@@ -25,6 +25,7 @@ app.py (Flask) ──► ChatEngine.respond()                src/chatbot/engine.
                           │
    ① chặn phạm vi: ngành / trường khác ─► chuyển cán bộ      src/chatbot/pham_vi.py
    ② luật ưu tiên: ngành của Khoa + "đủ điều kiện/đậu…" ─► suy diễn lùi (C2)
+   ②b câu hỏi nhiều ý ("học phí và học bổng…") ─► tách vế, phân loại từng vế, trả lời từng ý (mục 3)
    ③ conf ≥ τ ─► định tuyến theo ý định của mô hình
    ④ conf < τ ─► luật bổ trợ (xác nhận ý định trong top-3) hoặc chuyển cán bộ + logs/handoff.csv
                           │
@@ -41,10 +42,13 @@ underthesea mà mô hình được huấn luyện với underthesea, `/api/trang
 | Vùng | Nội dung |
 |---|---|
 | Header (60px, một hàng) | trái: logo Trường + logo Khoa + "HCMUE FIT Chat" (dưới là "Trợ lý Tuyển sinh Khoa CNTT"); phải: "Hỗ trợ 24/7" + nhãn "Đang hoạt động". Favicon là logo Khoa (`static/favicon.ico`, `static/img/favicon-*.png`) |
-| Thanh bên (256px, nền #F8FAFC) | nút chính **Cuộc hội thoại mới** · CÔNG CỤ TƯ VẤN (thẻ nhỏ: tư vấn chọn ngành – C2, lập lộ trình học – C1) · GẦN ĐÂY (hội thoại của trình duyệt này; khi trống hiện dòng chữ nhỏ kèm biểu tượng) · Liên hệ Khoa CNTT và Tư vấn tuyển sinh của Trường · công tắc **Chế độ kiểm tra** ở cuối (bật thì hiện ý định, độ tin cậy, top-3, thực thể, ai quyết định và ô chỉnh τ) |
+| Thanh bên (256px, nền #F8FAFC) | nút chính **Cuộc hội thoại mới** · CÔNG CỤ TƯ VẤN (thẻ nhỏ: tư vấn chọn ngành – C2, lập lộ trình học – C1) · GẦN ĐÂY (hội thoại của trình duyệt này, chiếm phần còn lại của thanh bên và tự cuộn khi dài; khi trống hiện dòng chữ nhỏ kèm biểu tượng) |
+| Footer liên hệ (cuối trang) | hai thẻ **Liên hệ Khoa CNTT** và **Tư vấn tuyển sinh – Trường**: địa chỉ, điện thoại (bấm để gọi), email (bấm để gửi thư), website. Trang cố định đúng chiều cao màn hình (header – thân – footer), không tự cuộn nên không lộ khoảng trống khi kéo; trên điện thoại mỗi thẻ chỉ giữ điện thoại và email |
 | Vùng chat (card trắng, bo 14px, bóng nhẹ) | tin nhắn bot (nền xanh nhạt) / người dùng (nền #124874), dòng **Nguồn … – năm áp dụng …** tách riêng dưới mỗi số liệu, nút Hữu ích / Chưa đúng |
 | Ô nhập (cố định ở đáy card) | câu hỏi gợi ý một hàng ngay trên ô nhập, cuộn ngang mượt (lăn chuột cũng cuộn ngang); chỉ giữ câu đã kiểm thử trả lời được; Enter để gửi |
-| Điện thoại (≤ 900px) | header 56px một hàng + nút Menu mở thanh bên dạng ngăn kéo, vùng chat tràn màn hình, chip cuộn ngang |
+| Hộp thoại công cụ tư vấn | rộng 880px (tư vấn chọn ngành, 2 cột) / 960px (lộ trình, bảng học phần 2 cột); phần đầu – thân – chân: nút **Tư vấn / Lập lộ trình** luôn hiện ở chân hộp thoại, không phải cuộn; đóng bằng nút ×, nút Đóng, phím Esc hoặc bấm ra vùng tối bên ngoài |
+| Ngôn ngữ | xưng **mình – bạn**; không hiện thuật ngữ kỹ thuật (ý định, độ tin cậy, mã luật R1–R33, "suy diễn", DXT…). Kết quả C2 nói bằng lời thường: "Điểm xét tuyển" (= DXT), "Điểm xét tuyển cao nhất" (= DXT_best), "So với điểm chuẩn: cao hơn 4.00 điểm"; lộ trình C1 không in phần giả định (đã trình bày trong `docs/C1_LO_TRINH.md`) |
+| Điện thoại (≤ 900px) | header 56px một hàng + nút Menu mở thanh bên dạng ngăn kéo, vùng chat tràn màn hình, chip cuộn ngang, footer liên hệ 2 thẻ nhỏ |
 
 Giao diện chỉ hiển thị: HTML câu trả lời do `src/web/markdown_lite.py` tạo từ văn bản của engine, mọi
 nội dung người dùng được escape. Hội thoại lưu trong bộ nhớ máy chủ theo `client_id` của trình duyệt.
@@ -63,7 +67,7 @@ Mọi câu trả lời có số liệu in `Nguồn: … – năm áp dụng …`
 Trường được nhóm xác nhận là nguồn chính thức (`da_kiem_chung=true`, không hiện cảnh báo); các mục còn là
 mẫu (`da_kiem_chung=false`) có thêm dòng "Lưu ý: số liệu mẫu, nhóm chưa cập nhật nguồn chính thức".
 
-## 3. Ba cơ chế bổ sung cho mô hình (và lý do)
+## 3. Các cơ chế bổ sung cho mô hình (và lý do)
 
 | Cơ chế | Khi nào | Vì sao cần | Đã đo |
 |---|---|---|---|
@@ -71,8 +75,11 @@ mẫu (`da_kiem_chung=false`) có thêm dòng "Lưu ý: số liệu mẫu, nhóm
 | **Luật ưu tiên** đủ điều kiện | ngành của Khoa + cụm "đủ điều kiện vào/đủ điểm vào/có đậu/vào được…" | dữ liệu C3 chưa có câu loại này, mô hình đoán `viec_lam` | trùng 2/660 câu (đều là "em được 27đ có đủ điểm vào CNTT không") |
 | **Luật bổ trợ** (`RULE_CUES`, `RULE_CUES_RO` trong `engine.py`) | conf < τ, ý định nằm trong top-3 và câu có cụm đặc trưng: "lộ trình", "rớt môn", "nên chọn ngành nào" (C1/C2); "học phí", "tín chỉ", "việc làm", "ra trường làm"… (học phí, CTĐT, việc làm). Cụm rất rõ "sinh hoạt phí", "nghị định 116", "hỗ trợ/miễn học phí" được nhận kể cả ngoài top-3 | dữ liệu C3 ít câu về ngành CNGD, sinh hoạt phí, số tín chỉ nên mô hình hay dưới τ ở các câu này; luật không thay mô hình, chỉ xác nhận | 10/10 câu thử về thông tin mới được trả lời (trước đó 6/10); 99 câu test không đổi; 0 câu ngoài phạm vi bị trả lời nhầm do luật |
 
-Chế độ debug hiện **ý định, độ tin cậy, top-3, thực thể, ai quyết định ý định** (`mo_hinh`,
-`luat_uu_tien`, `luat_bo_tro`, `chan_pham_vi`, `duoi_nguong`) và thời gian xử lý.
+| **Câu hỏi nhiều ý** (`_nhieu_y_dinh`, `answer_many` trong `engine.py`) | câu có liên từ/dấu câu ("và", "với", "còn", ",", "?") tách được ≥ 2 vế, mỗi vế ra một ý định tra cứu **khác nhau** | mô hình C3 phân loại một nhãn (softmax): "học phí và học bổng" chỉ ra `hoc_bong` 1.00, `hoc_phi` 0.00 → bỏ sót một ý | mỗi vế: mô hình (≥ τ) → nếu chưa đủ tự tin thì từ khóa của **đúng một** chủ đề (`VE_CUES`) → luật bổ trợ; trả lời tối đa 3 ý, mỗi ý có nguồn riêng. Không áp dụng cho luồng kiểm tra điều kiện ("Toán 8 và Lý 7"), câu so sánh ngành, câu bị chặn phạm vi. 8/8 câu ghép thử được trả lời đủ ý; 99 câu test, 44 lượt end-to-end không đổi; không huấn luyện lại |
+
+Nhật ký `logs/conversations.jsonl` vẫn ghi **ý định, độ tin cậy, top-3, ai quyết định ý định** (`mo_hinh`,
+`luat_uu_tien`, `luat_bo_tro`, `nhieu_y_dinh`, `chan_pham_vi`, `duoi_nguong`) và thời gian xử lý để nhóm kiểm tra;
+giao diện web **không** hiện các thông tin kỹ thuật này (đã bỏ chế độ kiểm tra).
 
 ## 4. Chuyển cán bộ và nhật ký (mục 7.7)
 

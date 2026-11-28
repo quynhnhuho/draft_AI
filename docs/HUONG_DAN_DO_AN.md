@@ -311,6 +311,11 @@ Kết quả C2 hiển thị **vết suy diễn** (R3 → R7 → R12…) để ch
 bảng học kỳ × học phần, tổng tín chỉ mỗi kỳ, nguồn CTĐT và giả định. Người dùng **không chọn thuật toán**;
 ở chế độ debug mới hiện thuật toán đã dùng và số nút.
 
+> **Cập nhật (bản nộp):** nhóm quyết định web chỉ dùng ngôn ngữ thường, xưng "mình – bạn": **bỏ chế độ
+> debug/kiểm tra và slider τ**, không hiện vết suy diễn, mã luật, DXT hay phần giả định của C1. Vết suy diễn
+> và chuỗi luật được trình bày bằng `python demo.py c2` và trong báo cáo; giả định C1 ở `docs/C1_LO_TRINH.md`;
+> ý định, độ tin cậy, top-3 vẫn ghi vào `logs/conversations.jsonl`. Chi tiết: `docs/C4_CHATBOT.md`.
+
 ### 7.7 Ngưỡng & chuyển cán bộ
 
 - τ đọc từ `models/config.json` (từ C3), có slider ở sidebar để demo.

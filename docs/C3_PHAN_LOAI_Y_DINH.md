@@ -24,7 +24,12 @@ nhãn + Cohen's kappa (`docs/quy_trinh_gan_nhan.md`); khai báo tỷ lệ câu d
 
 NFC → chữ thường → chuẩn hóa vị trí dấu (hòa → hoà) → bỏ ký tự đặc biệt → teencode/viết tắt
 (`hp`→học phí, `ktx`→ký túc xá, `bn`→bao nhiêu, `đk`→điều kiện, `tc`→tín chỉ; **không** đổi `a`, `b` để giữ
-"khối A/B") → tách từ **underthesea** (`học_phí`, `công_nghệ_thông_tin`).
+"khối A/B"); chính tả i/y đưa về dạng chữ y có trong dữ liệu (`kí`→ký, `kì`→kỳ, `lí`→lý, `kĩ`→kỹ) và cụm
+gõ không dấu `ky/ki tuc xa`→ký túc xá → tách từ **underthesea** (`học_phí`, `công_nghệ_thông_tin`).
+
+> Chuẩn hóa i/y được thêm sau khi huấn luyện, **không cần huấn luyện lại**: dạng chữ y đều đã có trong
+> tokenizer, còn dạng chữ i (`kí_túc_xá`) trước đây là từ lạ (OOV) nên "kí túc xá" bị chuyển cán bộ.
+> Accuracy trên tập test không đổi (0.8889).
 
 Một hàm duy nhất cho cả huấn luyện và chatbot. Kiểm chứng: nạp mô hình trong `models/` bằng
 `src/nlu/classifier.py` và chạy lại trên tập test tái tạo **đúng** accuracy trong `metrics_c3.json`
