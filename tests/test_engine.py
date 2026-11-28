@@ -63,12 +63,13 @@ def test_eligibility_flow_hoi_theo_suy_dien_lui(engine):
     r = engine.respond("Toán 7, Anh 6.2, Lý 6", s)
     assert "khu vực" in r.text
     r = engine.respond("KV1", s)
-    assert s.active_flow is None and "Không" in r.text and "0.05" in r.text and "Nguồn" in r.text
+    assert s.active_flow is None and "**Chưa.**" in r.text and "0.05" in r.text and "Nguồn" in r.text
 
 
 def test_eligibility_dien_san_tu_cau_hoi(engine):
     r = engine.respond("Em thi THPT được Toán 8, Anh 7, Lý 7, KV3, có đủ điều kiện vào CNTT không?", DialogueState())
-    assert "**Có.**" in r.text and "R11" in r.text
+    assert "**Có.**" in r.text and "Điểm xét tuyển cao nhất" in r.text
+    assert not any(k in r.text for k in ("R11", "du_dk", "DXT", "suy diễn"))   # không hiện thuật ngữ kỹ thuật
 
 
 def test_tu_van_nganh_suy_dien_tien(engine):
@@ -109,3 +110,30 @@ def test_co_so_tri_thuc_khop_so_lieu_2026():
         assert dc == {pt: float(diem_chuan(x, pt)) for pt in ("THPT", "DGNL")}
         th = kb.query("to_hop_xet_tuyen", nganh["ma_kb"], 2026).facts
         assert th and th[0]["to_hop"] == nganh["to_hop"] and set(th[0]["to_hop"]) <= set(TO_HOP)
+
+
+# ---------------------------------------------------------------- câu hỏi nhiều ý (phương án A)
+def test_cau_hoi_nhieu_y_tra_loi_tung_y(engine):
+    r = engine.respond("Học phí và học bổng ngành CNTT?", DialogueState())
+    assert r.debug["nguon_y_dinh"] == "nhieu_y_dinh" and r.debug["cac_y_dinh"] == ["hoc_phi", "hoc_bong"]
+    assert r.text.index("**Học phí**") < r.text.index("**Học bổng**") and r.text.count("Nguồn") >= 2
+
+
+@pytest.mark.parametrize("text", [
+    "Em thi THPT được Toán 8 và Anh 7, Lý 7, KV3, có đủ điều kiện vào CNTT không?",   # luồng điều kiện
+    "học phí ngành CNTT bao nhiêu",                                                    # câu một ý
+])
+def test_khong_tach_cau_mot_y_hoac_luong_dieu_kien(engine, text):
+    assert engine.respond(text, DialogueState()).debug.get("nguon_y_dinh") != "nhieu_y_dinh"
+
+
+def test_xung_ho_minh_ban(engine):
+    import re
+    for q in ["xin chào", "cảm ơn", "thời tiết hôm nay thế nào", "Em có đủ điều kiện vào CNTT không?"]:
+        t = engine.respond(q, DialogueState()).text
+        assert not re.search(r"(?<!\w)[Ee]m(?!\w)", t), (q, t)
+
+
+def test_lo_trinh_khong_hien_gia_dinh(engine):
+    t = engine.make_plan(set(), set(), 1).text
+    assert "Giả định" not in t and "nút mở rộng" not in t and "Lộ trình đề xuất" in t

@@ -132,19 +132,19 @@ def _la_dgnl(slots: dict) -> bool:
     return slots.get("phuong_thuc") == "DGNL"
 
 
-SLOT_PT = Slot("phuong_thuc", "Em xét tuyển theo **phương thức** nào: **THPT** (điểm thi tốt nghiệp) hay "
+SLOT_PT = Slot("phuong_thuc", "Bạn xét tuyển theo **phương thức** nào: **THPT** (điểm thi tốt nghiệp) hay "
                               "**ĐGNL** (học bạ + thi đánh giá năng lực chuyên biệt)?", _p_phuong_thuc)
-SLOT_KV = Slot("khu_vuc", "Em thuộc **khu vực ưu tiên** nào: KV1, KV2-NT, KV2 hay KV3?", _p_khu_vuc)
-SLOT_DIEM_THPT = Slot("diem_thpt", "Em nhập **điểm thi THPT** các môn đã thi (thang 10), ví dụ: "
+SLOT_KV = Slot("khu_vuc", "Bạn thuộc **khu vực ưu tiên** nào: KV1, KV2-NT, KV2 hay KV3?", _p_khu_vuc)
+SLOT_DIEM_THPT = Slot("diem_thpt", "Bạn nhập **điểm thi THPT** các môn đã thi (thang 10), ví dụ: "
                                    "`Toán 8.2, Anh 7.5, Lý 6.75, Tin 8`. Môn không thi thì không cần ghi.",
                       _p_diem_thpt, when=_la_thpt)
-SLOT_DGNL = Slot("diem_dgnl", "Điểm **ĐGNL môn Toán** của em (đã quy về thang 10) là bao nhiêu?", _p_so_10,
+SLOT_DGNL = Slot("diem_dgnl", "Điểm **ĐGNL môn Toán** của bạn (đã quy về thang 10) là bao nhiêu?", _p_so_10,
                  when=_la_dgnl)
 SLOT_HB = Slot("hoc_ba", "Điểm **học bạ lớp 12** môn Tiếng Anh và môn thứ hai của tổ hợp (Lý, Hóa, Sinh hoặc Tin), "
                          "ví dụ: `Anh 8.5, Tin 9`.", _p_hoc_ba, when=_la_dgnl)
-SLOT_SO_THICH = Slot("so_thich", "Em **thích** những gì? (chọn nhiều được): lập trình, dữ liệu, thiết kế học liệu, "
+SLOT_SO_THICH = Slot("so_thich", "Bạn **thích** những gì? (chọn nhiều được): lập trình, dữ liệu, thiết kế học liệu, "
                                  "dạy học. Gõ \"bỏ qua\" nếu chưa rõ.", _skippable(_p_so_thich, []))
-SLOT_DINH_HUONG = Slot("dinh_huong", "Sau khi ra trường em muốn làm gì? (chọn nhiều được): **lập trình viên**, "
+SLOT_DINH_HUONG = Slot("dinh_huong", "Sau khi ra trường bạn muốn làm gì? (chọn nhiều được): **lập trình viên**, "
                                      "**phân tích dữ liệu**, **giáo viên**, **chuyên viên công nghệ giáo dục (EdTech)**. "
                                      "Gõ \"bỏ qua\" nếu chưa rõ.", _skippable(_p_dinh_huong, []))
 
@@ -156,14 +156,14 @@ FLOWS: dict[str, list[Slot]] = {
     "tu_van_nganh": [SLOT_PT, SLOT_DIEM_THPT, SLOT_DGNL, SLOT_HB, SLOT_KV, SLOT_SO_THICH, SLOT_DINH_HUONG],
     "kiem_tra_dieu_kien": [SLOT_PT, SLOT_DIEM_THPT, SLOT_DGNL, SLOT_HB, SLOT_KV],
     "lo_trinh": [
-        Slot("ky", "Học kỳ **sắp đăng ký** là học kỳ thứ mấy của em? (ví dụ: \"3\" hoặc \"năm 2 học kỳ 1\"; "
+        Slot("ky", "Học kỳ **sắp đăng ký** là học kỳ thứ mấy của bạn? (ví dụ: \"3\" hoặc \"năm 2 học kỳ 1\"; "
                    "tân sinh viên gõ \"năm nhất\")", _p_ky),
-        Slot("da_dat", "Em liệt kê các học phần **đã đạt** (mã hoặc tên, ví dụ: COMP1010, Toán rời rạc và ứng dụng). "
+        Slot("da_dat", "Bạn liệt kê các học phần **đã đạt** (mã hoặc tên, ví dụ: COMP1010, Toán rời rạc và ứng dụng). "
                        "Gõ \"hk1\" nếu đã đạt toàn bộ học kỳ 1, có thể kết hợp: \"hk1, COMP1017\".", _p_list_hp,
              when=lambda s: s.get("ky", 1) > 1),
-        Slot("bi_rot", "Em có học phần nào **bị rớt** (chưa học lại đạt) không? Liệt kê mã/tên, hoặc gõ \"không\".",
+        Slot("bi_rot", "Bạn có học phần nào **bị rớt** (chưa học lại đạt) không? Liệt kê mã/tên, hoặc gõ \"không\".",
              _p_list_hp, when=lambda s: s.get("ky", 1) > 1),
-        Slot("hoc_vuot", "Em có muốn **học vượt** (đăng ký tối đa 22 TC/kỳ thay vì 18 TC) không? (có/không)",
+        Slot("hoc_vuot", "Bạn có muốn **học vượt** (đăng ký tối đa 22 tín chỉ/kỳ thay vì 18 tín chỉ) không? (có/không)",
              _p_co_khong),
     ],
 }
@@ -223,7 +223,7 @@ def start_flow(flow: str, text: str, e: Entities, state: DialogueState, engine: 
 def continue_flow(text: str, state: DialogueState, engine: "ChatEngine") -> BotReply:
     if normalize(text).strip() in CANCEL_WORDS:
         state.reset_flow()
-        return BotReply("Đã dừng. Em cứ hỏi tiếp câu khác nhé!", intent="huy_luong", confidence=1.0)
+        return BotReply("Đã dừng. Bạn cứ hỏi tiếp câu khác nhé!", intent="huy_luong", confidence=1.0)
 
     slot = next((s for s in FLOWS[state.active_flow] if s.name == state.pending_slot), None) \
         or _next_slot(state.active_flow, state.slots, engine)

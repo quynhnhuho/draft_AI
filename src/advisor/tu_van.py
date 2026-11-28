@@ -54,6 +54,7 @@ class KetQuaTuVan:
     thong_bao: list[str] = field(default_factory=list)
     diem: list[DongDiem] = field(default_factory=list)
     best: tuple[str, Decimal] | None = None
+    chua_khop: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -141,13 +142,13 @@ def tu_van(user: dict) -> KetQuaTuVan:
     kq.best = dxt_best(fwd.facts, ctx)
     kq.du_dk = [f[1] for f in fwd.tat_ca("du_dk")]
     kq.goi_y = xep_hang(fwd, ctx)
-    chua_khop = [f[1] for f in fwd.tat_ca("du_dk_chua_khop")]
+    chua_khop = kq.chua_khop = [f[1] for f in fwd.tat_ca("du_dk_chua_khop")]
     if chua_khop:
-        kq.thong_bao.append("Em **đủ điều kiện** xét tuyển ngành " + ", ".join(map(ten_nganh, chua_khop))
+        kq.thong_bao.append("Bạn **đủ điều kiện** xét tuyển ngành " + ", ".join(map(ten_nganh, chua_khop))
                             + " nhưng các ngành này **chưa khớp sở thích hoặc định hướng nghề nghiệp** "
-                            "em đã chọn (R32).")
+                            "bạn đã chọn (R32).")
     if fwd.co("chua_du_dk"):
-        kq.thong_bao.append("Em **chưa đủ điều kiện xét tuyển** ngành nào (R33). Lý do:\n"
+        kq.thong_bao.append("Bạn **chưa đủ điều kiện xét tuyển** ngành nào (R33). Lý do:\n"
                             + "\n".join(f"  - {s}" for s in ly_do_chua_du_dk(fwd.facts, ctx)))
     return kq
 
@@ -163,82 +164,131 @@ def kiem_tra_dieu_kien(user: dict, nganh: str) -> KetQuaKiemTra:
     return kq
 
 
+# ------------------------------------------------------------------ trình bày cho người dùng (web, Chức năng 4)
+# Ngôn ngữ thường, xưng "mình – bạn", KHÔNG hiện mã luật (R1…R33), tên vị từ (du_dk, tohop_xet…) hay vết suy diễn.
+# Phần kỹ thuật (luật kích hoạt, chuỗi chứng minh) vẫn có trong KetQuaTuVan/KetQuaKiemTra và được in bởi demo.py.
+
 def _nguon() -> str:
-    s = f"Nguồn: {NGUON['nguon']} - năm áp dụng {NAM}"
-    if not NGUON.get("da_kiem_chung"):
-        s += "  \nLưu ý: số liệu chưa đối chiếu với Đề án tuyển sinh chính thức."
-    return s
+    ten = str(NGUON["nguon"]).split(";")[0].strip()   # bỏ phần ghi chú nội bộ về tập luật
+    return f"Nguồn: {ten} – năm áp dụng {NAM}"
 
 
 def _loi(ds: list[str]) -> str:
     return "Thông tin chưa hợp lệ:\n" + "\n".join(f"- {s}" for s in ds)
 
 
+def _so_voi(chenh: Decimal) -> str:
+    if chenh > 0:
+        return f"cao hơn {chenh} điểm"
+    if chenh < 0:
+        return f"thấp hơn {-chenh} điểm"
+    return "bằng điểm chuẩn"
+
+
 def _bang_diem_md(rows: list[DongDiem], pt: str) -> str:
     nhan = "Tổ hợp" if pt == "THPT" else "Tổ hợp (ĐGNL)"
-    out = [f"| {nhan} | Tổng (chưa ưu tiên) | Điểm ưu tiên | DXT | Ghi chú |", "|---|---|---|---|---|"]
+    out = [f"| {nhan} | Tổng điểm (chưa cộng ưu tiên) | Điểm ưu tiên | Điểm xét tuyển | Ghi chú |",
+           "|---|---|---|---|---|"]
     out += [f"| {r.to_hop} | {lam_tron(r.tong)} | {lam_tron(r.dut)} | **{r.dxt}** | "
-            f"{'điểm liệt - loại' if r.diem_liet else 'dùng được'} |" for r in rows]
+            f"{'có điểm liệt – không dùng được' if r.diem_liet else 'dùng được'} |" for r in rows]
     return "\n".join(out)
 
 
-def _bang_goi_y_md(kq: KetQuaTuVan) -> str:
-    rows = ["| # | Ngành | Mức gợi ý | Khả năng trúng tuyển | Điểm phù hợp | DXT_best - điểm chuẩn |",
-            "|---|---|---|---|---|---|"]
-    rows += [f"| {i} | {ten_nganh(g.nganh)} | **{g.ten_muc}** | {g.kha_nang} | {g.diem_phu_hop} | {g.chenh:+} |"
-             for i, g in enumerate(kq.goi_y, 1)]
-    vi_sao = []
-    for g in kq.goi_y:
-        lan = next(f for f in kq.forward.fired if f.ket_luan == ("goi_y", g.nganh, g.muc))
-        tp = g.thanh_phan
-        vi_sao.append(f"- **{ten_nganh(g.nganh)}** - {lan.rule.id}: {lan.rule.giai_thich}. Điểm phù hợp = "
-                      f"sở thích {tp['nhom_nganh']} + khớp mạnh {tp['khop_manh']} + nghề {tp['nghe_phu_hop']} "
-                      f"+ khả năng Cao {tp['kha_nang_cao']} = **{g.diem_phu_hop}**")
-    return "**Ngành gợi ý (suy diễn tiến):**\n\n" + "\n".join(rows) + "\n\n**Vì sao?**\n" + "\n".join(vi_sao)
+def _ly_do_than_thien(user: dict) -> list[str]:
+    """Lý do chưa đủ điều kiện, nói bằng lời thường (tính lại từ dữ liệu, không dùng mã luật)."""
+    ctx = DuLieu(user)
+    facts = forward_chaining(build_facts(user), ctx).facts
+    if not any(f[0] == "tohop_hople" for f in facts):
+        if ctx.pt == "DGNL":
+            return ["Chưa đủ điểm ĐGNL môn Toán, học bạ Tiếng Anh và học bạ môn thứ hai để tính điểm xét tuyển."]
+        return ["Chưa đủ điểm thi để ghép thành tổ hợp xét tuyển: cần Toán, Tiếng Anh và một môn Vật lý, "
+                "Hóa học, Sinh học hoặc Tin học."]
+    ly_do = []
+    for t in sorted(f[1] for f in facts if f[0] == "diem_liet"):
+        mon = min(TO_HOP[t], key=ctx.diem_mon)
+        ly_do.append(f"Tổ hợp {t} có môn {TEN_MON[mon]} {ctx.diem_thap_nhat(t)} điểm (từ {DIEM_LIET} điểm trở "
+                     "xuống là điểm liệt) nên không dùng được.")
+    best = dxt_best(facts, ctx)
+    if best:
+        t, d = best
+        x = min(MA_NGANH, key=lambda m: nguong(m, ctx.pt))
+        n = nguong(x, ctx.pt)
+        ly_do.append(f"Điểm xét tuyển cao nhất của bạn là {d} (tổ hợp {t}), chưa đạt mức điểm tối thiểu {n} "
+                     f"của ngành {ten_nganh(x)}; còn thiếu {n - d} điểm.")
+    return ly_do
 
 
-def markdown_tu_van(kq: KetQuaTuVan, vet: bool = True) -> str:
+def markdown_tu_van(kq: KetQuaTuVan) -> str:
     if kq.loi:
         return _loi(kq.loi)
     pt = kq.user["phuong_thuc"]
-    parts = [f"**Phương thức:** {pt}, **khu vực:** {kq.user['khu_vuc']}"]
+    parts = []
     if kq.diem:
         parts.append(_bang_diem_md(kq.diem, pt))
     if kq.best:
-        parts.append(f"**DXT_best = {kq.best[1]}** (tổ hợp {kq.best[0]})")
+        parts.append(f"**Điểm xét tuyển cao nhất của bạn: {kq.best[1]}** (tổ hợp {kq.best[0]})")
     if kq.goi_y:
-        parts.append(_bang_goi_y_md(kq))
-    parts += kq.thong_bao
+        rows = [f"| # | Ngành | Mức độ phù hợp | Khả năng trúng tuyển | So với điểm chuẩn {NAM} |",
+                "|---|---|---|---|---|"]
+        rows += [f"| {i} | {ten_nganh(g.nganh)} | **{g.ten_muc}** | {g.kha_nang} | {_so_voi(g.chenh)} |"
+                 for i, g in enumerate(kq.goi_y, 1)]
+        vi_sao = []
+        for g in kq.goi_y:
+            lan = next(f for f in kq.forward.fired if f.ket_luan == ("goi_y", g.nganh, g.muc))
+            vi_sao.append(f"- **{ten_nganh(g.nganh)}**: {lan.rule.giai_thich}.")
+        parts.append("**Ngành gợi ý cho bạn:**\n\n" + "\n".join(rows) + "\n\n**Vì sao?**\n" + "\n".join(vi_sao))
+    if kq.chua_khop:
+        parts.append("Bạn **đủ điều kiện** xét tuyển ngành " + ", ".join(map(ten_nganh, kq.chua_khop))
+                     + " nhưng chưa khớp với sở thích hoặc định hướng nghề nghiệp bạn đã chọn.")
+    if kq.forward.co("chua_du_dk"):
+        parts.append("Bạn **chưa đủ điều kiện xét tuyển** ngành nào của Khoa. Lý do:\n"
+                     + "\n".join(f"- {s}" for s in _ly_do_than_thien(kq.user)))
     if kq.du_dk and kq.goi_y:
-        parts.append("Các ngành em đủ điều kiện xét tuyển: " + ", ".join(map(ten_nganh, kq.du_dk)) + ".")
-    if vet:
-        parts.append("**Vết suy diễn tiến** (luật kích hoạt theo thứ tự):\n"
-                     + "\n".join(f"{i}. {f}" for i, f in enumerate(kq.forward.fired, 1)))
+        parts.append("Các ngành bạn đủ điều kiện xét tuyển: " + ", ".join(map(ten_nganh, kq.du_dk)) + ".")
     parts.append(_nguon())
     return "\n\n".join(parts)
 
 
-def markdown_kiem_tra(kq: KetQuaKiemTra, vet: bool = False) -> str:
+def markdown_kiem_tra(kq: KetQuaKiemTra) -> str:
     if kq.loi:
         return _loi(kq.loi)
     ten, pt, b = ten_nganh(kq.nganh), kq.user.get("phuong_thuc"), kq.lui
-    parts = [f"**Mục tiêu suy diễn lùi:** `{b.goal}` - em có đủ điều kiện xét tuyển ngành **{ten}** không?"]
+    parts = []
     if b.proven:
-        parts.append(f"**Có.** Em đủ điều kiện xét tuyển ngành {ten} (đạt ngưỡng đảm bảo chất lượng đầu vào "
-                     f"{nguong(kq.nganh, pt)}).")
+        parts.append(f"**Có.** Bạn đủ điều kiện xét tuyển ngành **{ten}**.")
+        ctx = DuLieu(kq.user)
+        best = dxt_best(forward_chaining(build_facts(kq.user), ctx).facts, ctx)
+        if best:
+            parts.append(f"Điểm xét tuyển cao nhất của bạn là **{best[1]}** (tổ hợp {best[0]}), đạt mức điểm "
+                         f"tối thiểu {nguong(kq.nganh, pt)} của ngành.")
         muc = "**Cao**" if kq.kha_nang.proven else "**Trung bình**"
-        parts.append(f"Khả năng trúng tuyển: {muc}, so với điểm chuẩn {NAM} là {diem_chuan(kq.nganh, pt)}.")
-        parts.append("**Chuỗi luật đã dùng:**\n" + "\n".join(f"{i}. {s}" for i, s in enumerate(b.proof, 1)))
+        parts.append(f"Khả năng trúng tuyển: {muc} (điểm chuẩn năm {NAM}: {diem_chuan(kq.nganh, pt)}).")
     elif b.missing:
-        parts.append("**Chưa đủ thông tin** để kết luận. Mình cần biết thêm: "
-                     + ", ".join(CAU_HOI.get(k, k) for k in kq.can_hoi) + ".")
+        parts.append("Mình cần thêm thông tin để trả lời: " + ", ".join(CAU_HOI.get(k, k) for k in kq.can_hoi) + ".")
     else:
-        parts.append(f"**Không.** Em chưa đủ điều kiện xét tuyển ngành {ten}.")
+        parts.append(f"**Chưa.** Bạn chưa đủ điều kiện xét tuyển ngành **{ten}**.")
+        ly_do = _ly_do_nganh(kq.user, kq.nganh)
+        if ly_do:
+            parts.append("Lý do:\n" + "\n".join(f"- {s}" for s in ly_do))
         if b.thieu_diem is not None:
-            parts.append(f"Còn thiếu **{b.thieu_diem}** điểm so với ngưỡng.")
-        if b.that_bai:
-            parts.append("**Điều kiện thất bại:**\n" + "\n".join(f"- {s}" for s in b.that_bai))
-    if vet:
-        parts.append("**Nhật ký suy diễn lùi:**\n```\n" + "\n".join(b.trace) + "\n```")
+            parts.append(f"Bạn còn thiếu **{b.thieu_diem}** điểm so với mức điểm tối thiểu của ngành.")
     parts.append(_nguon())
     return "\n\n".join(parts)
+
+
+def _ly_do_nganh(user: dict, nganh: str) -> list[str]:
+    """Vì sao chưa đủ điều kiện một ngành: thiếu tổ hợp, điểm liệt, hoặc từng tổ hợp thiếu bao nhiêu điểm."""
+    ctx = DuLieu(user)
+    facts = forward_chaining(build_facts(user), ctx).facts
+    rows = bang_diem(facts, ctx)
+    if not rows:
+        return _ly_do_than_thien(user)[:1]
+    n = nguong(nganh, ctx.pt)
+    out = []
+    for r in rows:
+        if r.diem_liet:
+            out.append(f"Tổ hợp {r.to_hop} có điểm liệt nên không dùng được.")
+        elif r.dxt < n:
+            out.append(f"Tổ hợp {r.to_hop}: điểm xét tuyển {r.dxt}, thấp hơn mức tối thiểu {n} "
+                       f"(thiếu {n - r.dxt} điểm).")
+    return out

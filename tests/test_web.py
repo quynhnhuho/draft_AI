@@ -35,8 +35,9 @@ def test_trang_chu_theo_figma(client):
     assert "<script>alert" not in html and "CÂU HỎI THƯỜNG GẶP" not in html
     assert html.index("CÔNG CỤ TƯ VẤN") < html.index("GẦN ĐÂY")      # công cụ tư vấn ở đầu thanh bên
     assert html.index("Cuộc hội thoại mới") < html.index("CÔNG CỤ TƯ VẤN")   # nút chính trên cùng
-    assert html.index("Chế độ kiểm tra") > html.index("LIÊN HỆ KHOA CNTT")   # công tắc ở cuối thanh bên
-    assert 'id="debug"' in html and 'role="switch"' in html
+    for s in ["Chế độ kiểm tra", 'id="debug"', 'id="tau"', "Ngưỡng τ", "suy diễn"]:   # không còn chế độ kiểm tra
+        assert s not in html
+    assert html.count("data-close") == 2 and html.count('class="dialog-foot"') == 2      # nút × và chân hộp thoại
 
 
 def test_favicon_la_logo_khoa(client):
@@ -83,8 +84,12 @@ def test_bieu_mau_c2_tien_va_lui(client):
                                           "dinh_huong": ["lap_trinh_vien"], "kiem_tra_nganh": "cntt"})
     out = r.get_json()
     assert r.status_code == 200 and len(out) == 2
-    assert "suy diễn tiến" in out[0]["reply"]["html"] and "<table>" in out[0]["reply"]["html"]
+    assert "Ngành gợi ý cho bạn" in out[0]["reply"]["html"] and "<table>" in out[0]["reply"]["html"]
     assert "<strong>Có.</strong>" in out[1]["reply"]["html"]
+    for o in out:                                   # ngôn ngữ thường: không mã luật, vị từ, viết tắt DXT
+        h = o["reply"]["html"]
+        assert not any(k in h for k in ("DXT", "suy diễn", "du_dk", "tohop", "R29", "Tập luật", "Vết"))
+        assert "Điểm xét tuyển cao nhất" in h and "debug" not in o["reply"]
 
 
 def test_bieu_mau_c2_bao_loi_du_lieu(client):
@@ -98,6 +103,7 @@ def test_bieu_mau_c1(client):
     r = client.post("/api/lo-trinh", json={"client_id": "t", "hoc_ky": 2, "da_dat": hk1, "rot": ["COMP1800"]})
     html = r.get_json()["reply"]["html"]
     assert "Lộ trình đề xuất: 4 học kỳ" in html and "(học lại)" in html and "năm áp dụng 2024" in html
+    assert "Giả định" not in html                  # giả định của C1 trình bày trong tài liệu, không hiện cho người dùng
 
 
 def test_danh_gia_ghi_feedback(client, tmp_path):

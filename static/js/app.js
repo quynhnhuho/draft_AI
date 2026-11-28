@@ -20,15 +20,8 @@
   const scroller = $("#messages");
   const input = $("#input");
   const sendBtn = $("#send");
-  const debugBox = $("#debug");
-  const tauBox = $("#tau");
-  const tauDefault = tauBox ? tauBox.value : "";
   const recentBox = $("#recent");
   const EMPTY_RECENT = recentBox.innerHTML;       // "Chưa có cuộc hội thoại nào" (kèm icon) trong template
-  const checkExtra = $("#check-extra");
-  if (debugBox && checkExtra) {
-    debugBox.addEventListener("change", () => { checkExtra.hidden = !debugBox.checked; });
-  }
 
   function now() {
     const d = new Date();
@@ -42,8 +35,7 @@
   async function api(path, body) {
     const opt = body === undefined ? {} : {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.assign({ client_id: clientId, conversation_id: state.conversationId,
-        debug: !!(debugBox && debugBox.checked), tau: tauBox && tauBox.value !== tauDefault ? tauBox.value : null }, body)),
+      body: JSON.stringify(Object.assign({ client_id: clientId, conversation_id: state.conversationId }, body)),
     };
     const res = await fetch(path, opt);
     const data = await res.json().catch(() => ({}));
@@ -77,27 +69,9 @@
         b.addEventListener("click", () => sendFeedback(reply, b, tools));
       });
       el.appendChild(tools);
-      if (debugBox && debugBox.checked && reply.intent) el.appendChild(debugLine(reply));
     }
     column.appendChild(el);
     scrollBottom();
-  }
-
-  function debugLine(r) {
-    const d = r.debug || {};
-    const top = (r.top_k || []).map(([i, p]) => `${i}: ${Number(p).toFixed(2)}`).join(", ");
-    const parts = [`ý định <code>${escapeHtml(r.intent)}</code>`];
-    if (top) parts.push(`tin cậy ${Number(r.confidence).toFixed(2)}`); else parts.push("từ biểu mẫu");
-    if (top) parts.push("top-3: " + escapeHtml(top));
-    if (d.nguon_y_dinh) parts.push(`quyết định bởi <code>${escapeHtml(d.nguon_y_dinh)}</code>`);
-    if (d.thoi_gian_ms !== undefined) parts.push(`${d.thoi_gian_ms} ms`);
-    if (d.thuat_toan) parts.push(`thuật toán ${escapeHtml(d.thuat_toan)}`);
-    if (d.entities && Object.keys(d.entities).length) parts.push("thực thể " + escapeHtml(JSON.stringify(d.entities)));
-    if (r.handoff) parts.push("đã chuyển cán bộ");
-    const p = document.createElement("p");
-    p.className = "debug-line";
-    p.innerHTML = parts.join(" · ");
-    return p;
   }
 
   async function sendFeedback(reply, btn, tools) {
@@ -264,7 +238,23 @@
     const d = document.getElementById(b.dataset.dialog);
     $(".form-error", d).hidden = true;
     d.showModal();
+    const body = $(".dialog-body", d);
+    if (body) body.scrollTop = 0;
   }));
+  // Đóng hộp thoại: nút ×, nút Đóng (method="dialog"), phím Esc (mặc định) hoặc bấm ra vùng tối bên ngoài.
+  $$("dialog").forEach(d => {
+    $$("[data-close]", d).forEach(b => b.addEventListener("click", () => d.close()));
+    let downOutside = false;            // chỉ đóng khi cả nhấn và thả chuột đều ở ngoài (tránh kéo chọn chữ)
+    const outside = e => {
+      const r = d.getBoundingClientRect();
+      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    };
+    d.addEventListener("pointerdown", e => { downOutside = e.target === d && outside(e); });
+    d.addEventListener("click", e => {
+      if (downOutside && e.target === d && outside(e)) d.close();
+      downOutside = false;
+    });
+  });
 
   const formTV = $("#form-tu-van");
   function togglePt() {

@@ -41,7 +41,7 @@ GOI_Y = [
     "Điểm chuẩn ngành Công nghệ Thông tin năm gần nhất?",
     "Các phương thức xét tuyển năm 2026",
     "Học phí và học bổng Khoa CNTT",
-    "Em nên chọn ngành nào của Khoa?",
+    "Nên chọn ngành nào của Khoa CNTT?",
     "Lập lộ trình học cho tân sinh viên",
 ]
 
@@ -87,12 +87,8 @@ def _gio() -> str:
 
 def _json_reply(reply: BotReply, state: DialogueState, index: int) -> dict:
     return {"role": "bot", "index": index, "time": _gio(), "html": to_html(reply.text),
-            "intent": reply.intent, "confidence": round(float(reply.confidence or 0), 4),
-            "top_k": [[i, round(float(p), 4)] for i, p in reply.top_k], "handoff": reply.handoff,
-            "has_source": bool(reply.sources), "flow": state.active_flow,
-            "debug": {k: v for k, v in reply.debug.items() if k in
-                      ("nguon_y_dinh", "y_dinh_mo_hinh", "thoi_gian_ms", "entities", "threshold",
-                       "thuat_toan", "so_ky", "ket_luan")}}
+            "intent": reply.intent, "confidence": round(float(reply.confidence or 0), 4), "handoff": reply.handoff,
+            "has_source": bool(reply.sources), "flow": state.active_flow}
 
 
 def _so(v, ten: str, lo: float = 0.0, hi: float = 10.0) -> float | None:
@@ -115,7 +111,7 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
     tau_mac_dinh = load_threshold(classifier=clf)
     engine = ChatEngine(kb, clf, tau_mac_dinh, log_dir=log_dir)
     kho = KhoHoiThoai()
-    engine_lock = threading.Lock()           # engine.debug / engine.threshold dùng chung giữa các request
+    engine_lock = threading.Lock()           # một engine dùng chung giữa các request
     app.config.update(ENGINE=engine, KHO=kho, TAU=tau_mac_dinh)
 
     def ghi_log(file: str, row: dict) -> None:
@@ -123,16 +119,11 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
         with open(log_dir / file, "a", encoding="utf-8") as f:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    def tham_so_chung(body: dict) -> tuple[str, dict, bool, float]:
+    def hoi_thoai_cua(body: dict) -> dict:
         client = str(body.get("client_id") or "")[:64]
         if not client:
             abort(400, "thiếu client_id")
-        h = kho.lay(client, body.get("conversation_id"))
-        debug = bool(body.get("debug"))
-        tau = tau_mac_dinh
-        if body.get("tau") not in (None, ""):
-            tau = _so(body["tau"], "Ngưỡng τ", 0.0, 1.0)
-        return client, h, debug, tau
+        return kho.lay(client, body.get("conversation_id"))
 
     def them(h: dict, user_text: str, reply: BotReply) -> dict:
         with kho.lock:
@@ -143,7 +134,8 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
                 h["title"] = user_text if len(user_text) <= 48 else user_text[:45].rstrip() + "…"
             h["updated"] = dt.datetime.now().isoformat(timespec="seconds")
         ghi_log("conversations.jsonl", {"t": h["updated"], "hoi_thoai": h["id"], "user": user_text,
-                                        "intent": reply.intent, "conf": out["confidence"], "top_k": out["top_k"],
+                                        "intent": reply.intent, "conf": out["confidence"],
+                                        "top_k": [[i, round(float(p), 4)] for i, p in reply.top_k],
                                         "nguon_y_dinh": reply.debug.get("nguon_y_dinh"),
                                         "ms": reply.debug.get("thoi_gian_ms"), "handoff": reply.handoff})
         return {"conversation": {"id": h["id"], "title": h["title"], "updated": h["updated"]},
@@ -160,7 +152,7 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
         return render_template(
             "index.html", nam=NAM, khoa=kb.meta.get("khoa", "Khoa Công nghệ Thông tin"),
             truong=kb.meta.get("truong", ""), goi_y=GOI_Y, lien_he=kb.lien_he(),
-            hom_nay=dt.date.today().strftime("%d/%m/%Y"), tau=tau_mac_dinh, ten_mo_hinh=clf.name,
+            hom_nay=dt.date.today().strftime("%d/%m/%Y"),
             mon=[(m, TEN_MON[m]) for m in MON], mon_hb2=[(m, TEN_MON[m]) for m in MON_HB2],
             so_thich=[(k, TEN_SO_THICH[k]) for k in SO_THICH], dinh_huong=[(k, TEN_DINH_HUONG[k]) for k in DINH_HUONG],
             nganh=[(c, m["ten"]) for c, m in kb.majors.items() if tu_ma_kb(c)],
@@ -173,9 +165,8 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
         text = str(body.get("message") or "").strip()[:1000]
         if not text:
             return jsonify(error="Câu hỏi trống"), 400
-        _, h, debug, tau = tham_so_chung(body)
+        h = hoi_thoai_cua(body)
         with engine_lock:
-            engine.debug, engine.threshold = debug, tau
             reply = engine.respond(text, h["state"])
         return jsonify(them(h, text, reply))
 
@@ -183,7 +174,7 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
     def tu_van():
         """Biểu mẫu Chức năng 2: suy diễn tiến (gợi ý ngành) + suy diễn lùi (nếu chọn ngành cần kiểm tra)."""
         body = request.get_json(silent=True) or {}
-        _, h, debug, _ = tham_so_chung(body)
+        h = hoi_thoai_cua(body)
         try:
             pt = body.get("phuong_thuc")
             if pt not in ("THPT", "DGNL"):
@@ -207,20 +198,19 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
             return jsonify(error=str(exc)), 400
         nganh = body.get("kiem_tra_nganh") or ""
         with engine_lock:
-            engine.debug = debug
             replies = [engine.advise(user)]
             if nganh in kb.majors and tu_ma_kb(nganh):
                 replies.append(engine.check_eligibility(nganh, user))
-        out = [them(h, "[Biểu mẫu] Tư vấn chọn ngành", replies[0])]
+        out = [them(h, "Tư vấn chọn ngành cho mình", replies[0])]
         if len(replies) > 1:
-            out.append(them(h, f"[Biểu mẫu] Kiểm tra đủ điều kiện ngành {kb.major_name(nganh)}", replies[1]))
+            out.append(them(h, f"Mình có đủ điều kiện xét tuyển ngành {kb.major_name(nganh)} không?", replies[1]))
         return jsonify(out)
 
     @app.post("/api/lo-trinh")
     def lo_trinh():
         """Biểu mẫu Chức năng 1: lập lộ trình (bộ điều phối tự chọn A* / nhánh cận)."""
         body = request.get_json(silent=True) or {}
-        _, h, debug, _ = tham_so_chung(body)
+        h = hoi_thoai_cua(body)
         try:
             ky = int(body.get("hoc_ky") or 1)
         except (TypeError, ValueError):
@@ -228,9 +218,8 @@ def create_app(classifier=None, log_dir: Path = LOG_DIR) -> Flask:
         da_dat = {str(m) for m in body.get("da_dat") or []}
         rot = {str(m) for m in body.get("rot") or []}
         with engine_lock:
-            engine.debug = debug
             reply = engine.make_plan(da_dat=da_dat, rot=rot, ky=ky, hoc_vuot=bool(body.get("hoc_vuot")))
-        return jsonify(them(h, f"[Biểu mẫu] Lập lộ trình học từ học kỳ {ky}", reply))
+        return jsonify(them(h, f"Lập lộ trình học cho mình từ học kỳ {ky}", reply))
 
     @app.get("/api/hoi-thoai")
     def ds_hoi_thoai():

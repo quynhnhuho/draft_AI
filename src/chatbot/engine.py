@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import json
+import re
 import time
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from ..advisor import tu_van as c2
 from ..advisor.tham_so import TEN_MON, nguon_trich_dan, ten_nganh, tu_ma_kb
 from ..nlu.preprocess import normalize
 from ..planner import dieu_phoi
-from ..planner.model import (GIA_DINH, MAX_TC_BINH_THUONG, MAX_TC_HOC_VUOT, NAM_AP_DUNG, NGUON_CTDT,
+from ..planner.model import (MAX_TC_BINH_THUONG, MAX_TC_HOC_VUOT, NAM_AP_DUNG, NGUON_CTDT,
                              doc_du_lieu, hk1_co_dinh, kiem_tra_dau_vao, tao_bai_toan, ten_hoc_ky)
 from . import flows
 from .entities import DINH_HUONG, SO_THICH, TEN_DINH_HUONG, TEN_SO_THICH, Entities, _find_majors, extract
@@ -65,6 +66,26 @@ RULE_CUES_RO = {
 }
 COMPARE_CUES = ("khác", "so sánh", "giống", "khác biệt")
 
+# CÂU HỎI NHIỀU Ý (vd: "học phí và học bổng ngành CNTT"): mô hình C3 chỉ chọn MỘT ý định (softmax), ý thứ hai
+# gần như luôn ~0 nên không dùng top-k được. Cách làm: tách câu thành các vế tại liên từ/dấu câu, cho MÔ HÌNH
+# phân loại từng vế (cùng ngưỡng τ, cùng luật bổ trợ như câu thường); nếu được ≥ 2 ý định tra cứu KHÁC nhau
+# thì trả lời lần lượt từng ý. Ngành, năm lấy từ cả câu. Không áp dụng cho luồng kiểm tra điều kiện
+# ("Toán 8 và Lý 7…"), câu so sánh ngành và câu bị chặn ngoài phạm vi.
+TACH_VE = re.compile(r"\s*(?:[,;?!\n]|\b(?:và|với|cùng với|còn|kèm|thêm)\b)\s*", re.IGNORECASE)
+TOI_DA_Y = 3
+# Từ khóa chủ đề của từng vế: vế ngắn ("học phí", "học bổng ngành CNTT") mô hình thường chưa đạt τ, nên vế
+# được nhận khi mô hình đủ tự tin HOẶC vế chứa từ khóa của đúng MỘT chủ đề tra cứu.
+VE_CUES = {
+    "diem_chuan": ("điểm chuẩn", "điểm trúng tuyển"),
+    "to_hop_xet_tuyen": ("tổ hợp", "khối thi", "phương thức xét tuyển"),
+    "hoc_phi": ("học phí", "sinh hoạt phí", "mức thu"),
+    "hoc_bong": ("học bổng",),
+    "ky_tuc_xa": ("ký túc xá", "chỗ ở"),
+    "chuong_trinh_dao_tao": ("chương trình đào tạo", "tín chỉ", "học những môn", "học môn gì"),
+    "viec_lam": ("việc làm", "ra trường làm", "cơ hội nghề", "xin việc"),
+    "thu_tuc_nhap_hoc": ("nhập học", "thủ tục"),
+}
+
 
 class ChatEngine:
     def __init__(self, kb: KnowledgeBase, classifier, threshold: float = 0.6, log_dir: Path = LOG_DIR):
@@ -72,7 +93,6 @@ class ChatEngine:
         self.classifier = classifier
         self.threshold = threshold
         self.log_dir = log_dir
-        self.debug = False
         try:
             self.courses = doc_du_lieu()
             self.hk1 = hk1_co_dinh(self.courses)
@@ -84,7 +104,7 @@ class ChatEngine:
         state.turns += 1
         text = text.strip()
         if not text:
-            return BotReply("Em hãy nhập câu hỏi nhé.")
+            return BotReply("Bạn hãy nhập câu hỏi nhé.")
 
         if state.active_flow:
             reply = flows.continue_flow(text, state, self)
@@ -103,8 +123,11 @@ class ChatEngine:
             intent, nguon = None, "chan_pham_vi"
             reply = self.handoff(text, pred, reason=ngoai[1], code=ngoai[0])
         else:
+            nhieu = None
             if e.nganh and tu_ma_kb(e.nganh[0]) and any(c in t for c in ELIGIBILITY_RULE):
                 intent, nguon = "tu_van_chon_nganh", "luat_uu_tien"
+            elif (nhieu := self._nhieu_y_dinh(text, t, e, pred)):
+                intent, nguon = nhieu[0], "nhieu_y_dinh"
             elif pred.confidence < self.threshold:
                 intent, nguon = self._rule_intent(t, pred), "luat_bo_tro"
             if intent is None:
@@ -113,13 +136,56 @@ class ChatEngine:
             else:
                 if e.nganh:
                     state.last_major = e.nganh[0]
-                reply = self._route(intent, text, e, state)
+                reply = (self.answer_many(nhieu, text, e, state) if nhieu
+                         else self._route(intent, text, e, state))
 
         reply.intent = reply.intent or intent
         reply.confidence, reply.top_k = pred.confidence, pred.top_k
         reply.debug = {**dbg, "nguon_y_dinh": nguon, "y_dinh_mo_hinh": pred.intent,
                        "thoi_gian_ms": round((time.perf_counter() - t0) * 1000, 1), **reply.debug}
         return reply
+
+    def _nhieu_y_dinh(self, text: str, t: str, e: Entities, pred) -> list[str] | None:
+        """Các ý định tra cứu (theo thứ tự xuất hiện) nếu câu hỏi gộp ≥ 2 ý; None nếu là câu một ý."""
+        if pred.intent in ("tu_van_chon_nganh", "lo_trinh_hoc_tap") and pred.confidence >= self.threshold:
+            return None                                    # câu mở luồng hỏi thêm: giữ nguyên cách cũ
+        if len(e.nganh) >= 2 and any(c in t for c in COMPARE_CUES):
+            return None                                    # so sánh ngành: "CNTT và Sư phạm Tin khác gì"
+        ve = [v for v in TACH_VE.split(text) if v and len(normalize(v).split()) >= 2]
+        if len(ve) < 2:
+            return None
+        ds: list[str] = []
+        for v in ve:
+            y = self._y_dinh_ve(v)
+            if y in KB_INTENTS and y not in ds:
+                ds.append(y)
+        return ds[:TOI_DA_Y] if len(ds) >= 2 else None
+
+    def _y_dinh_ve(self, v: str) -> str | None:
+        """Ý định của một vế: mô hình (≥ τ) → từ khóa của đúng một chủ đề → luật bổ trợ như câu thường."""
+        p = self.classifier.predict(v)
+        if p.confidence >= self.threshold:
+            return p.intent
+        nv = normalize(v)
+        khop = [y for y, cues in VE_CUES.items() if any(c in nv for c in cues)]
+        if len(khop) == 1:
+            return khop[0]
+        return self._rule_intent(nv, p)
+
+    def answer_many(self, intents: list[str], text: str, e: Entities, state: DialogueState) -> BotReply:
+        """Trả lời lần lượt từng ý; mỗi ý có tiêu đề và dòng nguồn riêng."""
+        phan, nguon = [], []
+        for y in intents:
+            nganh = e.nganh[0] if e.nganh else state.last_major
+            if not self.kb.query(y, nganh, e.nam).facts:
+                phan.append(f"**{KB_INTENTS[y].capitalize()}**\n\nHiện mình chưa có dữ liệu về {KB_INTENTS[y]}"
+                            + (f" ngành {self.kb.major_name(nganh)}" if nganh else "") + ".")
+                continue
+            r = self.answer_from_kb(y, text, e, state)
+            phan.append(f"**{KB_INTENTS[y].capitalize()}**\n\n{r.text}")
+            nguon += r.sources
+        return BotReply("\n\n".join(phan), intent=intents[0], sources=nguon,
+                        debug={"cac_y_dinh": intents})
 
     @staticmethod
     def _rule_intent(t: str, pred) -> str | None:
@@ -140,8 +206,8 @@ class ChatEngine:
                  f"{self.kb.majors[c]['mo_ta']} {self.kb.majors[c].get('khac_biet', '')}" for c in codes]
         return BotReply("\n\n".join(parts) + f"\n\nNguồn: mô tả ngành trong cơ sở tri thức của "
                         f"{self.kb.meta.get('khoa', 'Khoa')} (phiên bản {self.kb.meta.get('phien_ban', '?')}) "
-                        "– cần đối chiếu chương trình đào tạo chính thức."
-                        "\n\nNếu em muốn mình **tư vấn chọn ngành theo điểm và sở thích**, gõ "
+                        "– nên đối chiếu thêm chương trình đào tạo chính thức."
+                        "\n\nNếu bạn muốn mình **tư vấn chọn ngành theo điểm và sở thích**, hãy gõ "
                         "\"tư vấn chọn ngành\".", intent="chuong_trinh_dao_tao")
 
     def _route(self, intent: str, text: str, e: Entities, state: DialogueState) -> BotReply:
@@ -163,14 +229,14 @@ class ChatEngine:
     def greet(self, text: str) -> BotReply:
         t = normalize(text)
         if any(w in t for w in ("cảm ơn", "cám ơn", "thanks")):
-            return BotReply("Không có gì ạ! Chúc em một mùa tuyển sinh thật thành công!")
+            return BotReply("Không có gì đâu! Chúc bạn một mùa tuyển sinh thật thành công!")
         if any(w in t for w in ("tạm biệt", "bye")):
-            return BotReply("Tạm biệt em, hẹn gặp lại!")
+            return BotReply("Tạm biệt bạn, hẹn gặp lại!")
         return BotReply(
-            f"Chào em! Mình là trợ lý tư vấn tuyển sinh của {self.kb.meta.get('khoa', 'Khoa CNTT')}. Mình có thể:\n"
+            f"Chào bạn! Mình là trợ lý tư vấn tuyển sinh của {self.kb.meta.get('khoa', 'Khoa CNTT')}. Mình có thể:\n"
             "- Trả lời về **điểm chuẩn, tổ hợp xét tuyển, học phí, học bổng, ký túc xá, chương trình đào tạo, "
             "việc làm, thủ tục nhập học**\n"
-            "- **Tư vấn chọn ngành** (CNTT, Sư phạm Tin học, Công nghệ giáo dục) và kiểm tra em có "
+            "- **Tư vấn chọn ngành** (CNTT, Sư phạm Tin học, Công nghệ giáo dục) và kiểm tra bạn có "
             "**đủ điều kiện xét tuyển** không\n"
             "- Gợi ý **lộ trình đăng ký học phần** để ra trường đúng hạn")
 
@@ -209,7 +275,7 @@ class ChatEngine:
                         code])
         msg = reason or "Câu hỏi này nằm ngoài phạm vi mình chắc chắn trả lời được."
         return BotReply(f"{msg} Mình đã **chuyển câu hỏi đến cán bộ tư vấn** của Khoa. "
-                        f"Em có thể liên hệ trực tiếp:\n\n{self.kb.contact_text()}",
+                        f"Bạn có thể liên hệ trực tiếp:\n\n{self.kb.contact_text()}",
                         intent="chuyen_can_bo", handoff=True)
 
     @staticmethod
@@ -235,7 +301,7 @@ class ChatEngine:
 
     def advise(self, user: dict) -> BotReply:
         kq = c2.tu_van(user)
-        text = f"Thông tin của em: {self._user_summary(user)}.\n\n" + c2.markdown_tu_van(kq, vet=self.debug)
+        text = f"Thông tin bạn đã nhập: {self._user_summary(user)}.\n\n" + c2.markdown_tu_van(kq)
         return BotReply(text, intent="tu_van_chon_nganh", sources=[nguon_trich_dan()],
                         debug={"goi_y": [(g.nganh, g.muc, g.diem_phu_hop) for g in kq.goi_y],
                                "so_luat_kich_hoat": len(kq.forward.fired) if kq.forward else 0})
@@ -243,8 +309,8 @@ class ChatEngine:
     def check_eligibility(self, nganh_kb: str, user: dict) -> BotReply:
         x = tu_ma_kb(nganh_kb) or nganh_kb
         kq = c2.kiem_tra_dieu_kien(user, x)
-        text = (f"Câu hỏi: em có đủ điều kiện xét tuyển ngành **{ten_nganh(x)}** không?  \n"
-                f"Thông tin: {self._user_summary(user)}.\n\n" + c2.markdown_kiem_tra(kq, vet=self.debug))
+        text = (f"**Kiểm tra điều kiện xét tuyển ngành {ten_nganh(x)}**  \n"
+                f"Thông tin bạn đã nhập: {self._user_summary(user)}.\n\n" + c2.markdown_kiem_tra(kq))
         return BotReply(text, intent="tu_van_chon_nganh", sources=[nguon_trich_dan()],
                         debug={"ket_luan": kq.ket_luan, "can_hoi": kq.can_hoi})
 
@@ -269,39 +335,35 @@ class ChatEngine:
             return BotReply("Chưa có dữ liệu học phần (`data/hoc_phan.csv`).", intent=intent)
         loi = kiem_tra_dau_vao(self.courses, set(da_dat), set(rot), ky)
         if loi:
-            return BotReply("Thông tin em cung cấp chưa hợp lệ:\n" + "\n".join(f"- {x}" for x in loi) +
-                            "\n\nEm kiểm tra lại rồi gõ **\"lộ trình học\"** để nhập lại nhé.", intent=intent)
+            return BotReply("Thông tin bạn nhập chưa hợp lệ:\n" + "\n".join(f"- {x}" for x in loi) +
+                            "\n\nBạn kiểm tra lại rồi gõ **\"lộ trình học\"** để nhập lại nhé.", intent=intent)
         bt = tao_bai_toan(self.courses, set(da_dat), set(rot), ky, hoc_vuot)
         max_tc = MAX_TC_HOC_VUOT if hoc_vuot else MAX_TC_BINH_THUONG
-        info = (f"Bắt đầu từ **{ten_hoc_ky(ky)}** · tối đa **{max_tc} TC/kỳ**"
+        info = (f"Bắt đầu từ **{ten_hoc_ky(ky)}** · tối đa **{max_tc} tín chỉ/kỳ**"
                 f"{' (học vượt)' if hoc_vuot else ''} · đã đạt {len(da_dat)} học phần"
-                f"{f' · rớt {len(rot)} học phần' if rot else ''} · còn **{bt.tin_chi_con_lai(bt.trang_thai_dau())} TC**.")
+                f"{f' · rớt {len(rot)} học phần' if rot else ''} · còn **{bt.tin_chi_con_lai(bt.trang_thai_dau())} tín chỉ**.")
         kq_dp = dieu_phoi.lap_lo_trinh(bt)
         kq = kq_dp.ket_qua
         if kq.lo_trinh is None:
-            return BotReply(f"{info}\n\nMình chưa tìm được lộ trình phù hợp. Em nên gặp cố vấn học tập để được hỗ trợ.",
+            return BotReply(f"{info}\n\nMình chưa tìm được lộ trình phù hợp. Bạn nên gặp cố vấn học tập để được hỗ trợ.",
                             intent=intent)
         if not kq.lo_trinh:
-            return BotReply(f"{info}\n\nEm đã hoàn thành toàn bộ học phần mục tiêu!", intent=intent)
+            return BotReply(f"{info}\n\nBạn đã hoàn thành toàn bộ học phần mục tiêu!", intent=intent)
 
-        rows = ["| Học kỳ | Học phần | TC |", "|---|---|---|"]
+        rows = ["| Học kỳ | Học phần | Tín chỉ |", "|---|---|---|"]
         for hk, tap in kq.lo_trinh:
             mon = "; ".join(f"{m} – {self.courses[m].ten}" + (" *(học lại)*" if m in bt.hoc_phan_rot else "")
                               for m in sorted(tap, key=lambda x: self.courses[x].stt)) or "*(chờ kỳ sau)*"
             nhan = " (Trường xếp)" if hk in bt.truong_xep else ""
             rows.append(f"| {ten_hoc_ky(hk)}{nhan} | {mon} | {sum(self.courses[m].tin_chi for m in tap)} |")
         ket_luan = ("Đây là lộ trình **ít học kỳ nhất** để hoàn thành chương trình." if kq.toi_uu else
-                    "Lưu ý: bài toán lớn nên hệ thống trả về lộ trình tốt nhất tìm được trong thời gian cho phép; "
-                    "có thể chưa phải ít học kỳ nhất. Em nên trao đổi thêm với cố vấn học tập.")
+                    "Đây là lộ trình tốt nhất mình tìm được trong thời gian cho phép, có thể chưa phải ít học kỳ "
+                    "nhất. Bạn nên trao đổi thêm với cố vấn học tập.")
         text = (f"{info}\n\n**Lộ trình đề xuất: {kq.so_ky} học kỳ** "
                 f"(đến hết {ten_hoc_ky(kq.lo_trinh[-1][0])})\n\n" + "\n".join(rows) + f"\n\n{ket_luan}"
-                f"\n\nNguồn: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}"
-                "\n\n**Giả định:**\n" + "\n".join(f"- {g}" for g in GIA_DINH))
-        if self.debug:
-            dong = [f"Bộ giải: **{kq.thuat_toan}** · {kq.so_nut_mo_rong} nút mở rộng · {kq.so_nut_sinh} nút sinh · "
-                    f"{kq.thoi_gian_ms:.1f} ms"]
-            dong += kq_dp.ghi_chu
-            text +="\n\nChi tiết: " + "  \n".join(dong)
+                f"\n\nNguồn: {NGUON_CTDT} – năm áp dụng {NAM_AP_DUNG}")
+        # Các giả định của mô hình C1 (GIA_DINH trong src/planner/model.py) được trình bày trong tài liệu,
+        # không in ra cho người dùng.
         return BotReply(text, intent=intent, sources=[{"nguon": NGUON_CTDT, "nam": NAM_AP_DUNG}],
                         debug={"thuat_toan": kq.thuat_toan, "so_ky": kq.so_ky})
 

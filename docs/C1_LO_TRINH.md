@@ -18,7 +18,7 @@ Kết nối với chatbot (file của Chức năng 4, phần dành cho Chức n�
 
 | File | Phần của Chức năng 1 |
 |---|---|
-| `src/chatbot/engine.py` | `make_plan()`: kiểm tra dữ liệu nhập, gọi `dieu_phoi.lap_lo_trinh()`, in bảng lộ trình + nguồn + giả định |
+| `src/chatbot/engine.py` | `make_plan()`: kiểm tra dữ liệu nhập, gọi `dieu_phoi.lap_lo_trinh()`, in bảng lộ trình + nguồn (giả định không in ra cho người dùng, xem mục 2) |
 | `src/chatbot/flows.py` | Luồng hỏi `lo_trinh`: học kỳ sắp đăng ký → học phần đã đạt → bị rớt → có học vượt |
 | `src/chatbot/entities.py` | Nhận học phần theo mã hoặc tên, hiểu "hk1" |
 | `app.py`, `templates/index.html` | Biểu mẫu "Lập lộ trình đăng ký học phần" ở thanh bên web (`/api/lo-trinh`) |
@@ -32,7 +32,7 @@ commit `dieu_phoi.py`.
 **Nguồn:** Danh mục học phần trích từ chương trình đào tạo ban hành kèm theo Quyết định số
 2619/QĐ-ĐHSP ngày 04/09/2024 của Hiệu trưởng Trường Đại học Sư phạm Thành phố Hồ Chí Minh.
 
-Giả định nhóm thống nhất (`model.GIA_DINH`, chatbot hiển thị kèm mỗi lộ trình):
+Giả định nhóm thống nhất (`model.GIA_DINH`). Các giả định này được **trình bày trong tài liệu/báo cáo**, chatbot không in kèm mỗi lộ trình để câu trả lời gọn, dễ đọc cho thí sinh:
 
 1. **Không có học kỳ hè**: mỗi năm 2 học kỳ; học kỳ lẻ là HK1, học kỳ chẵn là HK2 của năm học.
 2. **HK1 do Trường xếp cố định**: 7 học phần đầu tiên trong `hoc_phan.csv` (18 TC).
@@ -84,7 +84,7 @@ trong repo để giảng viên kiểm tra và để so sánh 3 thuật toán tro
 "Em rớt 2 môn thì nên đăng ký học phần nào?"
   → ý định lo_trinh_hoc_tap  → flows.py hỏi: học kỳ → đã đạt → rớt → học vượt
   → engine.make_plan()       → kiểm tra dữ liệu nhập → dieu_phoi.lap_lo_trinh()
-  → bảng lộ trình theo học kỳ (môn học lại, kỳ Trường xếp) + nguồn QĐ 2619 + giả định
+  → bảng lộ trình theo học kỳ (môn học lại, kỳ Trường xếp) + nguồn QĐ 2619
 ```
 
 Cũng có thể lập lộ trình bằng biểu mẫu "Lập lộ trình đăng ký học phần" ở thanh bên của web (`python app.py`).
