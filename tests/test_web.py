@@ -38,6 +38,11 @@ def test_trang_chu_theo_figma(client):
     for s in ["Chế độ kiểm tra", 'id="debug"', 'id="tau"', "Ngưỡng τ", "suy diễn"]:   # không còn chế độ kiểm tra
         assert s not in html
     assert html.count("data-close") == 2 and html.count('class="dialog-foot"') == 2      # nút × và chân hộp thoại
+    # liên hệ là footer (2 thẻ) ở cuối trang, không nằm trong thanh bên; điện thoại / email bấm được
+    aside, footer = html[html.index("<aside"):html.index("</aside>")], html[html.index('<footer class="app-footer"'):]
+    assert "LIÊN HỆ KHOA CNTT" not in aside and "spacer" not in aside
+    assert footer.count('class="contact-card"') == 2 and "LIÊN HỆ KHOA CNTT" in footer
+    assert 'href="mailto:khoacntt@hcmue.edu.vn"' in footer and 'href="tel:02838355077"' in footer
 
 
 def test_favicon_la_logo_khoa(client):
