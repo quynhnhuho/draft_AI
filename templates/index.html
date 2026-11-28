@@ -57,6 +57,32 @@
       </div>
     </section>
 
+    <section class="side-contact" aria-label="Thông tin liên hệ">
+      <p class="section-label">LIÊN HỆ</p>
+      {% for ten, dong in lien_he %}{% set d = dict(dong) %}
+      <div class="unit">
+        <div class="unit-head">
+          <p class="unit-name" title="{{ ten }}">{{ 'Khoa Công nghệ Thông tin' if loop.first else 'Tư vấn tuyển sinh – Trường' }}</p>
+          <span class="unit-links">
+            {%- if d.get('Website') %}
+            <a class="icon-link" href="{{ d['Website'] if d['Website'].startswith('http') else 'https://' ~ d['Website'] }}" target="_blank" rel="noopener" title="Website: {{ d['Website'] }}" aria-label="Website {{ d['Website'] }}"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9s1.3-6.3 3.8-9z" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+            {%- endif %}
+            {%- if d.get('Địa chỉ') %}
+            <a class="icon-link" href="https://www.google.com/maps/search/?api=1&amp;query={{ d['Địa chỉ'] | urlencode }}" target="_blank" rel="noopener" title="Địa chỉ: {{ d['Địa chỉ'] }}" aria-label="Địa chỉ: {{ d['Địa chỉ'] }}"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+            {%- endif %}
+          </span>
+        </div>
+        {%- if d.get('Điện thoại') %}
+        <a class="unit-row" href="tel:{{ d['Điện thoại'].split(' - ')[0] | replace(' ', '') }}" title="Gọi {{ d['Điện thoại'] }}"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>{{ d['Điện thoại'] | replace(' - Ext: ', ' · máy lẻ ') }}</span></a>
+        {%- endif %}
+        {%- if d.get('Email') %}
+        <a class="unit-row" href="mailto:{{ d['Email'] }}" title="Gửi email {{ d['Email'] }}"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 7l9 6 9-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>{{ d['Email'] }}</span></a>
+        {%- endif %}
+      </div>
+      {% else %}
+      <p class="empty-note">Đang cập nhật kênh liên hệ chính thức của Khoa.</p>
+      {% endfor %}
+    </section>
   </aside>
 
   <main class="chat" id="chat">
@@ -106,28 +132,6 @@
     </div>
   </main>
 </div>
-
-<footer class="app-footer" aria-label="Thông tin liên hệ">
-  {% for ten, dong in lien_he %}
-  <section class="contact-card" title="{{ ten }}">
-    <p class="contact-head">{{ 'LIÊN HỆ KHOA CNTT' if loop.first else 'TƯ VẤN TUYỂN SINH – TRƯỜNG' }}</p>
-    <p class="contact-line">
-      {%- for nhan, gia_tri in dong %}
-      <span class="contact-item ci-{{ {'Địa chỉ': 'dia-chi', 'Điện thoại': 'dien-thoai', 'Email': 'email', 'Website': 'website', 'Fanpage': 'fanpage'}.get(nhan, 'khac') }}">
-        <span class="sr-only">{{ nhan }}: </span>
-        {%- if nhan == 'Email' -%}<a href="mailto:{{ gia_tri }}">{{ gia_tri }}</a>
-        {%- elif nhan == 'Điện thoại' -%}<a href="tel:{{ gia_tri.split(' - ')[0] | replace(' ', '') }}">{{ gia_tri }}</a>
-        {%- elif nhan in ('Website', 'Fanpage') -%}<a href="{{ gia_tri if gia_tri.startswith('http') else 'https://' ~ gia_tri }}" target="_blank" rel="noopener">{{ gia_tri }}</a>
-        {%- else -%}{{ gia_tri }}{%- endif -%}
-      </span>
-      {%- endfor %}
-    </p>
-  </section>
-  {% else %}
-  <section class="contact-card"><p class="contact-head">LIÊN HỆ KHOA CNTT</p>
-    <p class="contact-line">Đang cập nhật kênh liên hệ chính thức của Khoa.</p></section>
-  {% endfor %}
-</footer>
 
 <dialog id="dlg-tu-van" class="dialog" aria-labelledby="tv-title">
   <form method="dialog" class="dialog-form" id="form-tu-van">
