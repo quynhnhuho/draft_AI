@@ -51,7 +51,10 @@ ELIGIBILITY_RULE = ("đủ điều kiện vào", "đủ điều kiện xét tuy�
 #   câu ngoài phạm vi: 0 câu bị trả lời nhầm (câu về ngành khác đã bị pham_vi.py chặn trước).
 RULE_CUES = {
     "tu_van_chon_nganh": ("nên chọn ngành", "chọn ngành nào", "ngành nào phù hợp", "nên học ngành nào",
-                          "tư vấn chọn ngành", "tư vấn ngành", "phân vân giữa"),
+                          "tư vấn chọn ngành", "tư vấn ngành", "phân vân giữa",
+                          # bổ sung: "thích dạy học và lập trình thì chọn ngành gì", "thích làm game thì học ngành nào"
+                          "chọn ngành gì", "học ngành gì", "học ngành nào", "theo ngành nào", "theo ngành gì",
+                          "hợp ngành nào", "hợp với ngành nào", "ngành gì phù hợp", "ngành nào hợp"),
     "lo_trinh_hoc_tap": ("lộ trình", "đăng ký học phần", "học vượt", "ra trường đúng hạn", "kế hoạch học tập",
                          "học phần nào", "đăng ký môn", "học lại", "rớt môn", "nợ môn"),
     "hoc_phi": ("học phí", "sinh hoạt phí", "hỗ trợ học phí", "miễn học phí", "đóng tiền học", "mức thu"),
@@ -63,6 +66,9 @@ RULE_CUES = {
 # top-3 (mô hình chưa từng gặp các câu này trong dữ liệu huấn luyện).
 RULE_CUES_RO = {
     "hoc_phi": ("sinh hoạt phí", "nghị định 116", "hỗ trợ học phí", "miễn học phí"),
+    # câu hỏi chọn ngành nêu rõ: nhận cả khi mô hình không xếp tu_van_chon_nganh vào top-3
+    # (vd "em mê game, học ngành nào" – dữ liệu huấn luyện chưa có câu về game)
+    "tu_van_chon_nganh": ("chọn ngành gì", "chọn ngành nào", "học ngành gì", "học ngành nào"),
 }
 COMPARE_CUES = ("khác", "so sánh", "giống", "khác biệt")
 

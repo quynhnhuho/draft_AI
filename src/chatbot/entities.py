@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 from ..nlu.preprocess import normalize
 
 SO_THICH = {
-    "thich_lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web"],
+    "thich_lap_trinh": ["lập trình", "code", "viết code", "phần mềm", "làm app", "web",
+                        "game", "làm game", "lập trình game", "phát triển game"],
     "thich_du_lieu": ["dữ liệu", "data", "trí tuệ nhân tạo", "học máy", "phân tích dữ liệu"],
     "thich_thiet_ke_hoc_lieu": ["thiết kế học liệu", "học liệu", "bài giảng điện tử", "thiết kế bài giảng",
                                 "e learning", "elearning"],

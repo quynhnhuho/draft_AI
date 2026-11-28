@@ -217,7 +217,18 @@ def start_flow(flow: str, text: str, e: Entities, state: DialogueState, engine: 
     state.active_flow = flow
     state.slots.update(extra or {})
     _prefill(flow, state.slots, e, text)
-    return _ask_or_finish(state, engine)
+    so_thich = list(state.slots.get("so_thich") or []) if flow == "tu_van_nganh" else []
+    reply = _ask_or_finish(state, engine)
+    if so_thich and state.active_flow == "tu_van_nganh":      # còn hỏi tiếp → trả lời trước phần sở thích
+        from ..advisor.tu_van import markdown_so_thich
+        from .entities import TEN_SO_THICH
+        dau = markdown_so_thich({k: True for k in so_thich}, [TEN_SO_THICH[k] for k in so_thich])
+        if "game" in normalize(text):
+            dau += "\n\n_Làm game (lập trình game) thuộc nhóm sở thích lập trình._"
+        if dau:
+            reply.text = (f"{dau}\n\nĐể biết bạn có **đủ điều kiện xét tuyển** và khả năng trúng tuyển, "
+                          f"mình hỏi thêm vài thông tin nhé.\n\n{reply.text}")
+    return reply
 
 
 def continue_flow(text: str, state: DialogueState, engine: "ChatEngine") -> BotReply:

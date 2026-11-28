@@ -123,6 +123,26 @@ def test_mo_hinh_tra_loi_cau_hoi_nhieu_y(tmp_path, text, ky_vong):
     assert r.debug["cac_y_dinh"] == ky_vong and not r.handoff
 
 
+@co_mo_hinh
+@pytest.mark.parametrize("text,nganh_dau", [
+    ("thích dạy học và lập trình thì chọn ngành gì", "Sư phạm Tin học"),
+    ("thích làm game thì chọn ngành gì", "Công nghệ thông tin"),
+    ("em mê game, học ngành nào", "Công nghệ thông tin"),
+    ("thích thiết kế bài giảng và lập trình thì học ngành nào", "Công nghệ giáo dục"),
+])
+def test_hoi_chon_nganh_theo_so_thich(tmp_path, text, nganh_dau):
+    """Bổ sung luật: câu chọn ngành theo sở thích không bị chuyển cán bộ; trả lời ngay ngành hợp sở thích
+    (luật R19–R24 của C2) rồi mới hỏi điểm."""
+    pytest.importorskip("tensorflow")
+    pytest.importorskip("underthesea")
+    clf = load_classifier(MODELS, backend="keras")
+    eng = ChatEngine(KnowledgeBase(), clf, load_threshold(MODELS, classifier=clf), log_dir=tmp_path)
+    s = DialogueState()
+    r = eng.respond(text, s)
+    assert not r.handoff and s.active_flow == "tu_van_nganh"
+    assert r.text.index(f"**{nganh_dau}**") < r.text.index("phương thức")
+
+
 def test_khong_co_mo_hinh_thi_dung_tu_khoa(tmp_path):
     clf = load_classifier(tmp_path)
     assert isinstance(clf, KeywordClassifier) and load_threshold(tmp_path, classifier=clf) == 0.5
