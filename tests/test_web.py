@@ -28,8 +28,8 @@ def _chat(c, text, cid=None, client_id="test"):
 def test_trang_chu_theo_figma(client):
     html = client.get("/").get_data(as_text=True)
     for s in ["HCMUE FIT Chat", "Trợ lý Tuyển sinh Khoa CNTT", "Cuộc hội thoại mới", "GẦN ĐÂY",
-              "CÔNG CỤ TƯ VẤN", "LIÊN HỆ KHOA CNTT", "khoacntt@hcmue.edu.vn",
-              "TƯ VẤN TUYỂN SINH – TRƯỜNG", "tuvantuyensinh@hcmue.edu.vn", "Gợi ý câu hỏi", "Làm mới hội thoại", "Gửi",
+              "CÔNG CỤ TƯ VẤN", "LIÊN HỆ", "Khoa Công nghệ Thông tin", "khoacntt@hcmue.edu.vn",
+              "Tư vấn tuyển sinh – Trường", "tuvantuyensinh@hcmue.edu.vn", "Gợi ý câu hỏi", "Làm mới hội thoại", "Gửi",
               "logo_hcmue.png", "logo_khoa_cntt.png"]:
         assert s in html
     assert "<script>alert" not in html and "CÂU HỎI THƯỜNG GẶP" not in html
@@ -38,11 +38,12 @@ def test_trang_chu_theo_figma(client):
     for s in ["Chế độ kiểm tra", 'id="debug"', 'id="tau"', "Ngưỡng τ", "suy diễn"]:   # không còn chế độ kiểm tra
         assert s not in html
     assert html.count("data-close") == 2 and html.count('class="dialog-foot"') == 2      # nút × và chân hộp thoại
-    # liên hệ là footer (2 thẻ) ở cuối trang, không nằm trong thanh bên; điện thoại / email bấm được
-    aside, footer = html[html.index("<aside"):html.index("</aside>")], html[html.index('<footer class="app-footer"'):]
-    assert "LIÊN HỆ KHOA CNTT" not in aside and "spacer" not in aside
-    assert footer.count('class="contact-card"') == 2 and "LIÊN HỆ KHOA CNTT" in footer
-    assert 'href="mailto:khoacntt@hcmue.edu.vn"' in footer and 'href="tel:02838355077"' in footer
+    # liên hệ: khối gọn ở đáy thanh bên (không footer); điện thoại / email bấm được, địa chỉ ở biểu tượng bản đồ
+    aside = html[html.index("<aside"):html.index("</aside>")]
+    assert "app-footer" not in html and "spacer" not in aside
+    assert aside.count('class="unit"') == 2 and aside.index("GẦN ĐÂY") < aside.index("LIÊN HỆ")
+    assert 'href="mailto:khoacntt@hcmue.edu.vn"' in aside and 'href="tel:02838355077"' in aside
+    assert 'title="Địa chỉ: Phòng B.507' in aside and "máy lẻ 209, 210" in aside
 
 
 def test_favicon_la_logo_khoa(client):
